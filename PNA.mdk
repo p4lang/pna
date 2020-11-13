@@ -67,12 +67,7 @@ Ethernet ports.  By following the APIs and guidelines here, developers
 will be able to write P4 programs that are portable across multiple
 NIC devices that are conformant to the PNA[^PNAPortability].
 
-[^PNAPortability]: Given the sometimes tight hardware resource
-constraints within such devices, there is no promise that P4 programs
-that are near or over those constraints will be portable across
-multiple NIC devices.  However, it should at least be the case that
-those P4 programs that are able to compile on multiple NIC devices
-should process packets as described in this document.
+[^PNAPortability]: Given the sometimes tight hardware resource constraints within such devices, there is no promise that P4 programs that are near or over those constraints will be portable across multiple NIC devices.  However, it should at least be the case that those P4 programs that are able to compile on multiple NIC devices should process packets as described in this document.
 
 The Portable NIC Architecture (PNA) Model has six programmable P4
 blocks and several fixed-function blocks, as shown in Figure
@@ -118,9 +113,10 @@ also associate additional user-defined metadata with packets.
 
 After that, the two main choices for the next place the packet will go
 are:
-+ proceed to the message processing part of the NIC, and usually then
+
+- proceed to the message processing part of the NIC, and usually then
   to the host memory.
-+ turn around and head back towards the network ports.  This enables
+- turn around and head back towards the network ports.  This enables
   NIC processing of port-to-port packets.
 
 
@@ -129,34 +125,33 @@ are:
 The focus in the current version of this specification is on the five
 P4 programmable blocks mentioned above.  The details of how one can
 use P4 to program the message processing portion of a NIC is left for
-a future version of this specification.  For now, we will simply say
-that while there are options for exactly what packet processing
-functions can be performed in the pre and main blocks, versus the
-message processing block, the division is expected to be along these
-lines:
+a future version of this specification.  While there are options for
+exactly what packet processing functions can be performed in the pre
+and main blocks, versus the message processing block, the division is
+expected to be:
 
-+ pre and main programmable blocks deal solely with individual network
+- pre and main programmable blocks deal solely with individual network
   packets, which are at most one network maximum transmission unit
   (MTU) in size.
-+ message processing is responsible for converting between large
+- message processing is responsible for converting between large
   messages in host memory and network size packets on the network, and
   for dealing with one or more host operating systems, drivers, and/or
   message descriptor formats in host memory.
 
 For example, in its role of converting between large messages and
-network packets in the host to network direction, message processing
+network packets in the host-to-network direction, message processing
 would implement features like large send offload (LSO), TCP
 segmentation offload (TSO), and Remote Direct Memory Access (RDMA)
-over Converged Ethernet (RoCE).  In the network to host direction it
+over Converged Ethernet (RoCE).  In the network-to-host direction it
 would assist in such features as large receive offload (LRO) and RoCE.
 
 In its role of handling different kinds of operating systems, drivers,
 and message descriptor formats, the message processing block may deal
 with one or more of the following standards:
 
-+ VirtIO
-+ SR-IOV
-+ TBD - add more here
+- VirtIO
+- SR-IOV
+- TBD - add more here
 
 Another potential criteria for dividing packet processing
 functionality between message processing and the rest of the NIC is
@@ -169,7 +164,7 @@ control plane software.
 
 ## Packet processing in the host to network direction
 
-Messages originating in the host are broken up into network MTU size
+Messages originating in the host are segmented into network MTU size
 packets (if the host has not already done so) in the message
 processing block, and are then sent to the main block for further
 processing.
@@ -178,11 +173,11 @@ The same main parser, control, and deparser that process packets from
 the network is also used to process packets from the host.  PNA was
 designed this way for two reasons:
 
-+ It is expected that in many cases, the packet processing in both
-  directions will have more similarities than it has differences.
-  Writing common P4 code for both eliminates code duplication that
-  would occur if the code for each direction was written separately.
-+ Having a single main control in the P4 language enables tables and
+- It is expected that in many cases, the packet processing in both
+  directions will have more similarities than differences.  Writing
+  common P4 code for both eliminates code duplication that would occur
+  if the code for each direction was written separately.
+- Having a single main control in the P4 language enables tables and
   externs such as counters and registers to be instantiated once, and
   shared by packets being processed in both directions.  The hardware
   of many NICs enables this, without having to instantiate a
@@ -191,9 +186,8 @@ designed this way for two reasons:
   significantly reduce the memory required.
 
 After finishing processing in the main control, the packet may be
-enqueued in one of several queues (the number of such queues is not
-mandated by this specification).  After that there may be a
-host-to-net inline extern.
+enqueued in one of several queues (the number of such queues is target
+specific).  After that there may be a host-to-net inline extern.
 
 For example, the host-to-net inline extern block may perform
 encryption of packet payloads according to the IPsec protocol.  In
@@ -202,8 +196,9 @@ values to standard metadata fields created for this purpose.
 
 After that, the two main choices for the next place the packet will go
 are:
-+ proceed to one of the network ports
-+ turn around and head back towards the host.  This enables NIC
+
+- proceed to one of the network ports
+- turn around and head back towards the host.  This enables NIC
   processing of VM-to-VM packets in a host with multiple virtual
   machines.
 
