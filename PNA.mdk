@@ -103,7 +103,8 @@ packet, e.g. by decrypting the encrypted part of the packet payload.
 The resulting packet may contain not only the headers that were parsed
 by the pre parser, but also additional headers.  In the case of
 decryption, these headers were encrypted before, and thus could not
-have been parsed by the pre parser.
+have been parsed by the pre parser.  See section [#appendix-reparsing]
+for additional details.
 
 The main parser can now do the full header parsing required for the
 desired data plane features.  The main control makes decisions on
@@ -641,10 +642,61 @@ TBD: Andy can write this one.  Basic reasons are summarized in
 existing slides.
 
 
-## Why a separate programmable blocks for pre-decryption packet processing?
+## Why separate programmable pre blocks for pre-decryption packet processing?
 
 TBD: Andy can write this one.  Basic reasons are summarized in
 existing slides.
+
+
+## Is it inefficient to have the main parser redo work? {#appendix-reparsing}
+
+If the only changes made by the inline extern in the network-to-host
+direction were to decrypt parts of the packet that were previously
+encrypted, but everything before the first decrypted byte remained
+exactly the same, then it seems like it is a waste of effort that the
+main parser starts parsing the packet over again from the beginning.
+
+It is true that an IPsec decryption inline extern is unlikely to
+change an Ethernet header at the beginning of the packet, but it does
+seem likely that it could make the following kinds of changes to parts
+of the packet before the first decrypted byte:
+
+- remove headers.  If the received packet was IPsec tunnel mode, it
+  might be useful if the inline extern removes the outer IP header,
+  since it was added to the packet at the point of IPsec encryption.
+  The software sending the packet (before IPsec encryption occurred)
+  did not create that header, and the corresponding layer of software
+  receiving the decrypted packet does not want to see such
+  IPsec-specific headers.
+- modify headers.  If the received packet was IPsec transport mode, it
+  might be useful if the IP header whose protocol was equal to the
+  standard numbers for AH or ESP was changed to be the next header
+  after the AH and ESP headers are removed by the inline extern.
+  Again, what an IPsec decryption block does might be useful to make
+  similar to what the IPsec layer of software does in a software IP
+  stack.  The layer of software processing the decrypted packet should
+  see what the last layer of software sent before it was encrypted.
+
+If any or all of the above are true of the inline extern block's
+changes to the packet, then it seems that the only way you could save
+the main parser some work is to somehow encode the results of the pre
+parser, and also undo those results for any headers that were modified
+in the inline extern.  Then you would also need the main parser to be
+able to start from one of multiple possible states in the parser state
+machine, and continue from there.
+
+That is all possible to do, but it seems like an awkward thing to
+expose to a P4 developer, e.g. should we require them to write a main
+parser that has a start state that immediately branches one of 7 ways
+based upon some intermediate state the the pre parser reached, as
+modified by the inline extern if it modified or removed some of those
+headers?
+
+A NIC implementation might do such things, and it seems likely an
+implementation might use some of the techniques mentioned in the
+previous paragraph, but hidden from the P4 developer.  The proposed
+PNA design should not prevent this, if an implementer is willing to go
+to that effort.
 
 
 # Appendix: Packet ordering {#appendix-packet-ordering}
