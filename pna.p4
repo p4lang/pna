@@ -50,12 +50,15 @@ limitations under the License.
  * Note that the width of typedef <name>Uint_t will always be the same
  * as the width of type <name>_t. */
 typedef bit<32> PortIdUint_t;
+typedef bit<32> VportIdUint_t;
 typedef bit<32> MulticastGroupUint_t;
 typedef bit<16> CloneSessionIdUint_t;
 typedef bit<8>  ClassOfServiceUint_t;
 typedef bit<16> PacketLengthUint_t;
 typedef bit<16> MulticastInstanceUint_t;
 typedef bit<64> TimestampUint_t;
+
+typedef bit<32> SecurityAssocIdUint_t;
 
 /* Note: clone_spec in BMv2 simple_switch v1model is 32 bits wide, but
  * it is used such that 16 of its bits contain a clone/mirror session
@@ -68,6 +71,8 @@ typedef bit<64> TimestampUint_t;
 
 @p4runtime_translation("p4.org/pna/v1/PortId_t", 32)
 type PortIdUint_t         PortId_t;
+@p4runtime_translation("p4.org/pna/v1/VportId_t", 32)
+type VportIdUint_t        VportId_t;
 @p4runtime_translation("p4.org/pna/v1/MulticastGroup_t", 32)
 type MulticastGroupUint_t MulticastGroup_t;
 @p4runtime_translation("p4.org/pna/v1/CloneSessionId_t", 16)
@@ -80,6 +85,10 @@ type PacketLengthUint_t   PacketLength_t;
 type MulticastInstanceUint_t MulticastInstance_t;
 @p4runtime_translation("p4.org/pna/v1/Timestamp_t", 64)
 type TimestampUint_t      Timestamp_t;
+
+@p4runtime_translation("p4.org/pna/v1/SecurityAssocId_t", 64)
+type SecurityAssocIdUint_t      SecurityAssocId_t;
+
 typedef error   ParserError_t;
 
 const PortId_t PNA_PORT_CPU = (PortId_t) 0xfffffffd;
@@ -106,6 +115,7 @@ const CloneSessionId_t PNA_CLONE_SESSION_TO_CPU = (CloneSessionId_t) 0;
  * Note that the width of typedef <name>Uint_t will always be the same
  * as the width of type <name>_t. */
 typedef bit<unspecified> PortIdUint_t;
+typedef bit<unspecified> VportIdUint_t;
 typedef bit<unspecified> MulticastGroupUint_t;
 typedef bit<unspecified> CloneSessionIdUint_t;
 typedef bit<unspecified> ClassOfServiceUint_t;
@@ -113,8 +123,12 @@ typedef bit<unspecified> PacketLengthUint_t;
 typedef bit<unspecified> MulticastInstanceUint_t;
 typedef bit<unspecified> TimestampUint_t;
 
+typedef bit<unspecified> SecurityAssocIdUint_t;
+
 @p4runtime_translation("p4.org/pna/v1/PortId_t", 32)
 type PortIdUint_t         PortId_t;
+@p4runtime_translation("p4.org/pna/v1/VportId_t", 32)
+type VportIdUint_t         VportId_t;
 @p4runtime_translation("p4.org/pna/v1/MulticastGroup_t", 32)
 type MulticastGroupUint_t MulticastGroup_t;
 @p4runtime_translation("p4.org/pna/v1/CloneSessionId_t", 16)
@@ -127,6 +141,10 @@ type PacketLengthUint_t   PacketLength_t;
 type MulticastInstanceUint_t MulticastInstance_t;
 @p4runtime_translation("p4.org/pna/v1/Timestamp_t", 64)
 type TimestampUint_t      Timestamp_t;
+
+@p4runtime_translation("p4.org/pna/v1/SecurityAssocId_t", 64)
+type SecurityAssocIdUint_t      SecurityAssocId_t;
+
 typedef error   ParserError_t;
 
 const PortId_t PNA_PORT_CPU = (PortId_t) unspecified;
@@ -163,6 +181,7 @@ const CloneSessionId_t PNA_CLONE_SESSION_TO_CPU = (CloneSessiontId_t) unspecifie
 /* See the comments near the definition of PortIdUint_t for why these
  * typedef definitions exist. */
 typedef bit<32> PortIdInHeaderUint_t;
+typedef bit<32> VportIdInHeaderUint_t;
 typedef bit<32> MulticastGroupInHeaderUint_t;
 typedef bit<16> CloneSessionIdInHeaderUint_t;
 typedef bit<8>  ClassOfServiceInHeaderUint_t;
@@ -170,8 +189,12 @@ typedef bit<16> PacketLengthInHeaderUint_t;
 typedef bit<16> MulticastInstanceInHeaderUint_t;
 typedef bit<64> TimestampInHeaderUint_t;
 
+typedef bit<32> SecurityAssocIdInHeaderUint_t;
+
 @p4runtime_translation("p4.org/pna/v1/PortIdInHeader_t", 32)
 type  PortIdInHeaderUint_t         PortIdInHeader_t;
+@p4runtime_translation("p4.org/pna/v1/VportIdInHeader_t", 32)
+type  VportIdInHeaderUint_t         VportIdInHeader_t;
 @p4runtime_translation("p4.org/pna/v1/MulticastGroupInHeader_t", 32)
 type  MulticastGroupInHeaderUint_t MulticastGroupInHeader_t;
 @p4runtime_translation("p4.org/pna/v1/CloneSessionIdInHeader_t", 16)
@@ -184,6 +207,9 @@ type  PacketLengthInHeaderUint_t   PacketLengthInHeader_t;
 type  MulticastInstanceInHeaderUint_t MulticastInstanceInHeader_t;
 @p4runtime_translation("p4.org/pna/v1/TimestampInHeader_t", 64)
 type  TimestampInHeaderUint_t      TimestampInHeader_t;
+
+@p4runtime_translation("p4.org/pna/v1/SecurityAssocIdInHeader_t", 64)
+type  SecurityAssocIdInHeaderUint_t      SecurityAssocIdInHeader_t;
 // END:Type_defns2
 
 /* The _int_to_header functions were written to convert a value of
@@ -267,60 +293,96 @@ enum PNA_PacketPath_t {
     // Possibilities:
     FROM_NET_PORT,
     FROM_NET_LOOPEDBACK,
-    FROM_NET_RECICULATED,
+    FROM_NET_RECIRCULATED,
     FROM_HOST,
     FROM_HOST_LOOPEDBACK,
-    FROM_HOST_RECICULATED
+    FROM_HOST_RECIRCULATED
 }
 
-struct pna_predecrypt_parser_input_metadata_t {
+struct pna_pre_parser_input_metadata_t {
   PortId_t                 input_port;
   PNA_PacketPath_t         packet_path;
 }
 
-struct pna_from_net_to_main_parser_input_metadata_t {
+struct pna_pre_input_metadata_t {
   PortId_t                 input_port;
   PNA_PacketPath_t         packet_path;
+  ParserError_t            parser_error;
 }
 
-struct pna_from_net_to_main_input_metadata_t {
-  // All of these values are initialized by the architecture before
-  // the main control block begins executing.
+struct pna_pre_output_metadata_t {
+  bool                     drop;             // false ?
+}
+
+struct pna_decrypt_input_metadata_t {
+    bool                     decrypt;  // TBD: or use said==0 to mean no decrypt?
+
+    // The following things are stored internally within the decrypt
+    // block, in a table indexed by said:
+
+    // + The decryption algorithm, e.g. AES256, etc.
+    // + The decryption key
+
+    SecurityAssocId_t        said;
+    bit<16>                  decrypt_start_offset;  // in bytes?
+}
+
+struct pna_main_parser_input_metadata_t {
+  // common fields initialized for all packets that are input to main
+  // parser, regardless of direction.
+  PNA_Direction_t          direction;
+  PNA_PacketPath_t         packet_path;
+
+  // input fields to main parser that are only initialized if
+  // direction == NET_TO_HOST
   PortId_t                 input_port;
+
+  // input fields to main parser that are only initialized if
+  // direction == HOST_TO_NET
+  VportId_t                input_vport;
+}
+
+struct pna_main_input_metadata_t {
+  // common fields initialized for all packets that are input to main
+  // parser, regardless of direction.
+  PNA_Direction_t          direction;
   PNA_PacketPath_t         packet_path;
   Timestamp_t              timestamp;
   ParserError_t            parser_error;
+  ClassOfService_t         class_of_service;
+
+  // input fields to main control that are only initialized if
+  // direction == NET_TO_HOST
+  PortId_t                 input_port;
+
+  // input fields to main control that are only initialized if
+  // direction == HOST_TO_NET
+  VportId_t                input_vport;
 }
-// BEGIN:Metadata_from_main_to_host_output
-struct pna_from_main_to_host_output_metadata_t {
-  // The comment after each field specifies its initial value when the
-  // Ingress control block begins executing.
-  bool                     drop;             // TBD
+
+// BEGIN:Metadata_main_output
+struct pna_main_output_metadata_t {
+  // common fields used by the architecture to decide what to do with
+  // the packet next, after the main parser, control, and deparser
+  // have finished executing one pass, regardless of the direction.
+  bool                     drop;             // false ?
+  bool                     recirculate;      // false
+  bool                     loopback;         // false
   ClassOfService_t         class_of_service; // 0
   bool                     clone;            // false
   CloneSessionId_t         clone_session_id; // initial value is undefined
-  bool                     recirculate;      // false
-  PortId_t                 dest_vport;       // initial value is undefined
-}
-// END:Metadata_from_main_to_host_output
-struct pna_from_host_to_main_input_metadata_t {
-  PNA_PacketPath_t         packet_path;
-  ParserError_t            parser_error;
-  PortId_t                 source_vport;
-  Timestamp_t              timestamp;
-  ClassOfService_t         class_of_service;
-}
 
-// BEGIN:Metadata_from_main_to_net_output
-struct pna_from_main_to_net_output_metadata_t {
-  // The comment after each field specifies its initial value when the
-  // Egress control block begins executing.
-  bool                     drop;          // TBD
-  bool                     recirculate;   // false
-  bool                     clone;         // false
-  CloneSessionId_t         clone_session_id; // initial value is undefined
+  // output fields from main control that are only used by PNA device
+  // to decide what to do with the packet next if direction ==
+  // NET_TO_HOST
+  VportId_t                dest_vport;       // initial value is undefined
+
+  // output fields from main control that are only used by PNA device
+  // to decide what to do with the packet next if direction ==
+  // HOST_TO_NET
+  PortId_t                 dest_port;        // initial value is undefined
 }
-// END:Metadata_from_main_to_net_output
+// END:Metadata_main_output
 // END:Metadata_types
 
 // BEGIN:Match_kinds
@@ -535,7 +597,42 @@ extern Digest<T> {
 // END:Digest_extern
 
 // BEGIN:Programmable_blocks
-// TBD these need defining
+parser PreParserT<PH, PM>(
+    packet_in pkt,
+    out PH pre_hdr,
+    out PM pre_user_meta,
+    in  pna_pre_parser_input_metadata_t istd);
+
+control PreControlT<PH, PM>(
+    in    PH pre_hdr,
+    inout PM pre_user_meta,
+    in    pna_pre_input_metadata_t  istd,
+    inout pna_pre_output_metadata_t ostd);
+
+parser MainParserT<MH, MM>(
+    packet_in pkt,
+    out   MH main_hdr,
+    inout MM main_user_meta,
+    in    pna_main_parser_input_metadata_t istd);
+
+control MainControlT<MH, MM>(
+    inout MH main_hdr,
+    inout MM main_user_meta,
+    in    pna_main_input_metadata_t  istd,
+    inout pna_main_output_metadata_t ostd);
+
+control MainDeparserT<MH, MM>(
+    packet_out pkt,
+    in    MH main_hdr,
+    in    MM main_user_meta,
+    in    pna_main_output_metadata_t ostd);
+
+package PNA_NIC<PH, PM, MH, MM>(
+    PreParserT<PH, PM> pre_parser,
+    PreControlT<PH, PM> pre_control,
+    MainParserT<MH, MM> main_parser,
+    MainControlT<MH, MM> main_control,
+    MainDeparserT<MH, MM> main_deparser);
 // END:Programmable_blocks
 
 #endif   // __PNA_P4__
