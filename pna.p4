@@ -278,112 +278,9 @@ TimestampInHeader_t pna_Timestamp_int_to_header (in Timestamp_t x) {
 
 /// Supported range of values for the pna_idle_timeout table properties
 enum PNA_IdleTimeout_t {
-  NO_TIMEOUT,
-  NOTIFY_CONTROL
+    NO_TIMEOUT,
+    NOTIFY_CONTROL
 };
-
-enum bit<1> PNA_Direction_t {
-    NET_TO_HOST = 0,
-    HOST_TO_NET = 1
-}
-
-// BEGIN:Metadata_types
-enum PNA_PacketPath_t {
-    // TBD if this type remains, and if so, what its values will be.
-    // Possibilities:
-    FROM_NET_PORT,
-    FROM_NET_LOOPEDBACK,
-    FROM_NET_RECIRCULATED,
-    FROM_HOST,
-    FROM_HOST_LOOPEDBACK,
-    FROM_HOST_RECIRCULATED
-}
-
-struct pna_pre_parser_input_metadata_t {
-  PortId_t                 input_port;
-  PNA_PacketPath_t         packet_path;
-}
-
-struct pna_pre_input_metadata_t {
-  PortId_t                 input_port;
-  PNA_PacketPath_t         packet_path;
-  ParserError_t            parser_error;
-}
-
-struct pna_pre_output_metadata_t {
-  bool                     drop;             // false ?
-}
-
-struct pna_decrypt_input_metadata_t {
-    bool                     decrypt;  // TBD: or use said==0 to mean no decrypt?
-
-    // The following things are stored internally within the decrypt
-    // block, in a table indexed by said:
-
-    // + The decryption algorithm, e.g. AES256, etc.
-    // + The decryption key
-
-    SecurityAssocId_t        said;
-    bit<16>                  decrypt_start_offset;  // in bytes?
-}
-
-struct pna_main_parser_input_metadata_t {
-  // common fields initialized for all packets that are input to main
-  // parser, regardless of direction.
-  PNA_Direction_t          direction;
-  PNA_PacketPath_t         packet_path;
-
-  // input fields to main parser that are only initialized if
-  // direction == NET_TO_HOST
-  PortId_t                 input_port;
-
-  // input fields to main parser that are only initialized if
-  // direction == HOST_TO_NET
-  VportId_t                input_vport;
-}
-
-struct pna_main_input_metadata_t {
-  // common fields initialized for all packets that are input to main
-  // parser, regardless of direction.
-  PNA_Direction_t          direction;
-  PNA_PacketPath_t         packet_path;
-  Timestamp_t              timestamp;
-  ParserError_t            parser_error;
-  ClassOfService_t         class_of_service;
-
-  // input fields to main control that are only initialized if
-  // direction == NET_TO_HOST
-  PortId_t                 input_port;
-
-  // input fields to main control that are only initialized if
-  // direction == HOST_TO_NET
-  VportId_t                input_vport;
-}
-
-// BEGIN:Metadata_main_output
-struct pna_main_output_metadata_t {
-  // common fields used by the architecture to decide what to do with
-  // the packet next, after the main parser, control, and deparser
-  // have finished executing one pass, regardless of the direction.
-  bool                     drop;             // false ?
-  bool                     recirculate;      // false
-  bool                     loopback;         // false
-  ClassOfService_t         class_of_service; // 0
-  bool                     clone;            // false
-  CloneSessionId_t         clone_session_id; // initial value is undefined
-
-  // output fields from main control that are only used by PNA device
-  // to decide what to do with the packet next if direction ==
-  // NET_TO_HOST
-  VportId_t                dest_vport;       // initial value is undefined
-
-  // output fields from main control that are only used by PNA device
-  // to decide what to do with the packet next if direction ==
-  // HOST_TO_NET
-  PortId_t                 dest_port;        // initial value is undefined
-}
-// END:Metadata_main_output
-// END:Metadata_types
 
 // BEGIN:Match_kinds
 match_kind {
@@ -596,6 +493,119 @@ extern Digest<T> {
 }
 // END:Digest_extern
 
+enum bit<1> PNA_Direction_t {
+    NET_TO_HOST = 0,
+    HOST_TO_NET = 1
+}
+
+// BEGIN:Metadata_types
+enum PNA_PacketPath_t {
+    // TBD if this type remains, whether it should be an enum or
+    // several separate fields representing the same cases in a
+    // different form.
+    FROM_NET_PORT,
+    FROM_NET_LOOPEDBACK,
+    FROM_NET_RECIRCULATED,
+    FROM_HOST,
+    FROM_HOST_LOOPEDBACK,
+    FROM_HOST_RECIRCULATED
+}
+
+struct pna_pre_parser_input_metadata_t {
+    PortId_t                 input_port;
+    PNA_PacketPath_t         packet_path;
+}
+
+struct pna_pre_input_metadata_t {
+    PortId_t                 input_port;
+    PNA_PacketPath_t         packet_path;
+    ParserError_t            parser_error;
+}
+
+struct pna_pre_output_metadata_t {
+    bool                     drop;             // false
+}
+
+struct pna_decrypt_input_metadata_t {
+    bool                     decrypt;  // TBD: or use said==0 to mean no decrypt?
+
+    // The following things are stored internally within the decrypt
+    // block, in a table indexed by said:
+
+    // + The decryption algorithm, e.g. AES256, etc.
+    // + The decryption key
+    // + Any read-modify-write state in the data plane used to
+    //   implement anti-replay attack detection.
+
+    SecurityAssocId_t        said;
+    bit<16>                  decrypt_start_offset;  // in bytes?
+
+    // TBD whether it is important to explicitly pass information to a
+    // decryption extern in a way visible to a P4 program about where
+    // headers were parsed and found.  An alternative is to assume
+    // that the architecture saves the pre parser results somewhere,
+    // in a way not visible to the P4 program.
+}
+
+struct pna_main_parser_input_metadata_t {
+  // common fields initialized for all packets that are input to main
+  // parser, regardless of direction.
+  PNA_Direction_t          direction;
+  PNA_PacketPath_t         packet_path;
+
+  // input fields to main parser that are only initialized if
+  // direction == NET_TO_HOST
+  PortId_t                 input_port;
+
+  // input fields to main parser that are only initialized if
+  // direction == HOST_TO_NET
+  VportId_t                input_vport;
+}
+
+struct pna_main_input_metadata_t {
+  // common fields initialized for all packets that are input to main
+  // parser, regardless of direction.
+  PNA_Direction_t          direction;
+  PNA_PacketPath_t         packet_path;
+  Timestamp_t              timestamp;
+  ParserError_t            parser_error;
+  ClassOfService_t         class_of_service;
+
+  // input fields to main control that are only initialized if
+  // direction == NET_TO_HOST
+  PortId_t                 input_port;
+
+  // input fields to main control that are only initialized if
+  // direction == HOST_TO_NET
+  VportId_t                input_vport;
+}
+
+// BEGIN:Metadata_main_output
+struct pna_main_output_metadata_t {
+  // common fields used by the architecture to decide what to do with
+  // the packet next, after the main parser, control, and deparser
+  // have finished executing one pass, regardless of the direction.
+  bool                     drop;             // false ?
+  bool                     recirculate;      // false
+  ClassOfService_t         class_of_service; // 0
+  bool                     clone;            // false
+  CloneSessionId_t         clone_session_id; // initial value is undefined
+
+  // output fields from main control that are only used by PNA device
+  // to decide what to do with the packet next if direction ==
+  // NET_TO_HOST
+  bool                     host_loopback;    // false
+  VportId_t                dest_vport;       // initial value is undefined
+
+  // output fields from main control that are only used by PNA device
+  // to decide what to do with the packet next if direction ==
+  // HOST_TO_NET
+  bool                     net_loopback;     // false
+  PortId_t                 dest_port;        // initial value is undefined
+}
+// END:Metadata_main_output
+// END:Metadata_types
+
 // BEGIN:Programmable_blocks
 parser PreParserT<PH, PM>(
     packet_in pkt,
@@ -609,13 +619,15 @@ control PreControlT<PH, PM>(
     in    pna_pre_input_metadata_t  istd,
     inout pna_pre_output_metadata_t ostd);
 
-parser MainParserT<MH, MM>(
+parser MainParserT<PM, MH, MM>(
     packet_in pkt,
+    in    PM pre_user_meta,
     out   MH main_hdr,
     inout MM main_user_meta,
     in    pna_main_parser_input_metadata_t istd);
 
-control MainControlT<MH, MM>(
+control MainControlT<PM, MH, MM>(
+    in    PM pre_user_meta,
     inout MH main_hdr,
     inout MM main_user_meta,
     in    pna_main_input_metadata_t  istd,
@@ -630,8 +642,8 @@ control MainDeparserT<MH, MM>(
 package PNA_NIC<PH, PM, MH, MM>(
     PreParserT<PH, PM> pre_parser,
     PreControlT<PH, PM> pre_control,
-    MainParserT<MH, MM> main_parser,
-    MainControlT<MH, MM> main_control,
+    MainParserT<PM, MH, MM> main_parser,
+    MainControlT<PM, MH, MM> main_control,
     MainDeparserT<MH, MM> main_deparser);
 // END:Programmable_blocks
 
