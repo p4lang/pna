@@ -61,11 +61,11 @@ As an analogy, the PNA is to the P4~16~ language as the C standard
 library is to the C programming language.  PNA defines a library of
 types, P4~16~ externs for frequently used constructs such as counters,
 meters, and registers, and a set of "packet paths" that enable you to
-write P4 programs that control the flow of packets in a NIC with a
-host interface and one or more ports, e.g. typically one to four
-Ethernet ports.  By following the APIs and guidelines here, developers
-will be able to write P4 programs that are portable across multiple
-NIC devices that are conformant to the PNA[^PNAPortability].
+write P4 programs that control the flow of packets in a NIC with one
+or more host interfaces and one or more ports, e.g. typically one to
+four Ethernet ports.  By following the APIs and guidelines here,
+developers will be able to write P4 programs that are portable across
+multiple NIC devices that are conformant to the PNA[^PNAPortability].
 
 [^PNAPortability]: Given the sometimes tight hardware resource constraints within such devices, there is no promise that P4 programs that are near or over those constraints will be portable across multiple NIC devices.  However, it should at least be the case that those P4 programs that are able to compile on multiple NIC devices should process packets as described in this document.
 
@@ -120,6 +120,14 @@ are:
 - turn around and head back towards the network ports.  This enables
   NIC processing of port-to-port packets.
 
+The figure shows multiple hosts.  Some NICs support PCI Express
+connections to multiple host CPU complexes.  It is also common for
+NICs to have an array of one or more CPU cores inside of the NIC
+device itself, and these can be the target for packets received from
+the network, and/or the source of packets sent to the network, just as
+the other hosts can be.  For the purposes of PNA, such CPU cores are
+considered as another host.
+
 
 ## Message processing
 
@@ -165,8 +173,8 @@ control plane software.
 
 ## Packet processing in the host to network direction
 
-Messages originating in the host are segmented into network MTU size
-packets (if the host has not already done so) in the message
+Messages originating in one of the hosts are segmented into network
+MTU size packets (if the host has not already done so) in the message
 processing block, and are then sent to the main block for further
 processing.
 
@@ -199,9 +207,9 @@ After that, the two main choices for the next place the packet will go
 are:
 
 - proceed to one of the network ports
-- turn around and head back towards the host.  This enables NIC
-  processing of VM-to-VM packets in a host with multiple virtual
-  machines.
+- turn around and head back towards a host.  This enables NIC
+  processing of VM-to-VM packets in a system with multiple virtual
+  machines, or between hosts in a system with multiple hosts.
 
 All of the choices of queue, what kind of processing to perform in the
 host-to-net inline extern, which port to go to, or whether to loop
