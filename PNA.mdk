@@ -707,6 +707,101 @@ PNA design should not prevent this, if an implementer is willing to go
 to that effort.
 
 
+# Appendix: Packet path figures {#appendix-packet-path-figures}
+
+## Network to host
+
+~ Figure {#fig-path-net-to-host; caption: "Network to host packet path"; page-align: forcehere;}
+![path-net-to-host]
+~
+[path-net-to-host]: figs/path-net-to-host.png { width: 100%;}
+
+See Figure [#fig-path-net-to-host].
+If decryption is desired, the net-to-host inline extern performs it.
+If no decryption is required, the net-to-host inline extern outputs
+the same packet payload that it received, i.e. it is a no-op in the
+path.
+
+
+## Network to host with mirror copy to different host
+
+~ Figure {#fig-path-net-to-host-with-mirror-copy-to-second-host; caption: "Network to host packet path, with mirror copy to second host"; page-align: forcehere;}
+![path-net-to-host-with-mirror-copy-to-second-host]
+~
+[path-net-to-host-with-mirror-copy-to-second-host]: figs/path-net-to-host-with-mirror-copy-to-second-host.png { width: 100%;}
+
+See Figure [#fig-path-net-to-host-with-mirror-copy-to-second-host].
+This is similar to the network to host path, except that the main
+control P4 code directs that the packet should be mirrored to a second
+host, e.g. an inside-the-NIC CPU complex used for exception packets.
+Logically, the copy occurs after the main deparser.
+
+One possibility for writing P4 code to do this is by having the main
+deparser optionally invoke a mirror or clone extern, which could
+provide an extra header to include before the mirrored copy.
+
+
+## Host to network
+
+~ Figure {#fig-path-host-to-net; caption: "Host to network packet path"; page-align: forcehere;}
+![path-host-to-net]
+~
+[path-host-to-net]: figs/path-host-to-net.png { width: 100%;}
+
+See Figure [#fig-path-host-to-net].
+If encryption is desired, the host-to-net inline extern performs it.
+If no encryption is required, the host-to-net inline extern outputs
+the same packet payload that it received, i.e. it is a no-op in the
+path.
+
+
+## Host to network with mirror copy to a different host
+
+~ Figure {#fig-path-host-to-net-with-mirror-copy-to-different-host; caption: "Host to network packet path, with mirror copy to a different host"; page-align: forcehere;}
+![path-host-to-net-with-mirror-copy-to-different-host]
+~
+[path-host-to-net-with-mirror-copy-to-different-host]: figs/path-host-to-net-with-mirror-copy-to-different-host.png { width: 100%;}
+
+See Figure [#fig-path-host-to-net-with-mirror-copy-to-different-host].
+This is similar to the host to network path, except that the main
+control P4 code directs that the packet should be mirrored to a host,
+e.g. an inside-the-NIC CPU complex used for exception packets.
+Logically, the copy occurs after the main deparser.
+
+One possibility for writing P4 code to do this is by having the main
+deparser optionally invoke a mirror or clone extern, which could
+provide an extra header to include before the mirrored copy.
+
+
+## Host to host
+
+~ Figure {#fig-path-host-to-host; caption: "Host to host packet path"; page-align: forcehere;}
+![path-host-to-host]
+~
+[path-host-to-host]: figs/path-host-to-host.png { width: 100%;}
+
+See Figure [#fig-path-host-to-host].
+This path may more often be called the VM to VM path.
+
+The host-to-net inline extern may be no-op or perform encryption, as
+directed by the P4 code in the main control.  The net-to-host inline
+extern may be no-op or perform decryption, as directed by the P4 code
+in the pre control.
+
+
+## Port to port
+
+~ Figure {#fig-path-port-to-port-host-loopback; caption: "Port to port packet path"; page-align: forcehere;}
+![path-port-to-port-host-loopback]
+~
+[path-port-to-port-host-loopback]: figs/path-port-to-port-host-loopback.png { width: 100%;}
+
+See Figure [#fig-path-port-to-port-host-loopback].
+This path is shown going through the memory of one of the hosts.  The
+host could be a CPU core complex within the NIC device itself, with
+its own memory, or it could be a host CPU complex and its DRAM.
+
+
 # Appendix: Packet ordering {#appendix-packet-ordering}
 
 
