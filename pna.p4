@@ -493,9 +493,9 @@ extern Digest<T> {
 }
 // END:Digest_extern
 
-enum bit<1> PNA_Direction_t {
-    NET_TO_HOST = 0,
-    HOST_TO_NET = 1
+enum PNA_Direction_t {
+    NET_TO_HOST,
+    HOST_TO_NET
 }
 
 // BEGIN:Metadata_types
@@ -523,7 +523,6 @@ struct pna_pre_input_metadata_t {
 }
 
 struct pna_pre_output_metadata_t {
-    bool                     drop;             // false
 }
 
 struct pna_decrypt_input_metadata_t {
@@ -588,23 +587,77 @@ struct pna_main_output_metadata_t {
   bool                     drop;             // false ?
   bool                     recirculate;      // false
   ClassOfService_t         class_of_service; // 0
-  bool                     clone;            // false
-  CloneSessionId_t         clone_session_id; // initial value is undefined
-
-  // output fields from main control that are only used by PNA device
-  // to decide what to do with the packet next if direction ==
-  // NET_TO_HOST
-  bool                     host_loopback;    // false
-  VportId_t                dest_vport;       // initial value is undefined
-
-  // output fields from main control that are only used by PNA device
-  // to decide what to do with the packet next if direction ==
-  // HOST_TO_NET
-  bool                     net_loopback;     // false
-  PortId_t                 dest_port;        // initial value is undefined
+  bool                     clone1;            // false
+  CloneSessionId_t         clone1_session_id; // initial value is undefined
+  bool                     clone2;            // false
+  CloneSessionId_t         clone2_session_id; // initial value is undefined
+  bool                     clone3;            // false
+  CloneSessionId_t         clone3_session_id; // initial value is undefined
+  bool                     clone4;            // false
+  CloneSessionId_t         clone4_session_id; // initial value is undefined
 }
 // END:Metadata_main_output
 // END:Metadata_types
+
+
+// The following extern functions are "destination assignment"
+// functions -- they all set the destination of the packet.  Calling
+// one of them overwrites and replaces the effect of any earlier call
+// to any of the functions in this set.  Only the last one executed
+// will actually take effect for the packet.
+
+// + send_to_port
+// + send_to_vport
+
+
+// send_to_port(x) - Cause the packet to go to the network port number
+// x, after first looping back if invoked in the NET_TO_HOST
+// direction.
+//
+// Invoking send_to_port(x) is supported only within the main control.
+//
+// If the packet being processed is in the HOST_TO_NET direction,
+// calling send_to_port(x) modifies hidden state for this packet, so
+// that the packet will be transmitted out of network port x, without
+// being looped back.
+//
+// If the packet being processed is in the NET_TO_HOST direction,
+// calling send_to_port(x) modifies hidden state for this packet, so
+// that when the packet is finished with the main control and main
+// deparser, it will loop back in the host side, and later return to
+// be processed by the main control in the HOST_TO_NET direction.  The
+// hidden state will remain associated with the packet during that
+// loopback, so that even if no further destination assignment
+// functions are called for the packet, it will be transmitted out of
+// network port x.
+
+extern void send_to_port(PortId_t dest_port);
+
+
+// send_to_vport(x) - Cause the packet to go to a host with vport
+// number x, after first looping back if invoked in the HOST_TO_NET
+// direction.
+//
+// Invoking send_to_vport(x) is supported only within the main
+// control.
+//
+// If the packet being processed is in the NET_TO_HOST direction,
+// calling send_to_vport(x) modifies hidden state for this packet, so
+// that the packet will be sent to vport number x in the host, without
+// being looped back.
+//
+// If the packet being processed is in the HOST_TO_NET direction,
+// calling send_to_vport(x) modifies hidden state for this packet, so
+// that when the packet is finished with the main control and main
+// deparser, it will loop back in/near the network ports, and later
+// return to be processed by the main control in the NET_TO_HOST
+// direction.  The hidden state will remain associated with the packet
+// during that loopback, so that even if no further destination
+// assignment functions are called for the packet, it will be sent to
+// vport number x in the host.
+
+extern void send_to_vport(VportId_t dest_vport);
+
 
 // BEGIN:Programmable_blocks
 parser PreParserT<PH, PM>(
@@ -640,11 +693,15 @@ control MainDeparserT<MH, MM>(
     in    pna_main_output_metadata_t ostd);
 
 package PNA_NIC<PH, PM, MH, MM>(
-    PreParserT<PH, PM> pre_parser,
     PreControlT<PH, PM> pre_control,
     MainParserT<PM, MH, MM> main_parser,
     MainControlT<PM, MH, MM> main_control,
-    MainDeparserT<MH, MM> main_deparser);
+    MainDeparserT<MH, MM> main_deparser,
+    // pre_parser is optional.  If not specified, it defaults to be the
+    // same as main_parser.  An implementation that has a separate pre
+    // parser is free to optimize away any part of it that is
+    // unnecessary for executing the code in pre_control.
+    PreParserT<PH, PM> pre_parser);
 // END:Programmable_blocks
 
 #endif   // __PNA_P4__
