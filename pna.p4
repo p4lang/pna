@@ -52,7 +52,8 @@ limitations under the License.
 typedef bit<32> PortIdUint_t;
 typedef bit<32> VportIdUint_t;
 typedef bit<32> MulticastGroupUint_t;
-typedef bit<16> CloneSessionIdUint_t;
+typedef bit<16> MirrorSessionIdUint_t;
+typedef bit<8>  MirrorSlotIdUint_t;
 typedef bit<8>  ClassOfServiceUint_t;
 typedef bit<16> PacketLengthUint_t;
 typedef bit<16> MulticastInstanceUint_t;
@@ -60,23 +61,16 @@ typedef bit<64> TimestampUint_t;
 
 typedef bit<32> SecurityAssocIdUint_t;
 
-/* Note: clone_spec in BMv2 simple_switch v1model is 32 bits wide, but
- * it is used such that 16 of its bits contain a clone/mirror session
- * id, and 16 bits contain the numeric id of a field_list.  Only the
- * 16 bits of clone/mirror session id are comparable to the type
- * CloneSessionIdUint_t here.  See occurrences of clone_spec in this
- * file for details:
- * https://github.com/p4lang/behavioral-model/blob/master/targets/simple_switch/simple_switch.cpp
- */
-
 @p4runtime_translation("p4.org/pna/v1/PortId_t", 32)
 type PortIdUint_t         PortId_t;
 @p4runtime_translation("p4.org/pna/v1/VportId_t", 32)
 type VportIdUint_t        VportId_t;
 @p4runtime_translation("p4.org/pna/v1/MulticastGroup_t", 32)
 type MulticastGroupUint_t MulticastGroup_t;
-@p4runtime_translation("p4.org/pna/v1/CloneSessionId_t", 16)
-type CloneSessionIdUint_t CloneSessionId_t;
+@p4runtime_translation("p4.org/pna/v1/MirrorSessionId_t", 16)
+type MirrorSessionIdUint_t MirrorSessionId_t;
+@p4runtime_translation("p4.org/pna/v1/MirrorSlotId_t", 8)
+type MirrorSlotIdUint_t MirrorSlotId_t;
 @p4runtime_translation("p4.org/pna/v1/ClassOfService_t", 8)
 type ClassOfServiceUint_t ClassOfService_t;
 @p4runtime_translation("p4.org/pna/v1/PacketLength_t", 16)
@@ -93,7 +87,7 @@ typedef error   ParserError_t;
 
 const PortId_t PNA_PORT_CPU = (PortId_t) 0xfffffffd;
 
-const CloneSessionId_t PNA_CLONE_SESSION_TO_CPU = (CloneSessionId_t) 0;
+const MirrorSessionId_t PNA_MIRROR_SESSION_TO_CPU = (MirrorSessionId_t) 0;
 
 #endif  // PNA_PLACEHOLDER_CORE_TYPES
 
@@ -117,7 +111,8 @@ const CloneSessionId_t PNA_CLONE_SESSION_TO_CPU = (CloneSessionId_t) 0;
 typedef bit<unspecified> PortIdUint_t;
 typedef bit<unspecified> VportIdUint_t;
 typedef bit<unspecified> MulticastGroupUint_t;
-typedef bit<unspecified> CloneSessionIdUint_t;
+typedef bit<unspecified> MirrorSessionIdUint_t;
+typedef bit<unspecified> MirrorSlotIdUint_t;
 typedef bit<unspecified> ClassOfServiceUint_t;
 typedef bit<unspecified> PacketLengthUint_t;
 typedef bit<unspecified> MulticastInstanceUint_t;
@@ -131,8 +126,10 @@ type PortIdUint_t         PortId_t;
 type VportIdUint_t         VportId_t;
 @p4runtime_translation("p4.org/pna/v1/MulticastGroup_t", 32)
 type MulticastGroupUint_t MulticastGroup_t;
-@p4runtime_translation("p4.org/pna/v1/CloneSessionId_t", 16)
-type CloneSessionIdUint_t CloneSessionId_t;
+@p4runtime_translation("p4.org/pna/v1/MirrorSessionId_t", 16)
+type MirrorSessionIdUint_t MirrorSessionId_t;
+@p4runtime_translation("p4.org/pna/v1/MirrorSlotId_t", 8)
+type MirrorSlotIdUint_t MirrorSlotId_t;
 @p4runtime_translation("p4.org/pna/v1/ClassOfService_t", 8)
 type ClassOfServiceUint_t ClassOfService_t;
 @p4runtime_translation("p4.org/pna/v1/PacketLength_t", 16)
@@ -149,7 +146,7 @@ typedef error   ParserError_t;
 
 const PortId_t PNA_PORT_CPU = (PortId_t) unspecified;
 
-const CloneSessionId_t PNA_CLONE_SESSION_TO_CPU = (CloneSessiontId_t) unspecified;
+const MirrorSessionId_t PNA_MIRROR_SESSION_TO_CPU = (MirrorSessiontId_t) unspecified;
 // END:Type_defns
 #endif  // #ifndef PNA_EXAMPLE_CORE_TYPES
 
@@ -183,7 +180,8 @@ const CloneSessionId_t PNA_CLONE_SESSION_TO_CPU = (CloneSessiontId_t) unspecifie
 typedef bit<32> PortIdInHeaderUint_t;
 typedef bit<32> VportIdInHeaderUint_t;
 typedef bit<32> MulticastGroupInHeaderUint_t;
-typedef bit<16> CloneSessionIdInHeaderUint_t;
+typedef bit<16> MirrorSessionIdInHeaderUint_t;
+typedef bit<8>  MirrorSlotIdInHeaderUint_t;
 typedef bit<8>  ClassOfServiceInHeaderUint_t;
 typedef bit<16> PacketLengthInHeaderUint_t;
 typedef bit<16> MulticastInstanceInHeaderUint_t;
@@ -197,8 +195,10 @@ type  PortIdInHeaderUint_t         PortIdInHeader_t;
 type  VportIdInHeaderUint_t         VportIdInHeader_t;
 @p4runtime_translation("p4.org/pna/v1/MulticastGroupInHeader_t", 32)
 type  MulticastGroupInHeaderUint_t MulticastGroupInHeader_t;
-@p4runtime_translation("p4.org/pna/v1/CloneSessionIdInHeader_t", 16)
-type  CloneSessionIdInHeaderUint_t CloneSessionIdInHeader_t;
+@p4runtime_translation("p4.org/pna/v1/MirrorSessionIdInHeader_t", 16)
+type  MirrorSessionIdInHeaderUint_t MirrorSessionIdInHeader_t;
+@p4runtime_translation("p4.org/pna/v1/MirrorSlotIdInHeader_t", 8)
+type  MirrorSlotIdInHeaderUint_t MirrorSlotIdInHeader_t;
 @p4runtime_translation("p4.org/pna/v1/ClassOfServiceInHeader_t", 8)
 type  ClassOfServiceInHeaderUint_t ClassOfServiceInHeader_t;
 @p4runtime_translation("p4.org/pna/v1/PacketLengthInHeader_t", 16)
@@ -238,8 +238,8 @@ PortId_t pna_PortId_header_to_int (in PortIdInHeader_t x) {
 MulticastGroup_t pna_MulticastGroup_header_to_int (in MulticastGroupInHeader_t x) {
     return (MulticastGroup_t) (MulticastGroupUint_t) (MulticastGroupInHeaderUint_t) x;
 }
-CloneSessionId_t pna_CloneSessionId_header_to_int (in CloneSessionIdInHeader_t x) {
-    return (CloneSessionId_t) (CloneSessionIdUint_t) (CloneSessionIdInHeaderUint_t) x;
+MirrorSessionId_t pna_MirrorSessionId_header_to_int (in MirrorSessionIdInHeader_t x) {
+    return (MirrorSessionId_t) (MirrorSessionIdUint_t) (MirrorSessionIdInHeaderUint_t) x;
 }
 ClassOfService_t pna_ClassOfService_header_to_int (in ClassOfServiceInHeader_t x) {
     return (ClassOfService_t) (ClassOfServiceUint_t) (ClassOfServiceInHeaderUint_t) x;
@@ -260,8 +260,8 @@ PortIdInHeader_t pna_PortId_int_to_header (in PortId_t x) {
 MulticastGroupInHeader_t pna_MulticastGroup_int_to_header (in MulticastGroup_t x) {
     return (MulticastGroupInHeader_t) (MulticastGroupInHeaderUint_t) (MulticastGroupUint_t) x;
 }
-CloneSessionIdInHeader_t pna_CloneSessionId_int_to_header (in CloneSessionId_t x) {
-    return (CloneSessionIdInHeader_t) (CloneSessionIdInHeaderUint_t) (CloneSessionIdUint_t) x;
+MirrorSessionIdInHeader_t pna_MirrorSessionId_int_to_header (in MirrorSessionId_t x) {
+    return (MirrorSessionIdInHeader_t) (MirrorSessionIdInHeaderUint_t) (MirrorSessionIdUint_t) x;
 }
 ClassOfServiceInHeader_t pna_ClassOfService_int_to_header (in ClassOfService_t x) {
     return (ClassOfServiceInHeader_t) (ClassOfServiceInHeaderUint_t) (ClassOfServiceUint_t) x;
@@ -584,30 +584,29 @@ struct pna_main_output_metadata_t {
   // common fields used by the architecture to decide what to do with
   // the packet next, after the main parser, control, and deparser
   // have finished executing one pass, regardless of the direction.
-  bool                     drop;             // false ?
-  bool                     recirculate;      // false
   ClassOfService_t         class_of_service; // 0
-  bool                     clone1;            // false
-  CloneSessionId_t         clone1_session_id; // initial value is undefined
-  bool                     clone2;            // false
-  CloneSessionId_t         clone2_session_id; // initial value is undefined
-  bool                     clone3;            // false
-  CloneSessionId_t         clone3_session_id; // initial value is undefined
-  bool                     clone4;            // false
-  CloneSessionId_t         clone4_session_id; // initial value is undefined
 }
 // END:Metadata_main_output
 // END:Metadata_types
 
 
-// The following extern functions are "destination assignment"
-// functions -- they all set the destination of the packet.  Calling
-// one of them overwrites and replaces the effect of any earlier call
-// to any of the functions in this set.  Only the last one executed
-// will actually take effect for the packet.
+// The following extern functions are "forwarding" functions -- they
+// all set the destination of the packet.  Calling one of them
+// overwrites and replaces the effect of any earlier call to any of
+// the functions in this set.  Only the last one executed will
+// actually take effect for the packet.
 
+// + drop_packet
 // + send_to_port
 // + send_to_vport
+
+
+// drop_packet() - Cause the packet to be dropped when it finishes
+// completing the main control.
+//
+// Invoking drop_packet() is supported only within the main control.
+
+extern void drop_packet();
 
 
 // send_to_port(x) - Cause the packet to go to the network port number
@@ -627,9 +626,9 @@ struct pna_main_output_metadata_t {
 // deparser, it will loop back in the host side, and later return to
 // be processed by the main control in the HOST_TO_NET direction.  The
 // hidden state will remain associated with the packet during that
-// loopback, so that even if no further destination assignment
-// functions are called for the packet, it will be transmitted out of
-// network port x.
+// loopback, so that even if no further forwarding functions are
+// called for the packet, it will be transmitted out of network port
+// x.
 
 extern void send_to_port(PortId_t dest_port);
 
@@ -652,11 +651,135 @@ extern void send_to_port(PortId_t dest_port);
 // deparser, it will loop back in/near the network ports, and later
 // return to be processed by the main control in the NET_TO_HOST
 // direction.  The hidden state will remain associated with the packet
-// during that loopback, so that even if no further destination
-// assignment functions are called for the packet, it will be sent to
-// vport number x in the host.
+// during that loopback, so that even if no further forwarding
+// functions are called for the packet, it will be sent to vport
+// number x in the host.
 
 extern void send_to_vport(VportId_t dest_vport);
+
+
+// mirror_packet(slot_id, session_id) - Cause a copy of the packet to
+// be created and processed according to the indicated mirror
+// session_id.
+
+// Invoking mirror_packet() is supported only within the main control.
+
+// Every PNA implementation has at least four "mirror slots" for each
+// packet processed, numbered 0 up to 3.
+
+// When the main control starts processing, all mirror slots are
+// initialized so that they do not create a copy of the packet.
+
+// After calling mirror_packet(slot_id, session_id), when the main
+// control completes, the architecture will make a best effort to
+// create a copy of the packet that will be processed according to the
+// parameters configured by the control plane for the mirror session
+// numbered session_id, for mirror slot slot_id.  Note that this is
+// best effort -- if the target device is already near its upper limit
+// of its ability to create mirror copies, then some later mirror
+// copies may not be made, even though the P4 program requested them.
+
+// Each of the mirror slots is independent of each other in this
+// regard.  For example, calling mirror_packet(1, session_id) has no
+// effect on mirror slots 0, 2, or 3.
+
+// session_id 0 is reserved by the architecture, and must not be used
+// by a P4 developer.
+
+// If multiple calls are made to mirror_packet() for the same slot_id
+// in the same execution of the main control, only the last session_id
+// value is used to create a copy of the packet.  That is, every call
+// to mirror_packet(slot_id, session_id) overwrites the effects of any
+// earlier to mirror_packet() with the same slot_id.
+
+// The effects of mirror_packet() calls are independent of calls to
+// drop_packet(), send_to_port(), and send_to_vport().  Regardless of
+// which of those things is done to the original packet, up to one
+// mirror packet per mirror slot can be created.
+
+// ---------------------------------------------------------------------
+// The control plane code can configure the following properties of
+// each mirror session, independently of other mirror sessions:
+
+// packet_contents
+
+// If PRE_MODIFY, then the mirrored packet's contents will be the same
+// as the original packet as it was when the packet began the
+// execution of the main control that invoked the mirror_packet()
+// function.
+
+// If POST_MODIFY, then the mirrored packet's contents will be the
+// same as the original packet that is being mirrored, _after_ any
+// modifications made during the execution of the main control that
+// invoked the mirror_packet() function.
+
+// truncate
+
+// true to limit the length of the mirrored packet to the
+// truncate_length.  false to cause the mirrored packet not to be
+// truncated, in which case the truncate_length property is ignored
+// for this mirror session.
+
+// truncate_length
+
+// In units of bytes.  Targets may limit the choices here, e.g. to a
+// multiple of 32 bytes, or perhaps even a subset of those choices.
+
+// sampling_method
+
+// One of the values RANDOM_SAMPLING, or HASH_SAMPLING.
+
+// If RANDOM_SAMPLING, then a mirror copy requested for this mirror
+// session will only be created with a configured probability given by
+// the sample_probability property.
+
+// If HASH_SAMPLING, then a target-specific hash function will be
+// calculated over the packet's header fields resulting in a hash
+// output value H.  A mirror copy will be created if (H &
+// sample_hash_mask) == sample_hash_value.
+
+// meter_parameters
+
+// If the conditions specified by the sampling_method and other
+// sampling properties are passed, then a P4 meter dedicated for use
+// by this mirror session will be updated.  If it returns a GREEN
+// result, then the mirror copy will be created (still with best
+// effort, if the target device's implementation is still
+// oversubscribed with requests to create mirror copies).
+
+// If the meter update returns any result other than GREEN, then no
+// mirror copy will be created.
+
+// destination_type
+
+// One of PORT or VPORT.
+
+// If PORT, then the mirror session property named `destination_port`
+// is the destination of mirrored copy packets created by this
+// session.  If the mirror_packet() call for this session was invoked
+// in the NET_TO_HOST direction, mirror copy packets created will loop
+// back in the host side of the NIC, and later come back for
+// processing in the main block in the HOST_TO_NET direction, already
+// destined for the port destination_port.  That port can be
+// overwritten by calls to forwarding extern functions.
+
+// If VPORT, then the mirror session property named
+// `destination_vport` is the destination of mirrored copy packets
+// created by this session.  If the mirror_packet() call for this
+// session was invoked in the HOST_TO_NET direction, mirror copy
+// packets created will loop back in the network port side of the NIC,
+// and later come back for processing in the main block in the
+// NET_TO_HOST direction, already destined for the vport
+// destination_vport.  That vport can be overwritten by calls to
+// forwarding extern functions.
+
+// TBD: When a mirror copied packet comes back to the main control, it
+// will have some metadata indicating it is mirror copy.  We should
+// define a way in PNA to recognize such mirror copies, e.g. some new
+// extern function call returning true if the packet was created by a
+// mirror_packet operation.
+
+extern void mirror_packet(MirrorSlotId_t mirror_slot_id, MirrorSessionId_t mirror_session_id);
 
 
 // BEGIN:Programmable_blocks

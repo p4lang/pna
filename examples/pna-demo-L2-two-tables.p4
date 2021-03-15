@@ -74,7 +74,7 @@ control MainControlImpl(
     inout pna_main_output_metadata_t ostd)
 {
     action drop () {
-        ostd.drop = true;
+        drop_packet();
     }
     action L2_send_to_port (PortId_t port_id) {
         send_to_port(port_id);
