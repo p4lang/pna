@@ -58,6 +58,8 @@ typedef bit<8>  ClassOfServiceUint_t;
 typedef bit<16> PacketLengthUint_t;
 typedef bit<16> MulticastInstanceUint_t;
 typedef bit<64> TimestampUint_t;
+typedef bit<32> FlowIdUint_t;
+typedef bit<8>  ExpireTimeProfileIdUint_t;
 
 typedef bit<32> SecurityAssocIdUint_t;
 
@@ -79,6 +81,10 @@ type PacketLengthUint_t   PacketLength_t;
 type MulticastInstanceUint_t MulticastInstance_t;
 @p4runtime_translation("p4.org/pna/v1/Timestamp_t", 64)
 type TimestampUint_t      Timestamp_t;
+@p4runtime_translation("p4.org/pna/v1/FlowId_t", 32)
+type FlowIdUint_t      FlowId_t;
+@p4runtime_translation("p4.org/pna/v1/ExpireTimeProfileId_t", 8)
+type ExpireTimeProfileIdUint_t      ExpireTimeProfileId_t;
 
 @p4runtime_translation("p4.org/pna/v1/SecurityAssocId_t", 64)
 type SecurityAssocIdUint_t      SecurityAssocId_t;
@@ -117,6 +123,8 @@ typedef bit<unspecified> ClassOfServiceUint_t;
 typedef bit<unspecified> PacketLengthUint_t;
 typedef bit<unspecified> MulticastInstanceUint_t;
 typedef bit<unspecified> TimestampUint_t;
+typedef bit<unspecified> FlowIdUint_t;
+typedef bit<unspecified> ExpireTimeProfileIdUint_t;
 
 typedef bit<unspecified> SecurityAssocIdUint_t;
 
@@ -138,6 +146,10 @@ type PacketLengthUint_t   PacketLength_t;
 type MulticastInstanceUint_t MulticastInstance_t;
 @p4runtime_translation("p4.org/pna/v1/Timestamp_t", 64)
 type TimestampUint_t      Timestamp_t;
+@p4runtime_translation("p4.org/pna/v1/FlowId_t", 32)
+type FlowIdUint_t      FlowId_t;
+@p4runtime_translation("p4.org/pna/v1/ExpireTimeProfileId_t", 8)
+type ExpireTimeProfileIdUint_t      ExpireTimeProfileId_t;
 
 @p4runtime_translation("p4.org/pna/v1/SecurityAssocId_t", 64)
 type SecurityAssocIdUint_t      SecurityAssocId_t;
@@ -186,6 +198,8 @@ typedef bit<8>  ClassOfServiceInHeaderUint_t;
 typedef bit<16> PacketLengthInHeaderUint_t;
 typedef bit<16> MulticastInstanceInHeaderUint_t;
 typedef bit<64> TimestampInHeaderUint_t;
+typedef bit<32> FlowIdInHeaderUint_t;
+typedef bit<8>  ExpireTimeProfileIdInHeaderUint_t;
 
 typedef bit<32> SecurityAssocIdInHeaderUint_t;
 
@@ -207,6 +221,10 @@ type  PacketLengthInHeaderUint_t   PacketLengthInHeader_t;
 type  MulticastInstanceInHeaderUint_t MulticastInstanceInHeader_t;
 @p4runtime_translation("p4.org/pna/v1/TimestampInHeader_t", 64)
 type  TimestampInHeaderUint_t      TimestampInHeader_t;
+@p4runtime_translation("p4.org/pna/v1/FlowIdInHeader_t", 32)
+type  FlowIdInHeaderUint_t      FlowIdInHeader_t;
+@p4runtime_translation("p4.org/pna/v1/ExpireTimeProfileIdInHeader_t", 8)
+type  ExpireTimeProfileIdInHeaderUint_t      ExpireTimeProfileIdInHeader_t;
 
 @p4runtime_translation("p4.org/pna/v1/SecurityAssocIdInHeader_t", 64)
 type  SecurityAssocIdInHeaderUint_t      SecurityAssocIdInHeader_t;
@@ -253,6 +271,12 @@ MulticastInstance_t pna_MulticastInstance_header_to_int (in MulticastInstanceInH
 Timestamp_t pna_Timestamp_header_to_int (in TimestampInHeader_t x) {
     return (Timestamp_t) (TimestampUint_t) (TimestampInHeaderUint_t) x;
 }
+FlowId_t pna_FlowId_header_to_int (in FlowIdInHeader_t x) {
+    return (FlowId_t) (FlowIdUint_t) (FlowIdInHeaderUint_t) x;
+}
+ExpireTimeProfileId_t pna_ExpireTimeProfileId_header_to_int (in ExpireTimeProfileIdInHeader_t x) {
+    return (ExpireTimeProfileId_t) (ExpireTimeProfileIdUint_t) (ExpireTimeProfileIdInHeaderUint_t) x;
+}
 
 PortIdInHeader_t pna_PortId_int_to_header (in PortId_t x) {
     return (PortIdInHeader_t) (PortIdInHeaderUint_t) (PortIdUint_t) x;
@@ -274,6 +298,12 @@ MulticastInstanceInHeader_t pna_MulticastInstance_int_to_header (in MulticastIns
 }
 TimestampInHeader_t pna_Timestamp_int_to_header (in Timestamp_t x) {
     return (TimestampInHeader_t) (TimestampInHeaderUint_t) (TimestampUint_t) x;
+}
+FlowIdInHeader_t pna_FlowId_int_to_header (in FlowId_t x) {
+    return (FlowIdInHeader_t) (FlowIdInHeaderUint_t) (FlowIdUint_t) x;
+}
+ExpireTimeProfileIdInHeader_t pna_ExpireTimeProfileId_int_to_header (in ExpireTimeProfileId_t x) {
+    return (ExpireTimeProfileIdInHeader_t) (ExpireTimeProfileIdInHeaderUint_t) (ExpireTimeProfileIdUint_t) x;
 }
 
 /// Supported range of values for the pna_idle_timeout table properties
@@ -779,7 +809,123 @@ extern void send_to_vport(VportId_t dest_vport);
 // extern function call returning true if the packet was created by a
 // mirror_packet operation.
 
-extern void mirror_packet(MirrorSlotId_t mirror_slot_id, MirrorSessionId_t mirror_session_id);
+extern void mirror_packet(MirrorSlotId_t mirror_slot_id,
+                          MirrorSessionId_t mirror_session_id);
+
+
+// add_entry() causes an entry to be added to a table, controlled from
+// within the P4 program while a packet is being processed.  The new
+// table entry will be matchable when the next packet is processed
+// that applies this table.
+//
+// It is expected that many implementations will restrict add_entry()
+// to be called with the following restrictions:
+//
+// + Only from within an action
+// + Only if the action is a default (i.e. miss) action of a table
+//   with property add_on_miss equal to true.
+// + Only for a table with all key fields having match_kind exact.
+// + Only with an action name that is one of the hit actions of that
+//   same table.
+// + If that hit action to be added has parameters that are all
+//   directionless.
+// + The type T is a struct containing one member for each
+//   directionless parameter of the hit action to be added.  The
+//   member names must match the hit action parameter names, and their
+//   types must be the same as the corresponding hit action
+//   parameters.
+//
+// The new entry will have the same key field values that were
+// searched for in the table when the miss occurred, which caused the
+// table's default action to be executed.  The action will be the one
+// named by the string that is the file of the parameter action_name.
+//
+// TBD: Does it make sense to have a data plane add of a hit action
+// that has in, out, or inout parameters?
+//
+// If the attempt to add a table entry succeeds, the return value is
+// true, otherwise false.
+//
+// TBD: Should we require the return value?  Can most targets
+// implement it?  If not, consider having two separate variants of
+// add_entry, one with no return value (i.e. type void).  Such a
+// variant of add_entry seems difficult to use correctly, if it is
+// possible for entries to fail to be added.
+
+// TBD: For add_entry calls to a table with property 'idle_timeout' or
+// 'idle_timeout_with_auto_delete' equal to true, there should
+// probably be an optional parameter at the end that specifies the new
+// entry's initial expire_time_profile_id.
+
+extern bool add_entry<T>(string action_name,
+                         in T action_params);
+
+extern FlowId_t allocate_flow_id();
+
+
+// set_entry_expire_time() may only be called from within an action of
+// a table with property 'idle_timeout' or
+// 'idle_timeout_with_auto_delete' equal to true.
+
+// Calling it causes the expiration time of the entry to be the one
+// that the control plane has configured for the specified
+// expire_time_profile_id.
+
+extern void set_entry_expire_time(
+    in ExpireTimeProfileId_t expire_time_profile_id);
+
+
+// restart_expire_timer() may only be called from within an action of
+// a table with property 'idle_timeout' or
+// 'idle_timeout_with_auto_delete' equal to true.
+
+// Calling it causes the dynamic expiration timer of the entry to be
+// reset, so that the entry will remain active from the now until that
+// time in the future.
+
+// TBD: Do any targets support a table with one of the idle_timeout
+// properties such that matching an entry _does not_ cause this side
+// effect to occur?  If not, we could simply document it the way that
+// I believe it currently behaves in all existing architectures, which
+// is that every hit action implicitly causes the entry's expiration
+// timer to be reset to its configured time interval in the future.
+
+extern void restart_expire_timer();
+
+
+// SelectByDirection is a simple pure function that behaves exactly as
+// the P4_16 function definition given in comments below.  It is an
+// extern function to ensure that the front/mid end of the p4c
+// compiler leaves occurrences of it as is, visible to target-specific
+// compiler back end code, so targets have all information needed to
+// optimize it as they wish.
+
+// One example of its use is in table key expressions, for tables
+// where one wishes to swap IP source/destination addresses for
+// packets processed in the different directions.
+
+/*
+T SelectByDirection<T>(
+    in PNA_Direction_t direction,
+    in T n2h_value,
+    in T h2n_value)
+{
+    if (direction == PNA_Direction_t.NET_TO_HOST) {
+        return n2h_value;
+    } else {
+        return h2n_value;
+    }
+
+}
+*/
+
+@pure
+extern T SelectByDirection<T>(
+    in PNA_Direction_t direction,
+    in T n2h_value,
+    in T h2n_value);
+
+
 
 
 // BEGIN:Programmable_blocks
