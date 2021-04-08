@@ -915,7 +915,6 @@ T SelectByDirection<T>(
     } else {
         return h2n_value;
     }
-
 }
 */
 
