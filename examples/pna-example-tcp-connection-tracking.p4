@@ -189,11 +189,6 @@ control MainControlImpl(
         /* add_on_miss table is restricted to have all exact match fields */
         key = {
             // other key fields also possible, e.g. VRF
-
-            // alternate if istd.direction were a bool
-            istd.direction ? hdr.ipv4.srcAddr : hdr.ipv4.dstAddr:
-                exact @name("ipv4_addr_0");
-
             SelectByDirection(istd.direction, hdr.ipv4.srcAddr, hdr.ipv4.dstAddr):
                 exact @name("ipv4_addr_0");
             SelectByDirection(istd.direction, hdr.ipv4.dstAddr, hdr.ipv4.srcAddr):
