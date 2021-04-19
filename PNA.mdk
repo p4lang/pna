@@ -87,8 +87,11 @@ intended to be programmed via the P4 language.
 
 Packets arriving from a network port first go through a main parser
 and pre control.  The pre control can optionally perform table
-lookups.  Its purpose is to determine whether a packet requires
-processing by the net-to-host inline extern block.
+lookups and execute  actions corresponding to matching entries.
+Its main purpose is to determine whether a packet requires
+processing by the net-to-host inline extern block and possibly
+determine appropriate parameters for driving its execution in the form of
+intrinsic metadata associated with the packet.
 
 For example, the net-to-host inline extern block may perform
 decryption of packet payloads according to the IPsec protocol.  In
@@ -111,11 +114,12 @@ After decryption, the main parser can now do the full header parsing
 required for the desired data plane features.
 
 The main control is typically where the bulk of code would be written
-for processing packets.  The main deparser P4 code specifies the
-packet header contents to be sent onwards.  The main processing may
+for processing packets. The main processing may
 also associate additional user-defined metadata with packets.
+The main deparser P4 code specifies the
+packet header contents to be sent onwards to a buffering system.
 
-After that, the two main choices for the next place the packet will go
+The two main choices for the next place the packet will go from there
 are:
 
 - proceed to the message processing part of the NIC, and usually then
@@ -767,7 +771,7 @@ programmable block including a parser, control and deparser with an extern
 at the end of the chain, as shown in Figure [#fig-single-control-target].
 The compiler must merge the Pre Control and Main Control into a single
 control block that has the interface shown below and the `apply` block obtained
-by concatenating the code of the two original `apply` blocks.    
+by concatenating the code of the two original `apply` blocks.
 
 ~ Figure {#fig-single-control-target; caption: "Target architecture with
 additional parser after inline extern"; page-align: forcehere;}
