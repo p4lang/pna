@@ -345,12 +345,6 @@ control blocks can use the same types for those things, or different
 types, as the P4 program author wishes.
 
 
-```
-[INCLUDE=pna_v4.p4:Programmable_blocks]
-```
-
-
-## PNAv3
 
 ```
 [INCLUDE=pna.p4:Programmable_blocks]
