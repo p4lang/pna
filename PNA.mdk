@@ -69,7 +69,7 @@ multiple NIC devices that are conformant to the PNA[^PNAPortability].
 
 [^PNAPortability]: Given the sometimes tight hardware resource constraints within such devices, there is no promise that P4 programs that are near or over those constraints will be portable across multiple NIC devices.  However, it should at least be the case that those P4 programs that are able to compile on multiple NIC devices should process packets as described in this document.
 
-The Portable NIC Architecture (PNA) Model has six programmable P4
+The Portable NIC Architecture (PNA) Model has five programmable P4
 blocks and several fixed-function blocks, as shown in Figure
 [#fig-nic]. The behavior of the programmable blocks is specified using
 P4.  The network ports, packet queues, and (optional) inline extern
@@ -85,13 +85,14 @@ intended to be programmed via the P4 language.
 
 ## Packet processing in the network to host direction
 
-Packets arriving from a network port first go through a pre parser and
-pre control.  They decide whether a packet requires processing by the
-net-to-host inline extern block.
+Packets arriving from a network port first go through a main parser
+and pre control.  The pre control can optionally perform table
+lookups.  Its purpose is to determine whether a packet requires
+processing by the net-to-host inline extern block.
 
 For example, the net-to-host inline extern block may perform
 decryption of packet payloads according to the IPsec protocol.  In
-this case, the pre parser and pre control would be programmed to
+this case, the main parser and pre control would be programmed to
 identify whether the packet was encrypted using IPsec, and if so, what
 security association it belongs to.  The pre control code would drop
 the packet if the packet had an IPsec header, but one or more P4 table
@@ -106,9 +107,11 @@ decryption, these headers were encrypted before, and thus could not
 have been parsed by the pre parser.  See section [#appendix-reparsing]
 for additional details.
 
-The main parser can now do the full header parsing required for the
-desired data plane features.  The main control makes decisions on
-where the packet should go.  The main deparser P4 code specifies the
+After decryption, the main parser can now do the full header parsing
+required for the desired data plane features.
+
+The main control is typically where the bulk of code would be written
+for processing packets.  The main deparser P4 code specifies the
 packet header contents to be sent onwards.  The main processing may
 also associate additional user-defined metadata with packets.
 
@@ -131,15 +134,15 @@ considered as another host.
 
 ## Message processing
 
-The focus in the current version of this specification is on the five
+The focus in the current version of this specification is on the four
 P4 programmable blocks mentioned above.  The details of how one can
 use P4 to program the message processing portion of a NIC is left for
 a future version of this specification.  While there are options for
-exactly what packet processing functions can be performed in the pre
-and main blocks, versus the message processing block, the division is
-expected to be:
+exactly what packet processing functions can be performed in the four
+blocks described above, versus the message processing block, the
+division is expected to be:
 
-- pre and main programmable blocks deal solely with individual network
+- main programmable blocks deal solely with individual network
   packets, which are at most one network maximum transmission unit
   (MTU) in size.
 - message processing is responsible for converting between large
@@ -160,15 +163,14 @@ with one or more of the following standards:
 
 - VirtIO
 - SR-IOV
-- TBD - add more here
 
 Another potential criteria for dividing packet processing
 functionality between message processing and the rest of the NIC is
 for division of control plane software responsibilities.  For example,
 in some network deployments the NIC message processing block
 configuration is tightly coupled with the host operating system,
-whereas the pre and main blocks are controlled by network-focused
-control plane software.
+whereas the main blocks are controlled by network-focused control
+plane software.
 
 
 ## Packet processing in the host to network direction
@@ -178,21 +180,24 @@ MTU size packets (if the host has not already done so) in the message
 processing block, and are then sent to the main block for further
 processing.
 
-The same main parser, control, and deparser that process packets from
-the network is also used to process packets from the host.  PNA was
-designed this way for two reasons:
+The same main parser, pre control, main control, and deparser that
+process packets from the network is also used to process packets from
+the host.  PNA was designed this way for two reasons:
 
 - It is expected that in many cases, the packet processing in both
-  directions will have more similarities than differences.  Writing
-  common P4 code for both eliminates code duplication that would occur
-  if the code for each direction was written separately.
+  directions will have many similarities between them.  Writing common
+  P4 code for both eliminates code duplication that would occur if the
+  code for each direction was written separately.
 - Having a single main control in the P4 language enables tables and
   externs such as counters and registers to be instantiated once, and
   shared by packets being processed in both directions.  The hardware
   of many NICs enables this, without having to instantiate a
   physically separate table for each direction.  Especially for large
   tables used by packet processing in both directions, this can
-  significantly reduce the memory required.
+  significantly reduce the memory required.  It is also critical for
+  some stateful features (e.g. those using the table add-on-miss
+  capability) to access the same table in memory when processing
+  packets in either direction.
 
 After finishing processing in the main control, the packet may be
 enqueued in one of several queues (the number of such queues is target
@@ -214,7 +219,7 @@ are:
 All of the choices of queue, what kind of processing to perform in the
 host-to-net inline extern, which port to go to, or whether to loop
 back, are all controlled from the P4 code running in the main block,
-via standard metadata fields.
+via extern functions defined by this PNA specification.
 
 Note that packets processed in the main block cannot "change
 direction" internally.  That is, packets from the network must go out
@@ -229,8 +234,8 @@ A programmer targeting the PNA is required to define objects in P4 for
 the programmable blocks that conform to APIs defined later (see
 section [#sec-programmable-blocks]).  The programmable block inputs
 and outputs are templatized on user defined headers and metadata.
-Once these TBD blocks are defined, a P4 program for PNA instantiates
-the `main` `package` object, with the programmable blocks passed as
+Once these blocks are defined, a P4 program for PNA instantiates the
+`main` `package` object, with the programmable blocks passed as
 arguments (see Section TBD for an example).
 
 A P4 programmer wishing to maximize the portability of their program
@@ -353,11 +358,12 @@ types, as the P4 program author wishes.
 
 Refer to section [#packet-paths] for the packet paths provided by PNA.
 
+
 TBD: Need to decide where multicast replication can occur, and in what
 conditions.
 
-TBD: Need to decide where packet cloning occurs, and in what
-conditions, and how the cloned packets differ from the originals.
+TBD: Need to decide where packet mirroring occurs, and in what
+conditions, and how the mirrored packets differ from the originals.
 
 
 ## Initial values of packets processed by pre block
@@ -427,9 +433,8 @@ each occurs.
 
 
 
-# PNA Externs
+# PNA Extern Objects
 
-TBD: Consider adding a DetectReplay extern.
 
 
 ## Restrictions on where externs may be used {#sec-extern-restrictions}
@@ -805,8 +810,8 @@ host, e.g. an inside-the-NIC CPU complex used for exception packets.
 Logically, the copy occurs after the main deparser.
 
 One possibility for writing P4 code to do this is by having the main
-deparser optionally invoke a mirror or clone extern, which could
-provide an extra header to include before the mirrored copy.
+deparser optionally invoke a mirror extern, which could provide an
+extra header to include before the mirrored copy.
 
 
 ## Host to network
@@ -837,7 +842,7 @@ e.g. an inside-the-NIC CPU complex used for exception packets.
 Logically, the copy occurs after the main deparser.
 
 One possibility for writing P4 code to do this is by having the main
-deparser optionally invoke a mirror or clone extern, which could
+deparser optionally invoke a mirror or mirror extern, which could
 provide an extra header to include before the mirrored copy.
 
 

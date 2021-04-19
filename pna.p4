@@ -52,22 +52,16 @@ limitations under the License.
 typedef bit<32> PortIdUint_t;
 typedef bit<32> VportIdUint_t;
 typedef bit<32> MulticastGroupUint_t;
-typedef bit<16> CloneSessionIdUint_t;
+typedef bit<16> MirrorSessionIdUint_t;
+typedef bit<8>  MirrorSlotIdUint_t;
 typedef bit<8>  ClassOfServiceUint_t;
 typedef bit<16> PacketLengthUint_t;
 typedef bit<16> MulticastInstanceUint_t;
 typedef bit<64> TimestampUint_t;
+typedef bit<32> FlowIdUint_t;
+typedef bit<8>  ExpireTimeProfileIdUint_t;
 
 typedef bit<32> SecurityAssocIdUint_t;
-
-/* Note: clone_spec in BMv2 simple_switch v1model is 32 bits wide, but
- * it is used such that 16 of its bits contain a clone/mirror session
- * id, and 16 bits contain the numeric id of a field_list.  Only the
- * 16 bits of clone/mirror session id are comparable to the type
- * CloneSessionIdUint_t here.  See occurrences of clone_spec in this
- * file for details:
- * https://github.com/p4lang/behavioral-model/blob/master/targets/simple_switch/simple_switch.cpp
- */
 
 @p4runtime_translation("p4.org/pna/v1/PortId_t", 32)
 type PortIdUint_t         PortId_t;
@@ -75,8 +69,10 @@ type PortIdUint_t         PortId_t;
 type VportIdUint_t        VportId_t;
 @p4runtime_translation("p4.org/pna/v1/MulticastGroup_t", 32)
 type MulticastGroupUint_t MulticastGroup_t;
-@p4runtime_translation("p4.org/pna/v1/CloneSessionId_t", 16)
-type CloneSessionIdUint_t CloneSessionId_t;
+@p4runtime_translation("p4.org/pna/v1/MirrorSessionId_t", 16)
+type MirrorSessionIdUint_t MirrorSessionId_t;
+@p4runtime_translation("p4.org/pna/v1/MirrorSlotId_t", 8)
+type MirrorSlotIdUint_t MirrorSlotId_t;
 @p4runtime_translation("p4.org/pna/v1/ClassOfService_t", 8)
 type ClassOfServiceUint_t ClassOfService_t;
 @p4runtime_translation("p4.org/pna/v1/PacketLength_t", 16)
@@ -85,6 +81,10 @@ type PacketLengthUint_t   PacketLength_t;
 type MulticastInstanceUint_t MulticastInstance_t;
 @p4runtime_translation("p4.org/pna/v1/Timestamp_t", 64)
 type TimestampUint_t      Timestamp_t;
+@p4runtime_translation("p4.org/pna/v1/FlowId_t", 32)
+type FlowIdUint_t      FlowId_t;
+@p4runtime_translation("p4.org/pna/v1/ExpireTimeProfileId_t", 8)
+type ExpireTimeProfileIdUint_t      ExpireTimeProfileId_t;
 
 @p4runtime_translation("p4.org/pna/v1/SecurityAssocId_t", 64)
 type SecurityAssocIdUint_t      SecurityAssocId_t;
@@ -93,7 +93,7 @@ typedef error   ParserError_t;
 
 const PortId_t PNA_PORT_CPU = (PortId_t) 0xfffffffd;
 
-const CloneSessionId_t PNA_CLONE_SESSION_TO_CPU = (CloneSessionId_t) 0;
+const MirrorSessionId_t PNA_MIRROR_SESSION_TO_CPU = (MirrorSessionId_t) 0;
 
 #endif  // PNA_PLACEHOLDER_CORE_TYPES
 
@@ -117,11 +117,14 @@ const CloneSessionId_t PNA_CLONE_SESSION_TO_CPU = (CloneSessionId_t) 0;
 typedef bit<unspecified> PortIdUint_t;
 typedef bit<unspecified> VportIdUint_t;
 typedef bit<unspecified> MulticastGroupUint_t;
-typedef bit<unspecified> CloneSessionIdUint_t;
+typedef bit<unspecified> MirrorSessionIdUint_t;
+typedef bit<unspecified> MirrorSlotIdUint_t;
 typedef bit<unspecified> ClassOfServiceUint_t;
 typedef bit<unspecified> PacketLengthUint_t;
 typedef bit<unspecified> MulticastInstanceUint_t;
 typedef bit<unspecified> TimestampUint_t;
+typedef bit<unspecified> FlowIdUint_t;
+typedef bit<unspecified> ExpireTimeProfileIdUint_t;
 
 typedef bit<unspecified> SecurityAssocIdUint_t;
 
@@ -131,8 +134,10 @@ type PortIdUint_t         PortId_t;
 type VportIdUint_t         VportId_t;
 @p4runtime_translation("p4.org/pna/v1/MulticastGroup_t", 32)
 type MulticastGroupUint_t MulticastGroup_t;
-@p4runtime_translation("p4.org/pna/v1/CloneSessionId_t", 16)
-type CloneSessionIdUint_t CloneSessionId_t;
+@p4runtime_translation("p4.org/pna/v1/MirrorSessionId_t", 16)
+type MirrorSessionIdUint_t MirrorSessionId_t;
+@p4runtime_translation("p4.org/pna/v1/MirrorSlotId_t", 8)
+type MirrorSlotIdUint_t MirrorSlotId_t;
 @p4runtime_translation("p4.org/pna/v1/ClassOfService_t", 8)
 type ClassOfServiceUint_t ClassOfService_t;
 @p4runtime_translation("p4.org/pna/v1/PacketLength_t", 16)
@@ -141,6 +146,10 @@ type PacketLengthUint_t   PacketLength_t;
 type MulticastInstanceUint_t MulticastInstance_t;
 @p4runtime_translation("p4.org/pna/v1/Timestamp_t", 64)
 type TimestampUint_t      Timestamp_t;
+@p4runtime_translation("p4.org/pna/v1/FlowId_t", 32)
+type FlowIdUint_t      FlowId_t;
+@p4runtime_translation("p4.org/pna/v1/ExpireTimeProfileId_t", 8)
+type ExpireTimeProfileIdUint_t      ExpireTimeProfileId_t;
 
 @p4runtime_translation("p4.org/pna/v1/SecurityAssocId_t", 64)
 type SecurityAssocIdUint_t      SecurityAssocId_t;
@@ -149,7 +158,7 @@ typedef error   ParserError_t;
 
 const PortId_t PNA_PORT_CPU = (PortId_t) unspecified;
 
-const CloneSessionId_t PNA_CLONE_SESSION_TO_CPU = (CloneSessiontId_t) unspecified;
+const MirrorSessionId_t PNA_MIRROR_SESSION_TO_CPU = (MirrorSessiontId_t) unspecified;
 // END:Type_defns
 #endif  // #ifndef PNA_EXAMPLE_CORE_TYPES
 
@@ -183,11 +192,14 @@ const CloneSessionId_t PNA_CLONE_SESSION_TO_CPU = (CloneSessiontId_t) unspecifie
 typedef bit<32> PortIdInHeaderUint_t;
 typedef bit<32> VportIdInHeaderUint_t;
 typedef bit<32> MulticastGroupInHeaderUint_t;
-typedef bit<16> CloneSessionIdInHeaderUint_t;
+typedef bit<16> MirrorSessionIdInHeaderUint_t;
+typedef bit<8>  MirrorSlotIdInHeaderUint_t;
 typedef bit<8>  ClassOfServiceInHeaderUint_t;
 typedef bit<16> PacketLengthInHeaderUint_t;
 typedef bit<16> MulticastInstanceInHeaderUint_t;
 typedef bit<64> TimestampInHeaderUint_t;
+typedef bit<32> FlowIdInHeaderUint_t;
+typedef bit<8>  ExpireTimeProfileIdInHeaderUint_t;
 
 typedef bit<32> SecurityAssocIdInHeaderUint_t;
 
@@ -197,8 +209,10 @@ type  PortIdInHeaderUint_t         PortIdInHeader_t;
 type  VportIdInHeaderUint_t         VportIdInHeader_t;
 @p4runtime_translation("p4.org/pna/v1/MulticastGroupInHeader_t", 32)
 type  MulticastGroupInHeaderUint_t MulticastGroupInHeader_t;
-@p4runtime_translation("p4.org/pna/v1/CloneSessionIdInHeader_t", 16)
-type  CloneSessionIdInHeaderUint_t CloneSessionIdInHeader_t;
+@p4runtime_translation("p4.org/pna/v1/MirrorSessionIdInHeader_t", 16)
+type  MirrorSessionIdInHeaderUint_t MirrorSessionIdInHeader_t;
+@p4runtime_translation("p4.org/pna/v1/MirrorSlotIdInHeader_t", 8)
+type  MirrorSlotIdInHeaderUint_t MirrorSlotIdInHeader_t;
 @p4runtime_translation("p4.org/pna/v1/ClassOfServiceInHeader_t", 8)
 type  ClassOfServiceInHeaderUint_t ClassOfServiceInHeader_t;
 @p4runtime_translation("p4.org/pna/v1/PacketLengthInHeader_t", 16)
@@ -207,6 +221,10 @@ type  PacketLengthInHeaderUint_t   PacketLengthInHeader_t;
 type  MulticastInstanceInHeaderUint_t MulticastInstanceInHeader_t;
 @p4runtime_translation("p4.org/pna/v1/TimestampInHeader_t", 64)
 type  TimestampInHeaderUint_t      TimestampInHeader_t;
+@p4runtime_translation("p4.org/pna/v1/FlowIdInHeader_t", 32)
+type  FlowIdInHeaderUint_t      FlowIdInHeader_t;
+@p4runtime_translation("p4.org/pna/v1/ExpireTimeProfileIdInHeader_t", 8)
+type  ExpireTimeProfileIdInHeaderUint_t      ExpireTimeProfileIdInHeader_t;
 
 @p4runtime_translation("p4.org/pna/v1/SecurityAssocIdInHeader_t", 64)
 type  SecurityAssocIdInHeaderUint_t      SecurityAssocIdInHeader_t;
@@ -238,8 +256,8 @@ PortId_t pna_PortId_header_to_int (in PortIdInHeader_t x) {
 MulticastGroup_t pna_MulticastGroup_header_to_int (in MulticastGroupInHeader_t x) {
     return (MulticastGroup_t) (MulticastGroupUint_t) (MulticastGroupInHeaderUint_t) x;
 }
-CloneSessionId_t pna_CloneSessionId_header_to_int (in CloneSessionIdInHeader_t x) {
-    return (CloneSessionId_t) (CloneSessionIdUint_t) (CloneSessionIdInHeaderUint_t) x;
+MirrorSessionId_t pna_MirrorSessionId_header_to_int (in MirrorSessionIdInHeader_t x) {
+    return (MirrorSessionId_t) (MirrorSessionIdUint_t) (MirrorSessionIdInHeaderUint_t) x;
 }
 ClassOfService_t pna_ClassOfService_header_to_int (in ClassOfServiceInHeader_t x) {
     return (ClassOfService_t) (ClassOfServiceUint_t) (ClassOfServiceInHeaderUint_t) x;
@@ -253,6 +271,12 @@ MulticastInstance_t pna_MulticastInstance_header_to_int (in MulticastInstanceInH
 Timestamp_t pna_Timestamp_header_to_int (in TimestampInHeader_t x) {
     return (Timestamp_t) (TimestampUint_t) (TimestampInHeaderUint_t) x;
 }
+FlowId_t pna_FlowId_header_to_int (in FlowIdInHeader_t x) {
+    return (FlowId_t) (FlowIdUint_t) (FlowIdInHeaderUint_t) x;
+}
+ExpireTimeProfileId_t pna_ExpireTimeProfileId_header_to_int (in ExpireTimeProfileIdInHeader_t x) {
+    return (ExpireTimeProfileId_t) (ExpireTimeProfileIdUint_t) (ExpireTimeProfileIdInHeaderUint_t) x;
+}
 
 PortIdInHeader_t pna_PortId_int_to_header (in PortId_t x) {
     return (PortIdInHeader_t) (PortIdInHeaderUint_t) (PortIdUint_t) x;
@@ -260,8 +284,8 @@ PortIdInHeader_t pna_PortId_int_to_header (in PortId_t x) {
 MulticastGroupInHeader_t pna_MulticastGroup_int_to_header (in MulticastGroup_t x) {
     return (MulticastGroupInHeader_t) (MulticastGroupInHeaderUint_t) (MulticastGroupUint_t) x;
 }
-CloneSessionIdInHeader_t pna_CloneSessionId_int_to_header (in CloneSessionId_t x) {
-    return (CloneSessionIdInHeader_t) (CloneSessionIdInHeaderUint_t) (CloneSessionIdUint_t) x;
+MirrorSessionIdInHeader_t pna_MirrorSessionId_int_to_header (in MirrorSessionId_t x) {
+    return (MirrorSessionIdInHeader_t) (MirrorSessionIdInHeaderUint_t) (MirrorSessionIdUint_t) x;
 }
 ClassOfServiceInHeader_t pna_ClassOfService_int_to_header (in ClassOfService_t x) {
     return (ClassOfServiceInHeader_t) (ClassOfServiceInHeaderUint_t) (ClassOfServiceUint_t) x;
@@ -274,6 +298,12 @@ MulticastInstanceInHeader_t pna_MulticastInstance_int_to_header (in MulticastIns
 }
 TimestampInHeader_t pna_Timestamp_int_to_header (in Timestamp_t x) {
     return (TimestampInHeader_t) (TimestampInHeaderUint_t) (TimestampUint_t) x;
+}
+FlowIdInHeader_t pna_FlowId_int_to_header (in FlowId_t x) {
+    return (FlowIdInHeader_t) (FlowIdInHeaderUint_t) (FlowIdUint_t) x;
+}
+ExpireTimeProfileIdInHeader_t pna_ExpireTimeProfileId_int_to_header (in ExpireTimeProfileId_t x) {
+    return (ExpireTimeProfileIdInHeader_t) (ExpireTimeProfileIdInHeaderUint_t) (ExpireTimeProfileIdUint_t) x;
 }
 
 /// Supported range of values for the pna_idle_timeout table properties
@@ -493,9 +523,9 @@ extern Digest<T> {
 }
 // END:Digest_extern
 
-enum bit<1> PNA_Direction_t {
-    NET_TO_HOST = 0,
-    HOST_TO_NET = 1
+enum PNA_Direction_t {
+    NET_TO_HOST,
+    HOST_TO_NET
 }
 
 // BEGIN:Metadata_types
@@ -523,7 +553,6 @@ struct pna_pre_input_metadata_t {
 }
 
 struct pna_pre_output_metadata_t {
-    bool                     drop;             // false
 }
 
 struct pna_decrypt_input_metadata_t {
@@ -585,26 +614,318 @@ struct pna_main_output_metadata_t {
   // common fields used by the architecture to decide what to do with
   // the packet next, after the main parser, control, and deparser
   // have finished executing one pass, regardless of the direction.
-  bool                     drop;             // false ?
-  bool                     recirculate;      // false
   ClassOfService_t         class_of_service; // 0
-  bool                     clone;            // false
-  CloneSessionId_t         clone_session_id; // initial value is undefined
-
-  // output fields from main control that are only used by PNA device
-  // to decide what to do with the packet next if direction ==
-  // NET_TO_HOST
-  bool                     host_loopback;    // false
-  VportId_t                dest_vport;       // initial value is undefined
-
-  // output fields from main control that are only used by PNA device
-  // to decide what to do with the packet next if direction ==
-  // HOST_TO_NET
-  bool                     net_loopback;     // false
-  PortId_t                 dest_port;        // initial value is undefined
 }
 // END:Metadata_main_output
 // END:Metadata_types
+
+
+// The following extern functions are "forwarding" functions -- they
+// all set the destination of the packet.  Calling one of them
+// overwrites and replaces the effect of any earlier call to any of
+// the functions in this set.  Only the last one executed will
+// actually take effect for the packet.
+
+// + drop_packet
+// + send_to_port
+// + send_to_vport
+
+
+// drop_packet() - Cause the packet to be dropped when it finishes
+// completing the main control.
+//
+// Invoking drop_packet() is supported only within the main control.
+
+extern void drop_packet();
+
+
+// send_to_port(x) - Cause the packet to go to the network port number
+// x, after first looping back if invoked in the NET_TO_HOST
+// direction.
+//
+// Invoking send_to_port(x) is supported only within the main control.
+//
+// If the packet being processed is in the HOST_TO_NET direction,
+// calling send_to_port(x) modifies hidden state for this packet, so
+// that the packet will be transmitted out of network port x, without
+// being looped back.
+//
+// If the packet being processed is in the NET_TO_HOST direction,
+// calling send_to_port(x) modifies hidden state for this packet, so
+// that when the packet is finished with the main control and main
+// deparser, it will loop back in the host side, and later return to
+// be processed by the main control in the HOST_TO_NET direction.  The
+// hidden state will remain associated with the packet during that
+// loopback, so that even if no further forwarding functions are
+// called for the packet, it will be transmitted out of network port
+// x.
+
+extern void send_to_port(PortId_t dest_port);
+
+
+// send_to_vport(x) - Cause the packet to go to a host with vport
+// number x, after first looping back if invoked in the HOST_TO_NET
+// direction.
+//
+// Invoking send_to_vport(x) is supported only within the main
+// control.
+//
+// If the packet being processed is in the NET_TO_HOST direction,
+// calling send_to_vport(x) modifies hidden state for this packet, so
+// that the packet will be sent to vport number x in the host, without
+// being looped back.
+//
+// If the packet being processed is in the HOST_TO_NET direction,
+// calling send_to_vport(x) modifies hidden state for this packet, so
+// that when the packet is finished with the main control and main
+// deparser, it will loop back in/near the network ports, and later
+// return to be processed by the main control in the NET_TO_HOST
+// direction.  The hidden state will remain associated with the packet
+// during that loopback, so that even if no further forwarding
+// functions are called for the packet, it will be sent to vport
+// number x in the host.
+
+extern void send_to_vport(VportId_t dest_vport);
+
+
+// mirror_packet(slot_id, session_id) - Cause a copy of the packet to
+// be created and processed according to the indicated mirror
+// session_id.
+
+// Invoking mirror_packet() is supported only within the main control.
+
+// Every PNA implementation has at least four "mirror slots" for each
+// packet processed, numbered 0 up to 3.
+
+// When the main control starts processing, all mirror slots are
+// initialized so that they do not create a copy of the packet.
+
+// After calling mirror_packet(slot_id, session_id), when the main
+// control completes, the architecture will make a best effort to
+// create a copy of the packet that will be processed according to the
+// parameters configured by the control plane for the mirror session
+// numbered session_id, for mirror slot slot_id.  Note that this is
+// best effort -- if the target device is already near its upper limit
+// of its ability to create mirror copies, then some later mirror
+// copies may not be made, even though the P4 program requested them.
+
+// Each of the mirror slots is independent of each other in this
+// regard.  For example, calling mirror_packet(1, session_id) has no
+// effect on mirror slots 0, 2, or 3.
+
+// session_id 0 is reserved by the architecture, and must not be used
+// by a P4 developer.
+
+// If multiple calls are made to mirror_packet() for the same slot_id
+// in the same execution of the main control, only the last session_id
+// value is used to create a copy of the packet.  That is, every call
+// to mirror_packet(slot_id, session_id) overwrites the effects of any
+// earlier to mirror_packet() with the same slot_id.
+
+// The effects of mirror_packet() calls are independent of calls to
+// drop_packet(), send_to_port(), and send_to_vport().  Regardless of
+// which of those things is done to the original packet, up to one
+// mirror packet per mirror slot can be created.
+
+// ---------------------------------------------------------------------
+// The control plane code can configure the following properties of
+// each mirror session, independently of other mirror sessions:
+
+// packet_contents
+
+// If PRE_MODIFY, then the mirrored packet's contents will be the same
+// as the original packet as it was when the packet began the
+// execution of the main control that invoked the mirror_packet()
+// function.
+
+// If POST_MODIFY, then the mirrored packet's contents will be the
+// same as the original packet that is being mirrored, _after_ any
+// modifications made during the execution of the main control that
+// invoked the mirror_packet() function.
+
+// truncate
+
+// true to limit the length of the mirrored packet to the
+// truncate_length.  false to cause the mirrored packet not to be
+// truncated, in which case the truncate_length property is ignored
+// for this mirror session.
+
+// truncate_length
+
+// In units of bytes.  Targets may limit the choices here, e.g. to a
+// multiple of 32 bytes, or perhaps even a subset of those choices.
+
+// sampling_method
+
+// One of the values RANDOM_SAMPLING, or HASH_SAMPLING.
+
+// If RANDOM_SAMPLING, then a mirror copy requested for this mirror
+// session will only be created with a configured probability given by
+// the sample_probability property.
+
+// If HASH_SAMPLING, then a target-specific hash function will be
+// calculated over the packet's header fields resulting in a hash
+// output value H.  A mirror copy will be created if (H &
+// sample_hash_mask) == sample_hash_value.
+
+// meter_parameters
+
+// If the conditions specified by the sampling_method and other
+// sampling properties are passed, then a P4 meter dedicated for use
+// by this mirror session will be updated.  If it returns a GREEN
+// result, then the mirror copy will be created (still with best
+// effort, if the target device's implementation is still
+// oversubscribed with requests to create mirror copies).
+
+// If the meter update returns any result other than GREEN, then no
+// mirror copy will be created.
+
+// destination_type
+
+// One of PORT or VPORT.
+
+// If PORT, then the mirror session property named `destination_port`
+// is the destination of mirrored copy packets created by this
+// session.  If the mirror_packet() call for this session was invoked
+// in the NET_TO_HOST direction, mirror copy packets created will loop
+// back in the host side of the NIC, and later come back for
+// processing in the main block in the HOST_TO_NET direction, already
+// destined for the port destination_port.  That port can be
+// overwritten by calls to forwarding extern functions.
+
+// If VPORT, then the mirror session property named
+// `destination_vport` is the destination of mirrored copy packets
+// created by this session.  If the mirror_packet() call for this
+// session was invoked in the HOST_TO_NET direction, mirror copy
+// packets created will loop back in the network port side of the NIC,
+// and later come back for processing in the main block in the
+// NET_TO_HOST direction, already destined for the vport
+// destination_vport.  That vport can be overwritten by calls to
+// forwarding extern functions.
+
+// TBD: When a mirror copied packet comes back to the main control, it
+// will have some metadata indicating it is mirror copy.  We should
+// define a way in PNA to recognize such mirror copies, e.g. some new
+// extern function call returning true if the packet was created by a
+// mirror_packet operation.
+
+extern void mirror_packet(MirrorSlotId_t mirror_slot_id,
+                          MirrorSessionId_t mirror_session_id);
+
+
+// add_entry() causes an entry to be added to a table, controlled from
+// within the P4 program while a packet is being processed.  The new
+// table entry will be matchable when the next packet is processed
+// that applies this table.
+//
+// It is expected that many implementations will restrict add_entry()
+// to be called with the following restrictions:
+//
+// + Only from within an action
+// + Only if the action is a default (i.e. miss) action of a table
+//   with property add_on_miss equal to true.
+// + Only for a table with all key fields having match_kind exact.
+// + Only with an action name that is one of the hit actions of that
+//   same table.
+// + If that hit action to be added has parameters that are all
+//   directionless.
+// + The type T is a struct containing one member for each
+//   directionless parameter of the hit action to be added.  The
+//   member names must match the hit action parameter names, and their
+//   types must be the same as the corresponding hit action
+//   parameters.
+//
+// The new entry will have the same key field values that were
+// searched for in the table when the miss occurred, which caused the
+// table's default action to be executed.  The action will be the one
+// named by the string that is the file of the parameter action_name.
+//
+// TBD: Does it make sense to have a data plane add of a hit action
+// that has in, out, or inout parameters?
+//
+// If the attempt to add a table entry succeeds, the return value is
+// true, otherwise false.
+//
+// TBD: Should we require the return value?  Can most targets
+// implement it?  If not, consider having two separate variants of
+// add_entry, one with no return value (i.e. type void).  Such a
+// variant of add_entry seems difficult to use correctly, if it is
+// possible for entries to fail to be added.
+
+// TBD: For add_entry calls to a table with property 'idle_timeout' or
+// 'idle_timeout_with_auto_delete' equal to true, there should
+// probably be an optional parameter at the end that specifies the new
+// entry's initial expire_time_profile_id.
+
+extern bool add_entry<T>(string action_name,
+                         in T action_params);
+
+extern FlowId_t allocate_flow_id();
+
+
+// set_entry_expire_time() may only be called from within an action of
+// a table with property 'idle_timeout' or
+// 'idle_timeout_with_auto_delete' equal to true.
+
+// Calling it causes the expiration time of the entry to be the one
+// that the control plane has configured for the specified
+// expire_time_profile_id.
+
+extern void set_entry_expire_time(
+    in ExpireTimeProfileId_t expire_time_profile_id);
+
+
+// restart_expire_timer() may only be called from within an action of
+// a table with property 'idle_timeout' or
+// 'idle_timeout_with_auto_delete' equal to true.
+
+// Calling it causes the dynamic expiration timer of the entry to be
+// reset, so that the entry will remain active from the now until that
+// time in the future.
+
+// TBD: Do any targets support a table with one of the idle_timeout
+// properties such that matching an entry _does not_ cause this side
+// effect to occur?  If not, we could simply document it the way that
+// I believe it currently behaves in all existing architectures, which
+// is that every hit action implicitly causes the entry's expiration
+// timer to be reset to its configured time interval in the future.
+
+extern void restart_expire_timer();
+
+
+// SelectByDirection is a simple pure function that behaves exactly as
+// the P4_16 function definition given in comments below.  It is an
+// extern function to ensure that the front/mid end of the p4c
+// compiler leaves occurrences of it as is, visible to target-specific
+// compiler back end code, so targets have all information needed to
+// optimize it as they wish.
+
+// One example of its use is in table key expressions, for tables
+// where one wishes to swap IP source/destination addresses for
+// packets processed in the different directions.
+
+/*
+T SelectByDirection<T>(
+    in PNA_Direction_t direction,
+    in T n2h_value,
+    in T h2n_value)
+{
+    if (direction == PNA_Direction_t.NET_TO_HOST) {
+        return n2h_value;
+    } else {
+        return h2n_value;
+    }
+}
+*/
+
+@pure
+extern T SelectByDirection<T>(
+    in PNA_Direction_t direction,
+    in T n2h_value,
+    in T h2n_value);
+
+
+
 
 // BEGIN:Programmable_blocks
 parser PreParserT<PH, PM>(
@@ -640,11 +961,15 @@ control MainDeparserT<MH, MM>(
     in    pna_main_output_metadata_t ostd);
 
 package PNA_NIC<PH, PM, MH, MM>(
-    PreParserT<PH, PM> pre_parser,
     PreControlT<PH, PM> pre_control,
     MainParserT<PM, MH, MM> main_parser,
     MainControlT<PM, MH, MM> main_control,
-    MainDeparserT<MH, MM> main_deparser);
+    MainDeparserT<MH, MM> main_deparser,
+    // pre_parser is optional.  If not specified, it defaults to be the
+    // same as main_parser.  An implementation that has a separate pre
+    // parser is free to optimize away any part of it that is
+    // unnecessary for executing the code in pre_control.
+    PreParserT<PH, PM> pre_parser);
 // END:Programmable_blocks
 
 #endif   // __PNA_P4__
