@@ -87,8 +87,11 @@ intended to be programmed via the P4 language.
 
 Packets arriving from a network port first go through a main parser
 and pre control.  The pre control can optionally perform table
-lookups.  Its purpose is to determine whether a packet requires
-processing by the net-to-host inline extern block.
+lookups and execute  actions corresponding to matching entries.
+Its main purpose is to determine whether a packet requires
+processing by the net-to-host inline extern block and possibly
+determine appropriate parameters for driving its execution in the form of
+intrinsic metadata associated with the packet.
 
 For example, the net-to-host inline extern block may perform
 decryption of packet payloads according to the IPsec protocol.  In
@@ -111,11 +114,12 @@ After decryption, the main parser can now do the full header parsing
 required for the desired data plane features.
 
 The main control is typically where the bulk of code would be written
-for processing packets.  The main deparser P4 code specifies the
-packet header contents to be sent onwards.  The main processing may
+for processing packets. The main processing may
 also associate additional user-defined metadata with packets.
+The main deparser P4 code specifies the
+packet header contents to be sent onwards to a buffering system.
 
-After that, the two main choices for the next place the packet will go
+The two main choices for the next place the packet will go from there
 are:
 
 - proceed to the message processing part of the NIC, and usually then
@@ -340,9 +344,18 @@ for all ingress parsers and control blocks.  The egress parser and
 control blocks can use the same types for those things, or different
 types, as the P4 program author wishes.
 
+
+```
+[INCLUDE=pna_v4.p4:Programmable_blocks]
+```
+
+
+## PNAv3
+
 ```
 [INCLUDE=pna.p4:Programmable_blocks]
 ```
+
 
 
 # Packet Path Details {#packet-path-details}
@@ -710,6 +723,65 @@ implementation might use some of the techniques mentioned in the
 previous paragraph, but hidden from the P4 developer.  The proposed
 PNA design should not prevent this, if an implementer is willing to go
 to that effort.
+
+# Appendix: Mapping on target architectures
+
+The current PNA architecture allows for automatic efficient compilation on
+target architectures that do not feature the same number and organization
+of programmable components. This appendix shows a few examples of how a
+program written for the PNA architecture can be mapped on various
+target architectures.
+
+## Two parser architecture
+
+When compiling a program written for the PNA for an architecture like
+the one shown in Figure [#fig-two-parser-target], the compiler uses the
+same parser code to program both the pre and main programmable parsers.
+
+~ Figure {#fig-two-parser-target; caption: "Target architecture with
+additional parser after inline extern"; page-align: forcehere;}
+![two-parser-arch]
+~
+[two-parser-arch]: figs/two-parser-arch.png { width: 100%;}
+
+By analyzing which header fields (hdr) and user metadata (user_meta)
+are actually used within the pre control block (pre_control), the compiler
+can determine to only compile a subset of the states of the parser block to
+configure the target Pre Parser. In other words, the compiler has to
+behave as it compiled the following package instantiation:
+
+```
+[INCLUDE=two-parser-example.p4:Package_Instantiation_Example]
+```
+where the bodies of `PreParserImpl` and `MainParserImpl` are identical
+and their interfaces are as follows:
+
+```
+[INCLUDE=two-parser-example.p4:PreParserImpl_interface]
+
+[INCLUDE=two-parser-example.p4:MainParserImpl_interface]
+```
+
+
+## Single control architecture
+
+A compiler can map the code written for the PNA on a target architecture that
+is composed of a single
+programmable block including a parser, control and deparser with an extern
+at the end of the chain, as shown in Figure [#fig-single-control-target].
+The compiler must merge the Pre Control and Main Control into a single
+control block that has the interface shown below and the `apply` block obtained
+by concatenating the code of the two original `apply` blocks.
+
+~ Figure {#fig-single-control-target; caption: "Target architecture with
+additional parser after inline extern"; page-align: forcehere;}
+![single-control-arch]
+~
+[single-control-arch]: figs/single-control-arch.png { width: 100%;}
+
+```
+[INCLUDE=two-parser-example.p4:ControlImpl_interface]
+```
 
 
 # Appendix: Packet path figures {#appendix-packet-path-figures}
