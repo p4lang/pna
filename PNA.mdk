@@ -148,8 +148,9 @@ division is expected to be:
 
 - main programmable blocks deal solely with individual network
   packets, which are at most one network maximum transmission unit
-  (MTU) in size.
-- message processing is responsible for converting between large
+  (MTU) in size. ** wouldn't this techncially be the size of a network packet?
+  Should we say "Data-link MTU" or "MTU on the wire"? **
+- message processing is responsible for possibly converting between large
   messages in host memory and network size packets on the network, and
   for dealing with one or more host operating systems, drivers, and/or
   message descriptor formats in host memory.
@@ -182,7 +183,10 @@ plane software.
 Messages originating in one of the hosts are segmented into network
 MTU size packets (if the host has not already done so) in the message
 processing block, and are then sent to the main block for further
-processing.
+processing. ** MB: we may want to move the buffering system before the main
+block (rather than after) because if a message is split into multiple packets
+they cannot be processed all at once. Moreover, in general, the processing
+pace of the message processing block may be higher than the main processing one. **
 
 The same main parser, pre control, main control, and deparser that
 process packets from the network is also used to process packets from
@@ -203,9 +207,20 @@ the host.  PNA was designed this way for two reasons:
   capability) to access the same table in memory when processing
   packets in either direction.
 
-After finishing processing in the main control, the packet may be
+** MB: shall we include a note that a target that uses separate physical
+pipelines can still execute the code by duplicating it to each pipeline, but
+needs specific hardware to be able to execute code that shares the same
+modifiable table or registers in both directions? **
+
+**MB: to be possibly moved earlier** After finishing processing in the main control, the packet may be
 enqueued in one of several queues (the number of such queues is target
 specific).  After that there may be a host-to-net inline extern.
+
+**MB: if we decide to move the buffering before the main block, I believe
+it is reasonable to assume that there isn't another buffering system before the
+in-line extern, namely, that the inline extern can process packets at the same
+pace as the main block: since it is designed to be inline, it should be
+fast enough.**
 
 For example, the host-to-net inline extern block may perform
 encryption of packet payloads according to the IPsec protocol.  In
@@ -222,14 +237,19 @@ are:
 
 All of the choices of queue, what kind of processing to perform in the
 host-to-net inline extern, which port to go to, or whether to loop
-back, are all controlled from the P4 code running in the main block,
-via extern functions defined by this PNA specification.
+back, are controlled from the P4 code running in the main block,
+via extern functions defined by this PNA specification. **MB: earlier
+we state that the operation of the in-line extern is controlled by standards
+metadata values. Given that we have decided to control the port through an
+extern, we should probably do the same for everything else (including the
+in-line extern) and modify two paragraphs above.**
 
 Note that packets processed in the main block cannot "change
-direction" internally.  That is, packets from the network must go out
+direction" internally within the main block: there are loopback paths
+outside of the main block as shown in
+Figure [#fig-nic].  That is, packets from the network must go out
 the to-host path, and packets from the host must go out the to-net
-path.  There are loopback paths outside of the main block as shown in
-Figure [#fig-nic].
+path.
 
 
 ## PNA P4~16~ architecture
@@ -251,8 +271,10 @@ should follow several general guidelines:
 - Use as few resources as possible, e.g. table search key bits, array
   sizes, quantity of metadata associated with packets, etc.
 
-This document contains excerpts of several P4~16~ programs that use
-the `pna.p4` include file and demonstrate features of PNA.  Source
+This document contains excerpts of several P4~16~ programs that demonstrate
+features of the PNA. Such examples use
+the `pna.p4` include file that contains definition of some basic types,
+functions, and externs, and the components of the main block.  Source
 code for the complete programs can be found in the official repository
 containing the PNA specification[^PNAExamplePrograms].
 
