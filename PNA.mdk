@@ -56,47 +56,56 @@ system.
 
 # Introduction
 
-As an analogy, the PNA is to the P4~16~ language as the C standard
-library is to the C programming language.  PNA defines a library of
-types, P4~16~ externs for frequently used constructs such as counters,
-meters, and registers, and a set of "packet paths" that enable you to
-write P4 programs that control the flow of packets in a NIC with one
-or more host interfaces and one or more ports, e.g. typically one to
-four Ethernet ports.  By following the APIs and guidelines here,
-developers will be able to write P4 programs that are portable across
+The Portable NIC Architecture (PNA) is P4 architecture that defines
+the structure and common capabilities for network interface controller
+(NIC) devices. PNA comprises two main components:
+
+1. A programmable pipeline that can be used to realize a variety of
+different "packet paths" going between the various ports on the device
+(e.g., network interfaces or the host system it is attached to), and
+
+2. A library of types (e.g., intrinsict and standard metadata) and
+P4~16~ externs (e.g., counters, meters, and registers).
+
+PNA is designed to model the common features of a broad class of NIC
+devices. By providing standard APIs and coding guidelines, the hope is
+to enable developers to write programs that are portable across
 multiple NIC devices that are conformant to the PNA[^PNAPortability].
 
-[^PNAPortability]: Given the sometimes tight hardware resource constraints within such devices, there is no promise that P4 programs that are near or over those constraints will be portable across multiple NIC devices.  However, it should at least be the case that those P4 programs that are able to compile on multiple NIC devices should process packets as described in this document.
+[^PNAPortability]: Of course, given the tight hardware resource
+constraints on NIC devices, there is no promise that a given P4
+program that compiles on one device will also compile on another
+device. However, it should at least be the case that those P4 programs
+that are able to compile on multiple NIC devices should process
+packets as described in this document.
 
 The Portable NIC Architecture (PNA) Model has five programmable P4
 blocks and several fixed-function blocks, as shown in Figure
 [#fig-nic]. The behavior of the programmable blocks is specified using
-P4.  The network ports, packet queues, and (optional) inline extern
-blocks are target dependent blocks that can be configured from control
-plane software to modify how they process packets, but are not
-intended to be programmed via the P4 language.
+P4. The network ports, packet queues, and (optional) inline extern
+blocks are fixed-function blocks that can be configured by the control
+plane, but are not intended to be programmed using P4.
 
 ~ Figure {#fig-nic; caption: "Programmable NIC Architecture Block Diagram"; page-align: here;}
 ![nic]
 ~
 [nic]: figs/pna-block-diagram.png { width: 100%;}
 
-
 ## Packet processing in the network to host direction
 
-Packets arriving from a network port first go through a main parser
-and pre control.  The pre control can optionally perform table
-lookups.  Its purpose is to determine whether a packet requires
+Packets arriving from a network port first go through a "main" parser
+and a "pre" control. The pre control can optionally perform table
+lookups. Its purpose is to determine whether a packet requires
 processing by the net-to-host inline extern block.
 
 For example, the net-to-host inline extern block may perform
-decryption of packet payloads according to the IPsec protocol.  In
-this case, the main parser and pre control would be programmed to
-identify whether the packet was encrypted using IPsec, and if so, what
-security association it belongs to.  The pre control code would drop
-the packet if the packet had an IPsec header, but one or more P4 table
-lookups determined that the packet does not belong to any security
-association that had been established by the control plane software.
+decryption of packet payloads according to the IPsec protocol. In this
+case, the main parser and pre control would be programmed to identify
+whether the packet was encrypted using IPsec, and if so, what security
+association it belongs to. The pre control code would drop the packet
+if the packet had an IPsec header, but one or more P4 table lookups
+determined that the packet does not belong to any security association
+that had been established by the control plane software.
 
 The inline extern may modify the entire payload of the received
 packet, e.g. by decrypting the encrypted part of the packet payload.
