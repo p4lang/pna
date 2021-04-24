@@ -41,19 +41,18 @@ Tex Header:
 []{tex-cmd: "\sloppy"}
 
 ~ Begin Abstract
-
-P4 is a language for expressing how packets are processed by the data
-plane of a programmable network forwarding element. P4 programs
-specify how the various programmable blocks of a target architecture
-are programmed and connected.  The Portable NIC Architecture (PNA) is
-a target architecture that describes common capabilities of network
-NIC (network interface controller) devices that process and forward
-packets between one or more network interfaces and a host system.
-
+P4 is a domain-specific language for describing how packets are
+processed by a network data plane. A P4 program comprises an
+architecture, which describes the structure and capabilities of the
+pipeline, and a user program, which specifies the functionality of the
+programmable blocks within that pipeline. The Portable NIC
+Architecture (PNA) is an architecture that describes the structure and
+common capabilities of network interface controller (NIC) devices that
+process packets going between one or more interfaces and a host
+system.
 ~ End Abstract
 
 [TOC]
-
 
 # Introduction
 
