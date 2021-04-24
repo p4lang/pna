@@ -56,7 +56,9 @@ system.
 
 # Introduction
 
-%jnfoster: should we set terms like "pre", "main", etc. in a special font, maybe typewriter?
+~ Begin Comment
+jnfoster: should we set terms like "pre", "main", etc. in a special font, maybe typewriter?
+~ End Comment
 
 The Portable NIC Architecture (PNA) is P4 architecture that defines
 the structure and common capabilities for network interface controller
@@ -204,7 +206,9 @@ the host. PNA was designed this way for two reasons:
   capability) to access the same table in memory when processing
   packets in either direction.
 
-% jnfoster: should we add a forward reference to add-on-miss?
+~ Begin Comment
+jnfoster: should we add a forward reference to add-on-miss?
+~ End Comment
 
 After finishing processing in the main control, the packet may be
 enqueued in one of several queues (the number of such queues is target
@@ -228,7 +232,9 @@ whether to loop back, are all controlled from the P4 code running in
 the main block, via extern functions defined by this PNA
 specification.
 
-% jnfoster: Above we said it was standard metadata?
+~ Begin Comment
+jnfoster: Above we said it was standard metadata?
+~ End Comment
 
 Note that packets processed in the main block cannot "change
 direction" internally. That is, packets from the network must go out
@@ -246,7 +252,9 @@ The top-level PNA program instantiates the `main` `package` object,
 with the programmable blocks passed as arguments (see Section TBD for
 an example).
 
-% jnfoster: should this be turned into a subsection like "Guidelines for Portability"? 
+~ Begin Comment
+jnfoster: should this be turned into a subsection like "Guidelines for Portability"? 
+~ End Comment
 
 A P4 programmer wishing to maximize the portability of their program
 should follow several general guidelines:
