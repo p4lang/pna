@@ -128,9 +128,11 @@ control MainDeparserImpl(
 }
 
 PNA_NIC(
-    PreControlImpl(),
     MainParserImpl(),
+    PreControlImpl(),
     MainControlImpl(),
-    MainDeparserImpl(),
-    // The last arg is optional, but leaving it here for the moment
-    MainParserImpl()) main;
+    MainDeparserImpl()
+    // Hoping to make this optional parameter later, but not supported
+    // by p4c yet.
+    //, PreParserImpl()
+    ) main;
