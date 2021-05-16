@@ -990,9 +990,7 @@ package PNA_NIC<PH, PM, MH, MM>(
     MainParserT<PM, MH, MM> main_parser,
     PreControlT<PH, PM> pre_control,
     MainControlT<PM, MH, MM> main_control,
-    MainDeparserT<MH, MM> main_deparser,
-    MainDeparserT<MH, MM> main_deparser
-    );
+    MainDeparserT<MH, MM> main_deparser);
 // END:Programmable_blocks
 
 #endif   // __PNA_P4__

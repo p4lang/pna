@@ -64,20 +64,6 @@ const bit<32> NUM_PORTS = 4;
 // header_union.
 //////////////////////////////////////////////////////////////////////
 
-// User-defined struct containing all of those headers parsed in the
-// pre parser.
-struct pre_headers_t {
-    ethernet_t ethernet;
-    ipv4_t ipv4;
-}
-
-// User-defined struct containing metadata that is assigned values in
-// the pre parser and/or control, and then carried by the PNA device
-// from there to become input to the main parser and control.
-struct pre_metadata_t {
-    // empty for this skeleton
-}
-
 struct main_metadata_t {
     // empty for this skeleton
 }
@@ -89,47 +75,9 @@ struct headers_t {
     ipv4_t ipv4;
 }
 
-parser PreParserImpl (
-    packet_in pkt,
-    out pre_headers_t pre_hdr,
-    out pre_metadata_t pre_user_meta,
-    in  pna_pre_parser_input_metadata_t istd)
-{
-    state start {
-        pkt.extract(pre_hdr.ethernet);
-        transition select(pre_hdr.ethernet.etherType) {
-            0x0800: parse_ipv4;
-            default: accept;
-        }
-    }
-    state parse_ipv4 {
-        pkt.extract(pre_hdr.ipv4);
-        transition accept;
-    }
-    // Note: This program does not demonstrate all of the code that
-    // would be necessary if you were implementing IPsec packet
-    // decryption.  If it did, then this pre parser implementation
-    // would need to parse more headers, e.g. Authentication and ESP
-    // headers, perhaps handling both IPsec transport and tunnel
-    // modes.
-}
-
-// Note 1:
-
-// pre_user_meta is an output from the pre parser, but it is optional
-// for the pre parser to make any assignments to any of its members.
-// It is only done this way in case it is helpful to carry metadata
-// fields about the packet from the pre parser to the pre control,
-// that are not in parsed headers.
-
-// pre_user_meta is also an output from the pre control, and an input
-// to the main parser.  This allows the pre parser and/or control to
-// record metadata about the packet that will be carried with the
-// packet from the pre parser/control to main.
-
 control PreControlImpl(
-    in    pre_headers_t pre_hdr,           // output from pre parser
-    inout pre_metadata_t pre_user_meta,    // See Note 1
+    in    headers_t  hdr,
+    inout main_metadata_t meta,
     in    pna_pre_input_metadata_t  istd,
     inout pna_pre_output_metadata_t ostd)
 {
@@ -158,7 +106,6 @@ control PreControlImpl(
 
 parser MainParserImpl(
     packet_in pkt,
-    in    pre_metadata_t  pre_meta,
     out   headers_t       hdr,
     inout main_metadata_t main_meta,
     in    pna_main_parser_input_metadata_t istd)
@@ -178,7 +125,6 @@ parser MainParserImpl(
 
 // BEGIN:Counter_Example_Part2
 control MainControlImpl(
-    in    pre_metadata_t  pre_user_meta, // from pre control
     inout headers_t       hdr,           // from main parser
     inout main_metadata_t user_meta,     // from main parser, to "next block"
     in    pna_main_input_metadata_t  istd,
@@ -191,11 +137,11 @@ control MainControlImpl(
 
     action next_hop(VportId_t vport) {
         per_prefix_pkt_byte_count.count();
-        ostd.dest_vport = vport;
+        send_to_vport(vport);
     }
     action default_route_drop() {
         per_prefix_pkt_byte_count.count();
-        ostd.drop = true;
+        drop_packet();
     }
     table ipv4_da_lpm {
         key = {
@@ -232,9 +178,12 @@ control MainDeparserImpl(
 
 // BEGIN:Package_Instantiation_Example
 PNA_NIC(
-    PreParserImpl(),
-    PreControlImpl(),
     MainParserImpl(),
+    PreControlImpl(),
     MainControlImpl(),
-    MainDeparserImpl()) main;
+    MainDeparserImpl()
+    // Hoping to make this optional parameter later, but not supported
+    // by p4c yet.
+    //, PreParserImpl()
+    ) main;
 // END:Package_Instantiation_Example
