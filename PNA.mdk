@@ -138,7 +138,7 @@ p4grammar {
 tbd {
     replace: "~ Begin TbdBlock&nl;\
                    TBD: &source;&nl;\
-                   ~ End TbdBlock&nl;";
+              ~ End TbdBlock&nl;";
     color: red;
 }
 
@@ -400,7 +400,9 @@ Figure [#fig-packet-paths] shows all possible paths for packets that
 must be supported by a PNA implementation. An implementation is
 allowed to support paths for packets that are not described here.
 
-TBD: Create another figure with names for the paths.
+~Begin TBD
+Create another figure with names for the paths.
+~End TBD
 
 ~ Figure {#fig-packet-paths; caption: "Packet Paths in PNA"; page-align: here;}
 ![packet-paths]
@@ -439,10 +441,11 @@ plane sizes for these types no wider than the corresponding
 ~ End P4Example
 
 ## Match kinds
-
-TBD: Consider simply referencing the corresponding section of the PSA
+~Begin TBD
+Consider simply referencing the corresponding section of the PSA
 specification for this, unless we want to have something different in
 PNA.
+~End TBD
 
 ## Data plane vs. control plane data representations {#sec-data-plane-vs-control-plane-values}
 
@@ -466,11 +469,15 @@ types, as the P4 program author wishes.
 
 Refer to section [#packet-paths] for the packet paths provided by PNA.
 
-TBD: Need to decide where multicast replication can occur, and in what
+~Begin TBD
+Need to decide where multicast replication can occur, and in what
 conditions.
+~End TBD
 
-TBD: Need to decide where packet mirroring occurs, and in what
+~Begin TBD 
+Need to decide where packet mirroring occurs, and in what
 conditions, and how the mirrored packets differ from the originals.
+~End TBD
 
 ## Initial values of packets processed by pre block
 
@@ -628,14 +635,18 @@ restricted to be within parsers in PNA programs. P4~16~ restricts all
 `verify` method calls to be within parsers for all P4~16~ programs,
 regardless of whether they are for the PNA.
 
-TBD: For the descriptions of each of the externs, simply reference the
+~Begin TBD 
+For the descriptions of each of the externs, simply reference the
 corresponding section of the PSA specification if they are the same
 between PNA and PSA.
+~End TBD
 
 ## Hashes {#sec-hash-algorithms}
 
-TBD: Probably Toeplitz hash algorithm needs to be added for NICs,
-since it is often used in receive side scaling.
+~Begin TBD
+Probably Toeplitz hash algorithm needs to be added for NICs, since it
+is often used in receive side scaling.
+~End TBD
 
 ## Checksums {#sec-checksums}
 
@@ -765,13 +776,17 @@ Restrictions on the TTL values and notifications:
 
 ## Why a common `main` pipeline, instead of separate pipelines for each direction?
 
-TBD: Andy can write this one.  Basic reasons are summarized in
+~Begin TBD
+Andy can write this one.  Basic reasons are summarized in
 existing slides.
+~End TBD
 
 ## Why separate programmable pre blocks for pre-decryption packet processing?
 
-TBD: Andy can write this one.  Basic reasons are summarized in
+~Begin TBD 
+Andy can write this one.  Basic reasons are summarized in
 existing slides.
+~End TBD
 
 ## Is it inefficient to have the main parser redo work? {#appendix-reparsing}
 
