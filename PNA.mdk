@@ -1,17 +1,138 @@
-Title : P4~16~ Portable NIC Architecture (PNA)
+Title : P4 Portable NIC Architecture (PNA)
 Title Note: (working draft)
 Title Footer: &date;
-Author : The P4.org Architecture Working Group
+Author : The P4 Language Consortium
 Heading depth: 4
+Pdf Latex: xelatex
+Document Class: [11pt]article
+Package: [top=1in, bottom=1.25in, left=1in, right=1in]geometry
+Package: fancyhdr
 
+Tex Header:
+  \setlength{\headheight}{30pt}
+  \renewcommand{\footrulewidth}{0.5pt}
+
+@if html {
+body.madoko {
+  font-family: utopia-std, serif;
+}
+title,titlenote,titlefooter,authors,h1,h2,h3,h4,h5 {
+  font-family: helvetica, sans-serif;
+  font-weight: bold;
+}
 pre, code {
   language: p4;
+  font-family: monospace;
+  font-size: 10pt;
 }
+}
+
+@if tex {
+body.madoko {
+  font-family: UtopiaStd-Regular;
+}
+title,titlenote,titlefooter,authors {
+  font-family: sans-serif;
+  font-weight: bold;
+}
+pre, code {
+  language: p4;
+  font-family: LuxiMono;
+  font-size: 75%;
+}
+}
+
 Colorizer: p4
 .token.keyword    {
     font-weight: bold;
-    font-family: monospace;
-   font-size: 10pt;
+}
+
+@if html {
+p4example {
+  replace: "~ Begin P4ExampleBlock&nl;\
+                 ````&nl;&source;&nl;````&nl;\
+                 ~ End P4ExampleBlock";
+  padding:6pt;
+  margin-top: 6pt;
+  margin-bottom: 6pt;
+  border: solid;
+  background-color: #ffffdd;
+  border-width: 0.5pt;
+}
+}
+
+@if tex {
+p4example {
+  replace: "~ Begin P4ExampleBlock&nl;\
+                 ````&nl;&source;&nl;````&nl;\
+                 ~ End P4ExampleBlock";
+  breakable: true;
+  padding: 6pt;
+  margin-top: 6pt;
+  margin-bottom: 6pt;
+  border: solid;
+  background-color: #ffffdd;
+  border-width: 0.5pt;
+}
+}
+
+
+@if html {
+p4pseudo {
+  replace: "~ Begin P4PseudoBlock&nl;\
+                 ````&nl;&source;&nl;````&nl;\
+                 ~ End P4PseudoBlock";
+  padding: 6pt;
+  margin-top: 6pt;
+  margin-bottom: 6pt;
+  border: solid;
+  background-color: #e9fce9;
+  border-width: 0.5pt;
+}
+}
+
+@if tex {
+p4pseudo {
+  replace: "~ Begin P4PseudoBlock&nl;\
+                 ````&nl;&source;&nl;````&nl;\
+                 ~ End P4PseudoBlock";
+  breakable : true;
+  padding: 6pt;
+  margin-top: 6pt;
+  margin-bottom: 6pt;
+  background-color: #e9fce9;
+  border: solid;
+  border-width: 0.5pt;
+}
+}
+
+@if html {
+p4grammar {
+  replace: "~ Begin P4GrammarBlock&nl;\
+                 ````&nl;&source;&nl;````&nl;\
+                 ~ End P4GrammarBlock";
+  border: solid;
+  margin-top: 6pt;
+  margin-bottom: 6pt;
+  padding: 6pt;
+  background-color: #e6ffff;
+  border-width: 0.5pt;
+}
+}
+
+@if tex {
+p4grammar {
+  replace: "~ Begin P4GrammarBlock&nl;\
+                 ````&nl;&source;&nl;````&nl;\
+                 ~ End P4GrammarBlock";
+  breakable: true;
+  margin-top: 6pt;
+  margin-bottom: 6pt;
+  padding: 6pt;
+  background-color: #e6ffff;
+  border: solid;
+  border-width: 0.5pt;
+}
 }
 
 tbd {
@@ -21,24 +142,7 @@ tbd {
     color: red;
 }
 
-Pdf Latex: pdflatex
-Document Class: [10pt]article
-Package: [top=1in, bottom=1.25in, left=1.25in, right=1.25in]geometry
-Package: fancyhdr
-
-
-Tex Header:
-  \setlength{\headheight}{30pt}
-  \renewcommand{\footrulewidth}{0.5pt}
-
-
 [TITLE]
-[]{tex-cmd: "\newpage"}
-[]{tex-cmd: "\fancyfoot[L]{&date; &time;}"}
-[]{tex-cmd: "\fancyfoot[C]{P$4_{16}$ Portable NIC Architecture}"}
-[]{tex-cmd: "\fancyfoot[R]{\thepage}"}
-[]{tex-cmd: "\pagestyle{fancy}"}
-[]{tex-cmd: "\sloppy"}
 
 ~ Begin Abstract
 P4 is a domain-specific language for describing how packets are
@@ -330,9 +434,9 @@ plane sizes for these types no wider than the corresponding
 
 ## PNA supported metadata types
 
-```
+~ Begin P4Example
 [INCLUDE=pna.p4:Metadata_types]
-```
+~ End P4Example
 
 ## Match kinds
 
@@ -354,9 +458,9 @@ for all ingress parsers and control blocks.  The egress parser and
 control blocks can use the same types for those things, or different
 types, as the P4 program author wishes.
 
-```
+~ Begin P4Example
 [INCLUDE=pna.p4:Programmable_blocks]
-```
+~ End P4Example
 
 # Packet Path Details {#packet-path-details}
 
@@ -604,7 +708,8 @@ generated and delivered to the control plane are subject to
 configuration parameters specified by the control plane API.
 
 Example:
-```
+
+~Begin P4Example
 enum PNA_IdleTimeout_t {
   NO_TIMEOUT,
   NOTIFY_CONTROL
@@ -618,7 +723,7 @@ table t {
   default_action = a2;
   pna_idle_timeout = PNA_IdleTimeout_t.NOTIFY_CONTROL;
 }
-```
+~End P4Example
 
 Restrictions on the TTL values and notifications:
 
