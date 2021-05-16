@@ -51,6 +51,7 @@ limitations under the License.
  * as the width of type <name>_t. */
 typedef bit<32> PortIdUint_t;
 typedef bit<32> VportIdUint_t;
+typedef bit<32> InterfaceIdUint_t;
 typedef bit<32> MulticastGroupUint_t;
 typedef bit<16> MirrorSessionIdUint_t;
 typedef bit<8>  MirrorSlotIdUint_t;
@@ -60,6 +61,7 @@ typedef bit<16> MulticastInstanceUint_t;
 typedef bit<64> TimestampUint_t;
 typedef bit<32> FlowIdUint_t;
 typedef bit<8>  ExpireTimeProfileIdUint_t;
+typedef bit<3>  PassNumberUint_t;
 
 typedef bit<32> SecurityAssocIdUint_t;
 
@@ -67,6 +69,8 @@ typedef bit<32> SecurityAssocIdUint_t;
 type PortIdUint_t         PortId_t;
 @p4runtime_translation("p4.org/pna/v1/VportId_t", 32)
 type VportIdUint_t        VportId_t;
+@p4runtime_translation("p4.org/pna/v1/InterfaceId_t", 32)
+type InterfaceIdUint_t    InterfaceId_t;
 @p4runtime_translation("p4.org/pna/v1/MulticastGroup_t", 32)
 type MulticastGroupUint_t MulticastGroup_t;
 @p4runtime_translation("p4.org/pna/v1/MirrorSessionId_t", 16)
@@ -85,13 +89,15 @@ type TimestampUint_t      Timestamp_t;
 type FlowIdUint_t      FlowId_t;
 @p4runtime_translation("p4.org/pna/v1/ExpireTimeProfileId_t", 8)
 type ExpireTimeProfileIdUint_t      ExpireTimeProfileId_t;
+@p4runtime_translation("p4.org/pna/v1/PassNumber_t", 8)
+type PassNumberUint_t      PassNumber_t;
 
 @p4runtime_translation("p4.org/pna/v1/SecurityAssocId_t", 64)
 type SecurityAssocIdUint_t      SecurityAssocId_t;
 
 typedef error   ParserError_t;
 
-const PortId_t PNA_PORT_CPU = (PortId_t) 0xfffffffd;
+const InterfaceId_t PNA_PORT_CPU = (InterfaceId_t) 0xfffffffd;
 
 const MirrorSessionId_t PNA_MIRROR_SESSION_TO_CPU = (MirrorSessionId_t) 0;
 
@@ -116,6 +122,7 @@ const MirrorSessionId_t PNA_MIRROR_SESSION_TO_CPU = (MirrorSessionId_t) 0;
  * as the width of type <name>_t. */
 typedef bit<unspecified> PortIdUint_t;
 typedef bit<unspecified> VportIdUint_t;
+typedef bit<unspecified> InterfaceIdUint_t;
 typedef bit<unspecified> MulticastGroupUint_t;
 typedef bit<unspecified> MirrorSessionIdUint_t;
 typedef bit<unspecified> MirrorSlotIdUint_t;
@@ -125,6 +132,7 @@ typedef bit<unspecified> MulticastInstanceUint_t;
 typedef bit<unspecified> TimestampUint_t;
 typedef bit<unspecified> FlowIdUint_t;
 typedef bit<unspecified> ExpireTimeProfileIdUint_t;
+typedef bit<unspecified> PassNumberUint_t;
 
 typedef bit<unspecified> SecurityAssocIdUint_t;
 
@@ -132,6 +140,8 @@ typedef bit<unspecified> SecurityAssocIdUint_t;
 type PortIdUint_t         PortId_t;
 @p4runtime_translation("p4.org/pna/v1/VportId_t", 32)
 type VportIdUint_t         VportId_t;
+@p4runtime_translation("p4.org/pna/v1/InterfaceId_t", 32)
+type InterfaceIdUint_t     InterfaceId_t;
 @p4runtime_translation("p4.org/pna/v1/MulticastGroup_t", 32)
 type MulticastGroupUint_t MulticastGroup_t;
 @p4runtime_translation("p4.org/pna/v1/MirrorSessionId_t", 16)
@@ -150,13 +160,15 @@ type TimestampUint_t      Timestamp_t;
 type FlowIdUint_t      FlowId_t;
 @p4runtime_translation("p4.org/pna/v1/ExpireTimeProfileId_t", 8)
 type ExpireTimeProfileIdUint_t      ExpireTimeProfileId_t;
+@p4runtime_translation("p4.org/pna/v1/PassNumber_t", 8)
+type PassNumberUint_t      PassNumber_t;
 
 @p4runtime_translation("p4.org/pna/v1/SecurityAssocId_t", 64)
 type SecurityAssocIdUint_t      SecurityAssocId_t;
 
 typedef error   ParserError_t;
 
-const PortId_t PNA_PORT_CPU = (PortId_t) unspecified;
+const InterfaceId_t PNA_PORT_CPU = (PortId_t) unspecified;
 
 const MirrorSessionId_t PNA_MIRROR_SESSION_TO_CPU = (MirrorSessiontId_t) unspecified;
 // END:Type_defns
@@ -191,6 +203,7 @@ const MirrorSessionId_t PNA_MIRROR_SESSION_TO_CPU = (MirrorSessiontId_t) unspeci
  * typedef definitions exist. */
 typedef bit<32> PortIdInHeaderUint_t;
 typedef bit<32> VportIdInHeaderUint_t;
+typedef bit<32> InterfaceIdInHeaderUint_t;
 typedef bit<32> MulticastGroupInHeaderUint_t;
 typedef bit<16> MirrorSessionIdInHeaderUint_t;
 typedef bit<8>  MirrorSlotIdInHeaderUint_t;
@@ -200,6 +213,7 @@ typedef bit<16> MulticastInstanceInHeaderUint_t;
 typedef bit<64> TimestampInHeaderUint_t;
 typedef bit<32> FlowIdInHeaderUint_t;
 typedef bit<8>  ExpireTimeProfileIdInHeaderUint_t;
+typedef bit<8>  PassNumberInHeaderUint_t;
 
 typedef bit<32> SecurityAssocIdInHeaderUint_t;
 
@@ -207,6 +221,8 @@ typedef bit<32> SecurityAssocIdInHeaderUint_t;
 type  PortIdInHeaderUint_t         PortIdInHeader_t;
 @p4runtime_translation("p4.org/pna/v1/VportIdInHeader_t", 32)
 type  VportIdInHeaderUint_t         VportIdInHeader_t;
+@p4runtime_translation("p4.org/pna/v1/InterfaceIdInHeader_t", 32)
+type  InterfaceIdInHeaderUint_t     InterfaceIdInHeader_t;
 @p4runtime_translation("p4.org/pna/v1/MulticastGroupInHeader_t", 32)
 type  MulticastGroupInHeaderUint_t MulticastGroupInHeader_t;
 @p4runtime_translation("p4.org/pna/v1/MirrorSessionIdInHeader_t", 16)
@@ -225,6 +241,8 @@ type  TimestampInHeaderUint_t      TimestampInHeader_t;
 type  FlowIdInHeaderUint_t      FlowIdInHeader_t;
 @p4runtime_translation("p4.org/pna/v1/ExpireTimeProfileIdInHeader_t", 8)
 type  ExpireTimeProfileIdInHeaderUint_t      ExpireTimeProfileIdInHeader_t;
+@p4runtime_translation("p4.org/pna/v1/PassNumberInHeader_t", 8)
+type  PassNumberInHeaderUint_t      PassNumberInHeader_t;
 
 @p4runtime_translation("p4.org/pna/v1/SecurityAssocIdInHeader_t", 64)
 type  SecurityAssocIdInHeaderUint_t      SecurityAssocIdInHeader_t;
@@ -253,6 +271,12 @@ type  SecurityAssocIdInHeaderUint_t      SecurityAssocIdInHeader_t;
 PortId_t pna_PortId_header_to_int (in PortIdInHeader_t x) {
     return (PortId_t) (PortIdUint_t) (PortIdInHeaderUint_t) x;
 }
+VportId_t pna_VportId_header_to_int (in VportIdInHeader_t x) {
+    return (VportId_t) (VportIdUint_t) (VportIdInHeaderUint_t) x;
+}
+InterfaceId_t pna_InterfaceId_header_to_int (in InterfaceIdInHeader_t x) {
+    return (InterfaceId_t) (InterfaceIdUint_t) (InterfaceIdInHeaderUint_t) x;
+}
 MulticastGroup_t pna_MulticastGroup_header_to_int (in MulticastGroupInHeader_t x) {
     return (MulticastGroup_t) (MulticastGroupUint_t) (MulticastGroupInHeaderUint_t) x;
 }
@@ -277,9 +301,18 @@ FlowId_t pna_FlowId_header_to_int (in FlowIdInHeader_t x) {
 ExpireTimeProfileId_t pna_ExpireTimeProfileId_header_to_int (in ExpireTimeProfileIdInHeader_t x) {
     return (ExpireTimeProfileId_t) (ExpireTimeProfileIdUint_t) (ExpireTimeProfileIdInHeaderUint_t) x;
 }
+PassNumber_t pna_PassNumber_header_to_int (in PassNumberInHeader_t x) {
+    return (PassNumber_t) (PassNumberUint_t) (PassNumberInHeaderUint_t) x;
+}
 
 PortIdInHeader_t pna_PortId_int_to_header (in PortId_t x) {
     return (PortIdInHeader_t) (PortIdInHeaderUint_t) (PortIdUint_t) x;
+}
+VportIdInHeader_t pna_VportId_int_to_header (in VportId_t x) {
+    return (VportIdInHeader_t) (VportIdInHeaderUint_t) (VportIdUint_t) x;
+}
+InterfaceIdInHeader_t pna_InterfaceId_int_to_header (in InterfaceId_t x) {
+    return (InterfaceIdInHeader_t) (InterfaceIdInHeaderUint_t) (InterfaceIdUint_t) x;
 }
 MulticastGroupInHeader_t pna_MulticastGroup_int_to_header (in MulticastGroup_t x) {
     return (MulticastGroupInHeader_t) (MulticastGroupInHeaderUint_t) (MulticastGroupUint_t) x;
@@ -304,6 +337,9 @@ FlowIdInHeader_t pna_FlowId_int_to_header (in FlowId_t x) {
 }
 ExpireTimeProfileIdInHeader_t pna_ExpireTimeProfileId_int_to_header (in ExpireTimeProfileId_t x) {
     return (ExpireTimeProfileIdInHeader_t) (ExpireTimeProfileIdInHeaderUint_t) (ExpireTimeProfileIdUint_t) x;
+}
+PassNumberInHeader_t pna_PassNumber_int_to_header (in PassNumber_t x) {
+    return (PassNumberInHeader_t) (PassNumberInHeaderUint_t) (PassNumberUint_t) x;
 }
 
 /// Supported range of values for the pna_idle_timeout table properties
@@ -543,8 +579,10 @@ enum PNA_PacketPath_t {
 
 struct pna_pre_input_metadata_t {
     PortId_t                 input_port;
-    PNA_PacketPath_t         packet_path;
     ParserError_t            parser_error;
+    PNA_Direction_t          direction;
+    PassNumber_t             pass;
+    bool                     loopedback;
 }
 
 struct pna_pre_output_metadata_t {
@@ -569,36 +607,38 @@ struct pna_pre_output_metadata_t {
 }
 
 struct pna_main_parser_input_metadata_t {
-  // common fields initialized for all packets that are input to main
-  // parser, regardless of direction.
-  PNA_Direction_t          direction;
-  PNA_PacketPath_t         packet_path;
+    // common fields initialized for all packets that are input to main
+    // parser, regardless of direction.
+    PNA_Direction_t          direction;
+    PassNumber_t             pass;
+    bool                     loopedback;
 
-  // input fields to main parser that are only initialized if
-  // direction == NET_TO_HOST
-  PortId_t                 input_port;
+    // input fields to main parser that are only initialized if
+    // direction == NET_TO_HOST
+    PortId_t                 input_port;   // network port id
 
-  // input fields to main parser that are only initialized if
-  // direction == HOST_TO_NET
-  VportId_t                input_vport;
+    // input fields to main parser that are only initialized if
+    // direction == HOST_TO_NET
+    VportId_t                input_vport;
 }
 
 struct pna_main_input_metadata_t {
-  // common fields initialized for all packets that are input to main
-  // parser, regardless of direction.
-  PNA_Direction_t          direction;
-  PNA_PacketPath_t         packet_path;
-  Timestamp_t              timestamp;
-  ParserError_t            parser_error;
-  ClassOfService_t         class_of_service;
+    // common fields initialized for all packets that are input to main
+    // parser, regardless of direction.
+    PNA_Direction_t          direction;
+    PassNumber_t             pass;
+    bool                     loopedback;
+    Timestamp_t              timestamp;
+    ParserError_t            parser_error;
+    ClassOfService_t         class_of_service;
 
-  // input fields to main control that are only initialized if
-  // direction == NET_TO_HOST
-  PortId_t                 input_port;
+    // input fields to main control that are only initialized if
+    // direction == NET_TO_HOST
+    PortId_t                 input_port;
 
-  // input fields to main control that are only initialized if
-  // direction == HOST_TO_NET
-  VportId_t                input_vport;
+    // input fields to main control that are only initialized if
+    // direction == HOST_TO_NET
+    VportId_t                input_vport;
 }
 
 // BEGIN:Metadata_main_output
@@ -928,13 +968,13 @@ control PreControlT<PH, PM>(
 
 parser MainParserT<PM, MH, MM>(
     packet_in pkt,
-    in    PM pre_user_meta,
+    //in    PM pre_user_meta,
     out   MH main_hdr,
     inout MM main_user_meta,
     in    pna_main_parser_input_metadata_t istd);
 
 control MainControlT<PM, MH, MM>(
-    in    PM pre_user_meta,
+    //in    PM pre_user_meta,
     inout MH main_hdr,
     inout MM main_user_meta,
     in    pna_main_input_metadata_t  istd,
@@ -951,6 +991,8 @@ package PNA_NIC<PH, PM, MH, MM>(
     PreControlT<PH, PM> pre_control,
     MainControlT<PM, MH, MM> main_control,
     MainDeparserT<MH, MM> main_deparser,
+    MainDeparserT<MH, MM> main_deparser
+    );
 // END:Programmable_blocks
 
 #endif   // __PNA_P4__

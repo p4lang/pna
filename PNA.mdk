@@ -371,7 +371,9 @@ the `pna.p4` include file and demonstrate features of PNA. Source code
 for the complete programs can be found in the official repository
 containing the PNA specification[^PNAExamplePrograms].
 
-[^PNAExamplePrograms]: <https://github.com/p4lang/pna> in directory `examples`.  Direct link: <https://github.com/p4lang/pna/tree/master/examples>
+[^PNAExamplePrograms]: <https://github.com/p4lang/pna>
+    in directory `examples`.  Direct link:
+    <https://github.com/p4lang/pna/tree/master/examples>
 
 # Naming conventions
 
@@ -409,13 +411,14 @@ Create another figure with names for the paths.
 
 ## PNA type definitions {#sec-pna-type-definitions}
 
-Each PNA implementation will have specific bit widths for the
-following types in the data plane.  These widths are defined in the
+Each PNA implementation will have specific bit widths in the data
+plane for the types shown in the code excerpt of Section
+[#sec-pna-type-definitions-code].  These widths are defined in the
 target specific `pna.p4` include file.  They are expected to differ
 from one PNA implementation to another[^PNAP4TargetSpecific].
 
 [^PNAP4TargetSpecific]: It is expected that `pna.p4` include files for
-    different targets will typically be nearly identical to each
+    different targets will be nearly identical to each
     other.  Besides the possibility of differing bit widths for these
     PNA types, the only expected differences between `pna.p4` files
     for different targets would be annotations on externs, etc. that
@@ -428,6 +431,21 @@ large as the corresponding `InHeader_t` type below, such that they
 hold a value for any target. All PNA implementations must use data
 plane sizes for these types no wider than the corresponding
 `InHeader_t`-defined types.
+
+[^P4RuntimeAPI]: The P4Runtime Specification can be found here:
+    <https://p4.org/specs>
+
+### PNA port types
+
+There are three types defined by PNA for holding different kinds of
+ports.
+
+
+### PNA type definition code excerpt {#sec-pna-type-definitions-code}
+
+~ Begin P4Example
+[INCLUDE=pna.p4:Type_defns]
+~ End P4Example
 
 ## PNA supported metadata types
 
@@ -626,34 +644,11 @@ restricted to be within parsers in PNA programs. P4~16~ restricts all
 `verify` method calls to be within parsers for all P4~16~ programs,
 regardless of whether they are for the PNA.
 
-~Begin TBD 
-For the descriptions of each of the externs, simply reference the
-corresponding section of the PSA specification if they are the same
-between PNA and PSA.
-~End TBD
-
-## Hashes {#sec-hash-algorithms}
-
-~Begin TBD
-Probably Toeplitz hash algorithm needs to be added for NICs, since it
-is often used in receive side scaling.
-~End TBD
-
-## Checksums {#sec-checksums}
-
-## Counters
-
-## Meters {#sec-meters}
-
-## Registers {#sec-registers}
-
-## Random
-
-## Action Profile {#sec-action-profile}
-
-## Action Selector {#sec-action-selector}
-
-## Packet Digest {#sec-packet-digest}
+See the PSA specification for definitions of all of these externs.
+There is work under way as of this writing that may result in these
+extern defintions being moved from the PSA specification into a
+separate standard library of P4 extern definitions, and if this is
+done, both the PSA and PNA specifications will reference that.
 
 # PNA Table Properties
 
@@ -666,14 +661,14 @@ specification.
 |-----------------------|------|---------------------------------------|
 | Property name         | Type | See also |
 +:----------------------+:-----+:--------------------------------------+
-| `pna_direct_counter` | one `DirectCounter` instance name | Section [#sec-direct-counter] |
+| `pna_direct_counter` | one `DirectCounter` instance name |  |
 |-----------------------|------|---------------------------------------|
-| `pna_direct_meter` | one `DirectMeter` instance name | Section [#sec-meters] |
+| `pna_direct_meter` | one `DirectMeter` instance name |  |
 |-----------------------|------|---------------------------------------|
-| `pna_implementation`  | instance name of one `ActionProfile` | Sections [#sec-action-profile], [#sec-action-selector] |
+| `pna_implementation`  | instance name of one `ActionProfile` |  |
 |                       | or `ActionSelector` |  |
 |-----------------------|------|---------------------------------------|
-| `pna_empty_group_action` | action | Section [#sec-action-selector] |
+| `pna_empty_group_action` | action |  |
 |-----------------------|------|---------------------------------------|
 | `pna_idle_timeout` | `PNA_IdleTimeout_t` | Section [#sec-idle-timeout] |
 |-----------------------|------|---------------------------------------|
