@@ -1,4 +1,4 @@
-Title : P4 Portable NIC Architecture (PNA)
+`Title : P4 Portable NIC Architecture (PNA)
 Title Note: (working draft)
 Title Footer: &date;
 Author : The P4 Language Consortium
@@ -177,11 +177,11 @@ to enable developers to write programs that are portable across
 multiple NIC devices that are conformant to the PNA[^PNAPortability].
 
 [^PNAPortability]: Of course, given the tight hardware resource
-constraints on NIC devices, there is no promise that a given P4
-program that compiles on one device will also compile on another
-device. However, it should at least be the case that those P4 programs
-that are able to compile on multiple NIC devices should process
-packets as described in this document.
+    constraints on NIC devices, there is no promise that a given P4
+    program that compiles on one device will also compile on another
+    device. However, it should at least be the case that those P4
+    programs that are able to compile on multiple NIC devices should
+    process packets as described in this document.
 
 The Portable NIC Architecture (PNA) Model has four programmable P4
 blocks and several fixed-function blocks, as shown in Figure
@@ -197,38 +197,38 @@ plane, but are not intended to be programmed using P4.
 
 ## Packet processing in the network to host direction
 
-Packets arriving from a network port first go through a `main` parser
-and a `pre` control. The `pre` control can optionally perform table
-lookups. Its purpose is to determine whether a packet requires
+Packets arriving from a network port first go through a `MainParser`
+and a `PreControl`. The `PreControl` can optionally perform
+table lookups. Its purpose is to determine whether a packet requires
 processing by the net-to-host inline extern block.
 
 For example, the net-to-host inline extern block may perform
 decryption of packet payloads according to the IPsec protocol. In this
 case, the main parser and pre control would be programmed to identify
 whether the packet was encrypted using IPsec, and if so, what security
-association it belongs to. For instance, the `pre` control code might
+association it belongs to. For instance, the `PreControl` code might
 drop the packet if the packet had an IPsec header, but one or more P4
 table lookups determined that the packet does not belong to any
 security association that had been established by the control plane
 software. Note that the net-to-host inline extern block may modify the
 entire payload of the received packet---e.g., decrypting the encrypted
 portion of the payload. Hence, the resulting packet might contain not
-only the original headers that were parsed by the `pre` parser, but
-additional headers that could not have been parsed by the `pre` parser
-as they were previously encrypted. See section [#appendix-reparsing]
-for additional details.
+only the original headers that were parsed by the first invocation of
+the `MainParser`, but also headers that could not have been parsed as
+they were previously encrypted. See section [#appendix-reparsing] for
+additional details.
 
-After decryption, the `main` parser can perform the full parsing
+After decryption, the `MainParser` can perform the full parsing
 required for implementing the desired data plane functionality.
 
-The `main` control is typically where the bulk of code would be written
+The `MainControl` is typically where the bulk of code would be written
 for processing packets. It transforms headers, updates stateful
 elements like counters, meters, and registers, and optionally
-associates additional user-defined metadata with the packet. The `main`
-deparser P4 code serializes the headers back into a packet that can be
+associates additional user-defined metadata with the packet. The
+`MainDeparser` serializes the headers back into a packet that can be
 sent onwards.
 
-After the `main` deparser, the packet may either:
+After the `MainDeparser`, the packet may either:
 * proceed to the message processing part of the NIC, and then typically on
   to the host system, or
 * turn around and head back towards the network ports. This enables
@@ -277,8 +277,8 @@ Another potential criteria for dividing packet processing
 functionality between message processing and the rest of the NIC is
 for division of control plane responsibilities. For example, in some
 network deployments the NIC message processing block configuration is
-tightly coupled with the host operating system, whereas the `main`
-blocks are controlled by network-focused control plane software.
+tightly coupled with the host operating system, whereas the
+`MainControl` is controlled by network-focused control plane software.
 
 ## Packet processing in the host to network direction
 
@@ -287,15 +287,15 @@ MTU size packets (if the host has not already done so) in the message
 processing block, and are then sent to the main block for further
 processing.
 
-The same `main` parser, `pre` control, `main` control, and `main` deparser 
-that process packets from the network are also used to process packets from
-the host. PNA was designed this way for two reasons:
+The same `MainParser`, `PreControl`, `MainControl`, and `MainDeparser`
+that process packets from the network are also used to process packets
+from the host. PNA was designed this way for two reasons:
 
 - It is expected that in many cases, the packet processing in both
   directions will have many similarities between them. Writing common
   P4 code for both eliminates code duplication that would occur if the
   code for each direction was written separately.
-- Having a single `main` control in the P4 language enables tables and
+- Having a single `MainControl` in the P4 language enables tables and
   externs such as counters and registers to be instantiated once, and
   shared by packets being processed in both directions. The hardware
   of many NICs supports this design, without having to instantiate a
@@ -310,12 +310,12 @@ the host. PNA was designed this way for two reasons:
 jnfoster: should we add a forward reference to add-on-miss?
 ~ End Comment
 
-After finishing processing in the `main` control, the packet may be
+After finishing processing in the `MainControl`, the packet may be
 enqueued in one of several queues (the number of such queues is target
 specific). After queueing there may be a host-to-net inline extern.
 For example, the host-to-net inline extern block may perform
 encryption of packet payloads according to the IPsec protocol. In this
-case, the `main` control would indicate that this processing should be
+case, the `MainControl` would indicate that this processing should be
 form via assigning appropriate values to standard metadata fields
 created for this purpose.
 
@@ -329,7 +329,7 @@ Next, the two primary choices for the next place the packet will go are:
 The choices of which queue to use, what kind of processing to perform
 in the host-to-net inline extern, which network port to go to, or
 whether to loop back, are all controlled from the P4 code running in
-the `main` block, via extern functions defined by this PNA
+the `MainControl` block, via extern functions defined by this PNA
 specification.
 
 ~ Begin Comment
@@ -348,10 +348,10 @@ A programmer targeting the PNA is required to provide P4 definitions
 for each of the programmable blocks in the pipeline (see section
 [#sec-programmable-blocks]). The programmable block inputs and outputs
 are parameterized on the types of user defined headers and metadata.
-The top-level PNA program instantiates a package named `main` with
-the programmable blocks passed as arguments (see Section TBD for an
+The top-level PNA program instantiates a package named `main` with the
+programmable blocks passed as arguments (see Section TBD for an
 example). Note that the `main` package is not to be confused with the
-`main` control.
+`MainControl`.
 
 ~ Begin Comment
 jnfoster: should this be turned into a subsection like "Guidelines for Portability"? 
@@ -545,10 +545,6 @@ each occurs.
 
 ## Restrictions on where externs may be used {#sec-extern-restrictions}
 
-~Begin Comment
-Would it be incorrect to replace "the top level of the program" with the `main` package?
-~End Comment
-
 All instantiations in a P4~16~ program occur at compile time, and can
 be arranged in a tree structure we will call the instantiation tree.
 The root of the tree `T` represents the top level of the program. Its
@@ -581,39 +577,39 @@ the places mentioned in Table [#table-extern-usage].
 |-------------------|----------------------------------------------|
 | Extern type       | Where it may be instantiated and called from |
 +:------------------+:---------------------------------------------+
-| `ActionProfile`   | Pre, Main |
+| `ActionProfile`   | PreControl, MainControl |
 |-------------------|----------------------------------------------|
-| `ActionSelector`  | Pre, Main |
+| `ActionSelector`  | PreControl, MainControl |
 |-------------------|----------------------------------------------|
-| `Checksum`        | PreParser, MainParser, MainDeparser |
+| `Checksum`        | MainParser, MainDeparser |
 |-------------------|----------------------------------------------|
-| `Counter`         | Pre, Main |
+| `Counter`         | PreControl, MainControl |
 |-------------------|----------------------------------------------|
 | `Digest`          | MainDeparser |
 |-------------------|----------------------------------------------|
-| `DirectCounter`   | Pre, Main |
+| `DirectCounter`   | PreControl, MainControl |
 |-------------------|----------------------------------------------|
-| `DirectMeter`     | Pre, Main |
+| `DirectMeter`     | PreControl, MainControl |
 |-------------------|----------------------------------------------|
-| `Hash`            | Pre, Main |
+| `Hash`            | PreControl, MainControl |
 |-------------------|----------------------------------------------|
-| `InternetChecksum` | PreParser, MainParser, MainDeparser |
+| `InternetChecksum` | MainParser, MainDeparser |
 |-------------------|----------------------------------------------|
-| `Meter`           | Pre, Main |
+| `Meter`           | PreControl, MainControl |
 |-------------------|----------------------------------------------|
-| `Random`          | Pre, Main |
+| `Random`          | PreControl, MainControl |
 |-------------------|----------------------------------------------|
-| `Register`        | Pre, Main |
+| `Register`        | PreControl, MainControl |
 |-------------------|----------------------------------------------|
 ~
 
 For example, `Counter` being restricted to "Pre, Main" means that
-every `Counter` instance must be instantiated within either the `Pre`
-control block or the `Main` control block, or be a descendant of one
-of those nodes in the instantiation tree. If a `Counter` instance is
+every `Counter` instance must be instantiated within either the `PreControl`
+control block or the `MainControl` block, or be a descendant of one of
+those nodes in the instantiation tree. If a `Counter` instance is
 instantiated in Main, for example, then it cannot be referenced, and
-thus its methods cannot be called, from any control block except
-`Main` or one of its descendants in the tree.
+thus its methods cannot be called, from any block except `MainControl`
+or one of its descendants in the tree.
 
 PNA implementations need not support instantiating these externs at
 the top level. PNA implementations are allowed to accept programs that
@@ -769,7 +765,7 @@ Restrictions on the TTL values and notifications:
 
 # Appendix: Rationale for design {#appendix-rationale}
 
-## Why a common `main` pipeline, instead of separate pipelines for each direction?
+## Why a common pipeline, instead of separate pipelines for each direction?
 
 ~Begin TBD
 Andy can write this one.  Basic reasons are summarized in
@@ -783,7 +779,7 @@ Andy can write this one.  Basic reasons are summarized in
 existing slides.
 ~End TBD
 
-## Is it inefficient to have the `main` parser redo work? {#appendix-reparsing}
+## Is it inefficient to have the `MainParser` redo work? {#appendix-reparsing}
 
 If the only changes made by the inline extern in the network-to-host
 direction were to decrypt parts of the packet that were previously
@@ -855,14 +851,14 @@ received, i.e. it is a no-op in the path.
 [path-net-to-host-with-mirror-copy-to-second-host]: figs/path-net-to-host-with-mirror-copy-to-second-host.png { width: 100%;}
 
 See Figure [#fig-path-net-to-host-with-mirror-copy-to-second-host].
-This is similar to the network to host path, except that the `main`
-control P4 code directs that the packet should be mirrored to a second
-host, e.g. an inside-the-NIC CPU complex used for exception packets.
-Logically, the copy occurs after the main deparser.
+This is similar to the network to host path, except that the
+`MainControl` code directs that the packet should be mirrored to a
+second host, e.g. an inside-the-NIC CPU complex used for exception
+packets. Logically, the copy occurs after the main deparser.
 
-One possibility for writing P4 code to do this is by having the `main`
-deparser optionally invoke a mirror extern, which could provide an
-extra header to include before the mirrored copy.
+One possibility for writing P4 code to do this is by having the
+`MainDeparser` optionally invoke a mirror extern, which could provide
+an extra header to include before the mirrored copy.
 
 ## Host to network
 
@@ -884,14 +880,14 @@ received, i.e. it is a no-op in the path.
 [path-host-to-net-with-mirror-copy-to-different-host]: figs/path-host-to-net-with-mirror-copy-to-different-host.png { width: 100%;}
 
 See Figure [#fig-path-host-to-net-with-mirror-copy-to-different-host].
-This is similar to the host to network path, except that the `main`
-control P4 code directs that the packet should be mirrored to a host,
-e.g. an inside-the-NIC CPU complex used for exception packets.
+This is similar to the host to network path, except that the
+`MainControl` code directs that the packet should be mirrored to a
+host, e.g. an inside-the-NIC CPU complex used for exception packets.
 Logically, the copy occurs after the main deparser.
 
-One possibility for writing P4 code to do this is by having the `main`
-deparser optionally invoke a mirror or mirror extern, which could
-provide an extra header to include before the mirrored copy.
+One possibility for writing P4 code to do this is by having the
+`MainDeparser` optionally invoke a mirror or mirror extern, which
+could provide an extra header to include before the mirrored copy.
 
 ## Host to host
 
@@ -904,9 +900,9 @@ See Figure [#fig-path-host-to-host]. This path may more often be
 called the VM to VM path.
 
 The host-to-net inline extern may be no-op or perform encryption, as
-directed by the P4 code in the `main` control. The net-to-host inline
+directed by the P4 code in the `MainControl`. The net-to-host inline
 extern may be no-op or perform decryption, as directed by the P4 code
-in the `pre` control.
+in the `PreControl`.
 
 ## Port to port
 

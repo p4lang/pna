@@ -541,11 +541,6 @@ enum PNA_PacketPath_t {
     FROM_HOST_RECIRCULATED
 }
 
-struct pna_pre_parser_input_metadata_t {
-    PortId_t                 input_port;
-    PNA_PacketPath_t         packet_path;
-}
-
 struct pna_pre_input_metadata_t {
     PortId_t                 input_port;
     PNA_PacketPath_t         packet_path;
@@ -553,9 +548,6 @@ struct pna_pre_input_metadata_t {
 }
 
 struct pna_pre_output_metadata_t {
-}
-
-struct pna_decrypt_input_metadata_t {
     bool                     decrypt;  // TBD: or use said==0 to mean no decrypt?
 
     // The following things are stored internally within the decrypt
@@ -928,12 +920,6 @@ extern T SelectByDirection<T>(
 
 
 // BEGIN:Programmable_blocks
-parser PreParserT<PH, PM>(
-    packet_in pkt,
-    out PH pre_hdr,
-    out PM pre_user_meta,
-    in  pna_pre_parser_input_metadata_t istd);
-
 control PreControlT<PH, PM>(
     in    PH pre_hdr,
     inout PM pre_user_meta,
@@ -961,15 +947,10 @@ control MainDeparserT<MH, MM>(
     in    pna_main_output_metadata_t ostd);
 
 package PNA_NIC<PH, PM, MH, MM>(
-    PreControlT<PH, PM> pre_control,
     MainParserT<PM, MH, MM> main_parser,
+    PreControlT<PH, PM> pre_control,
     MainControlT<PM, MH, MM> main_control,
     MainDeparserT<MH, MM> main_deparser,
-    // pre_parser is optional.  If not specified, it defaults to be the
-    // same as main_parser.  An implementation that has a separate pre
-    // parser is free to optimize away any part of it that is
-    // unnecessary for executing the code in pre_control.
-    PreParserT<PH, PM> pre_parser);
 // END:Programmable_blocks
 
 #endif   // __PNA_P4__
