@@ -229,9 +229,9 @@ deparser P4 code serializes the headers back into a packet that can be
 sent onwards.
 
 After the `main` deparser, the packet may either:
-- proceed to the message processing part of the NIC, and then typically on
+* proceed to the message processing part of the NIC, and then typically on
   to the host system, or
-- turn around and head back towards the network ports. This enables
+* turn around and head back towards the network ports. This enables
   on-NIC processing of port-to-port packets without ever traversing the host system.
 
 Figure [#fig-nic] shows multiple hosts. Some NICs support PCI Express
@@ -348,7 +348,7 @@ A programmer targeting the PNA is required to provide P4 definitions
 for each of the programmable blocks in the pipeline (see section
 [#sec-programmable-blocks]). The programmable block inputs and outputs
 are parameterized on the types of user defined headers and metadata.
-The top-level PNA program instantiates a `package named `main` with
+The top-level PNA program instantiates a package named `main` with
 the programmable blocks passed as arguments (see Section TBD for an
 example). Note that the `main` package is not to be confused with the
 `main` control.
