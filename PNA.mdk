@@ -1,44 +1,148 @@
-Title : P4~16~ Portable NIC Architecture (PNA)
+Title : P4 Portable NIC Architecture (PNA)
 Title Note: (working draft)
 Title Footer: &date;
-Author : The P4.org Architecture Working Group
+Author : The P4 Language Consortium
 Heading depth: 4
-
-pre, code {
-  language: p4;
-}
-Colorizer: p4
-.token.keyword    {
-    font-weight: bold;
-    font-family: monospace;
-   font-size: 10pt;
-}
-
-tbd {
-    replace: "~ Begin TbdBlock&nl;\
-                   TBD: &source;&nl;\
-                   ~ End TbdBlock&nl;";
-    color: red;
-}
-
-Pdf Latex: pdflatex
-Document Class: [10pt]article
-Package: [top=1in, bottom=1.25in, left=1.25in, right=1.25in]geometry
+Pdf Latex: xelatex
+Document Class: [11pt]article
+Package: [top=1in, bottom=1.25in, left=1in, right=1in]geometry
 Package: fancyhdr
-
 
 Tex Header:
   \setlength{\headheight}{30pt}
   \renewcommand{\footrulewidth}{0.5pt}
 
+@if html {
+body.madoko {
+  font-family: utopia-std, serif;
+}
+title,titlenote,titlefooter,authors,h1,h2,h3,h4,h5 {
+  font-family: helvetica, sans-serif;
+  font-weight: bold;
+}
+pre, code {
+  language: p4;
+  font-family: monospace;
+  font-size: 10pt;
+}
+}
+
+@if tex {
+body.madoko {
+  font-family: UtopiaStd-Regular;
+}
+title,titlenote,titlefooter,authors {
+  font-family: sans-serif;
+  font-weight: bold;
+}
+pre, code {
+  language: p4;
+  font-family: LuxiMono;
+  font-size: 75%;
+}
+}
+
+Colorizer: p4
+.token.keyword    {
+    font-weight: bold;
+}
+
+@if html {
+p4example {
+  replace: "~ Begin P4ExampleBlock&nl;\
+                 ````&nl;&source;&nl;````&nl;\
+                 ~ End P4ExampleBlock";
+  padding:6pt;
+  margin-top: 6pt;
+  margin-bottom: 6pt;
+  border: solid;
+  background-color: #ffffdd;
+  border-width: 0.5pt;
+}
+}
+
+@if tex {
+p4example {
+  replace: "~ Begin P4ExampleBlock&nl;\
+                 ````&nl;&source;&nl;````&nl;\
+                 ~ End P4ExampleBlock";
+  breakable: true;
+  padding: 6pt;
+  margin-top: 6pt;
+  margin-bottom: 6pt;
+  border: solid;
+  background-color: #ffffdd;
+  border-width: 0.5pt;
+}
+}
+
+
+@if html {
+p4pseudo {
+  replace: "~ Begin P4PseudoBlock&nl;\
+                 ````&nl;&source;&nl;````&nl;\
+                 ~ End P4PseudoBlock";
+  padding: 6pt;
+  margin-top: 6pt;
+  margin-bottom: 6pt;
+  border: solid;
+  background-color: #e9fce9;
+  border-width: 0.5pt;
+}
+}
+
+@if tex {
+p4pseudo {
+  replace: "~ Begin P4PseudoBlock&nl;\
+                 ````&nl;&source;&nl;````&nl;\
+                 ~ End P4PseudoBlock";
+  breakable : true;
+  padding: 6pt;
+  margin-top: 6pt;
+  margin-bottom: 6pt;
+  background-color: #e9fce9;
+  border: solid;
+  border-width: 0.5pt;
+}
+}
+
+@if html {
+p4grammar {
+  replace: "~ Begin P4GrammarBlock&nl;\
+                 ````&nl;&source;&nl;````&nl;\
+                 ~ End P4GrammarBlock";
+  border: solid;
+  margin-top: 6pt;
+  margin-bottom: 6pt;
+  padding: 6pt;
+  background-color: #e6ffff;
+  border-width: 0.5pt;
+}
+}
+
+@if tex {
+p4grammar {
+  replace: "~ Begin P4GrammarBlock&nl;\
+                 ````&nl;&source;&nl;````&nl;\
+                 ~ End P4GrammarBlock";
+  breakable: true;
+  margin-top: 6pt;
+  margin-bottom: 6pt;
+  padding: 6pt;
+  background-color: #e6ffff;
+  border: solid;
+  border-width: 0.5pt;
+}
+}
+
+tbd {
+    replace: "~ Begin TbdBlock&nl;\
+                   TBD: &source;&nl;\
+              ~ End TbdBlock&nl;";
+    color: red;
+}
 
 [TITLE]
-[]{tex-cmd: "\newpage"}
-[]{tex-cmd: "\fancyfoot[L]{&date; &time;}"}
-[]{tex-cmd: "\fancyfoot[C]{P$4_{16}$ Portable NIC Architecture}"}
-[]{tex-cmd: "\fancyfoot[R]{\thepage}"}
-[]{tex-cmd: "\pagestyle{fancy}"}
-[]{tex-cmd: "\sloppy"}
 
 ~ Begin Abstract
 P4 is a domain-specific language for describing how packets are
@@ -296,7 +400,9 @@ Figure [#fig-packet-paths] shows all possible paths for packets that
 must be supported by a PNA implementation. An implementation is
 allowed to support paths for packets that are not described here.
 
-TBD: Create another figure with names for the paths.
+~Begin TBD
+Create another figure with names for the paths.
+~End TBD
 
 ~ Figure {#fig-packet-paths; caption: "Packet Paths in PNA"; page-align: here;}
 ![packet-paths]
@@ -330,15 +436,16 @@ plane sizes for these types no wider than the corresponding
 
 ## PNA supported metadata types
 
-```
+~ Begin P4Example
 [INCLUDE=pna.p4:Metadata_types]
-```
+~ End P4Example
 
 ## Match kinds
-
-TBD: Consider simply referencing the corresponding section of the PSA
+~Begin TBD
+Consider simply referencing the corresponding section of the PSA
 specification for this, unless we want to have something different in
 PNA.
+~End TBD
 
 ## Data plane vs. control plane data representations {#sec-data-plane-vs-control-plane-values}
 
@@ -354,19 +461,23 @@ for all ingress parsers and control blocks.  The egress parser and
 control blocks can use the same types for those things, or different
 types, as the P4 program author wishes.
 
-```
+~ Begin P4Example
 [INCLUDE=pna.p4:Programmable_blocks]
-```
+~ End P4Example
 
 # Packet Path Details {#packet-path-details}
 
 Refer to section [#packet-paths] for the packet paths provided by PNA.
 
-TBD: Need to decide where multicast replication can occur, and in what
+~Begin TBD
+Need to decide where multicast replication can occur, and in what
 conditions.
+~End TBD
 
-TBD: Need to decide where packet mirroring occurs, and in what
+~Begin TBD 
+Need to decide where packet mirroring occurs, and in what
 conditions, and how the mirrored packets differ from the originals.
+~End TBD
 
 ## Initial values of packets processed by pre block
 
@@ -524,14 +635,18 @@ restricted to be within parsers in PNA programs. P4~16~ restricts all
 `verify` method calls to be within parsers for all P4~16~ programs,
 regardless of whether they are for the PNA.
 
-TBD: For the descriptions of each of the externs, simply reference the
+~Begin TBD 
+For the descriptions of each of the externs, simply reference the
 corresponding section of the PSA specification if they are the same
 between PNA and PSA.
+~End TBD
 
 ## Hashes {#sec-hash-algorithms}
 
-TBD: Probably Toeplitz hash algorithm needs to be added for NICs,
-since it is often used in receive side scaling.
+~Begin TBD
+Probably Toeplitz hash algorithm needs to be added for NICs, since it
+is often used in receive side scaling.
+~End TBD
 
 ## Checksums {#sec-checksums}
 
@@ -604,7 +719,8 @@ generated and delivered to the control plane are subject to
 configuration parameters specified by the control plane API.
 
 Example:
-```
+
+~Begin P4Example
 enum PNA_IdleTimeout_t {
   NO_TIMEOUT,
   NOTIFY_CONTROL
@@ -618,7 +734,7 @@ table t {
   default_action = a2;
   pna_idle_timeout = PNA_IdleTimeout_t.NOTIFY_CONTROL;
 }
-```
+~End P4Example
 
 Restrictions on the TTL values and notifications:
 
@@ -660,13 +776,17 @@ Restrictions on the TTL values and notifications:
 
 ## Why a common `main` pipeline, instead of separate pipelines for each direction?
 
-TBD: Andy can write this one.  Basic reasons are summarized in
+~Begin TBD
+Andy can write this one.  Basic reasons are summarized in
 existing slides.
+~End TBD
 
 ## Why separate programmable pre blocks for pre-decryption packet processing?
 
-TBD: Andy can write this one.  Basic reasons are summarized in
+~Begin TBD 
+Andy can write this one.  Basic reasons are summarized in
 existing slides.
+~End TBD
 
 ## Is it inefficient to have the main parser redo work? {#appendix-reparsing}
 
