@@ -407,6 +407,44 @@ Create another figure with names for the paths.
 ~
 [packet-paths]: figs/pna-packet-paths-figure.png { width: 100%;}
 
+Table [#results-of-one-pkt-thru-main] shows what can happen to a
+packet as a result of a single time being processed through the four
+programmable blocks of the packet processing part of PNA, referred to
+here as "main".
+
+~ TableFigure {#results-of-one-pkt-thru-main; \
+  caption: Result of packet processed one time by main.}
+|-------------|---------------|--------------------|
+|             | Processed     | Resulting          |
+| Description | next by       | packet(s)          |
++:------------+:--------------+:-------------------+
+| packet from   | main, with    | Zero or more mirrored  |
+| network port  | direction     | packets, plus at most  |
+|---------------|               | |
+| packet from   | `NET_TO_HOST` | one of: a net-to-host  |
+| net-to-host   |               | recirculated packet,   |
+| recirculate   |               | or one to-host packet. |
+|---------------|               |                        |
+| packet from   |               |                        |
+| port loopback |               |                        |
+|---------------|---------------|------------------------|
+| packet from   | main, with    | Zero or more mirrored  |
+| message processing | direction | packets, plus at most |
+|---------------|               | |
+| packet from   | `HOST_TO_NET` | one of: a host-to-net  |
+| host-to-net   |               | recirculated packet,   |
+| recirculate   |               | or one to-net packet.  |
+|---------------|               |                        |
+| packet from   |               |                        |
+| host loopback |               |                        |
+|---------------|---------------|------------------------|
+~
+
+Note that each mirrored packet that results from `mirror_packet`
+operations will have its own next place that it will go to be
+processed, independent of the original packet, and independent of any
+other mirror copies made of the same original packet.
+
 # PNA Data types
 
 ## PNA type definitions {#sec-pna-type-definitions}
@@ -435,17 +473,35 @@ plane sizes for these types no wider than the corresponding
 [^P4RuntimeAPI]: The P4Runtime Specification can be found here:
     <https://p4.org/specs>
 
-### PNA port types
-
-There are three types defined by PNA for holding different kinds of
-ports.
-
-
 ### PNA type definition code excerpt {#sec-pna-type-definitions-code}
 
 ~ Begin P4Example
 [INCLUDE=pna.p4:Type_defns]
 ~ End P4Example
+
+### PNA port types and values
+
+There are two types defined by PNA for holding different kinds of
+ports: `PortId_t` and `InterfaceId_t`.
+
+The type `PortId_t` must be large enough in the data plane to hold one
+of these values:
+
++ a data plane id for one network port
++ a data plane id for one vport
+
+As one example, a PNA target with four Ethernet network ports could
+choose to use the values 0 through 3 to identify the network ports,
+and the values 4 through 1023 to identify vports.
+
+PNA makes no requirement that the numeric values identifying network
+ports must be consecutive, nor for vports.  PNA only requires that for
+every possible numeric value `x` with type `PortId_t`, exactly one of
+these statements is true:
+
++ `x` is the data plane id of one network port, but not any vport
++ `x` is the data plane id of one vport, but not any network port
++ `x` is the data plane id of no port, neither a network port nor a vport
 
 ## PNA supported metadata types
 
@@ -492,7 +548,7 @@ Need to decide where packet mirroring occurs, and in what
 conditions, and how the mirrored packets differ from the originals.
 ~End TBD
 
-## Initial values of packets processed by pre block
+## Initial values of packets processed by main parser
 
 ~ Begin Comment
 jnfoster: is this a case where pseudocode would be helpful for
@@ -558,6 +614,57 @@ Cases: drop, recirculate, to queues.  Describe the conditions in which
 each occurs.
 
 ## Contents of packets sent out to ports
+
+## Functions for directing packets
+
+### Extern function `send_to_port`
+
+~ Begin P4Example
+extern void send_to_port(PortId_t dest_port);
+~ End P4Example
+
+The extern function `send_to_port` is used to direct a packet to a
+specified network port, or to a vport.  Invoking `send_to_port(x)` is
+supported only within the main control.  There are four cases to
+consider, detailed below.
+
++ current packet direction is `HOST_TO_NET`, and `x` is a network port id.
+
+Calling `send_to_port(x)` modifies hidden state for this packet, so
+that the packet will be transmitted out of the network port with id
+`x`, without being looped back.
+
++ current packet direction is `NET_TO_HOST`, and `x` is a network port id.
+
+Calling `send_to_port(x)` modifies hidden state for this packet, so
+that when the packet is finished with the main control and main
+deparser, it will loop back in the host side, and later return to
+be processed by the main control in the HOST_TO_NET direction.  The
+hidden state will remain associated with the packet during that
+loopback, so that even if no further forwarding functions are
+called for the packet, it will be transmitted out of network port
+`x`.
+
++ current packet direction is `HOST_TO_NET`, and `x` is a vport id.
+
+Calling `send_to_port(x)` modifies hidden state for this packet, so
+that when the packet is finished with the main control and main
+deparser, it will take the port loopback path, and later return to
+be processed by the main control in the NET_TO_HOST direction.  The
+hidden state will remain associated with the packet during that
+loopback, so that even if no further forwarding functions are
+called for the packet, it will be sent to the vport with id `x` in
+the host.
+
++ current packet direction is `NET_TO_HOST`, and `x` is a vport id.
+
+Calling `send_to_port(x)` modifies hidden state for this packet, so
+that the packet will be sent to the vport with id `x` in the host,
+without being looped back.
+
+## Packet Mirroring
+
+## Packet recirculation
 
 # PNA Extern Objects
 
