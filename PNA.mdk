@@ -664,6 +664,132 @@ without being looped back.
 
 ## Packet Mirroring
 
+~ Begin P4Example
+extern void mirror_packet(MirrorSlotId_t mirror_slot_id,
+                          MirrorSessionId_t mirror_session_id);
+~ End P4Example
+
+The extern function `mirror_packet` is used to cause a mirror copy of
+the packet currently being processed to be created.  Invoking
+`mirror_packet(x)` is supported only within the main control.
+
+PNA enables multiple mirror copies of a packet to be created during a
+single execution of `MainControl`, by calling `mirror_packet` with
+different mirror slot id values.  PNA targets should support
+`mirror_slot_id` values in the range 0 through 3, at least, but are
+allowed to support a larger range.
+
+When `MainControl` begins execution, all mirror slots are initialized
+so that they do not create a copy of the packet.
+
+After calling `mirror_packet(slot_id, session_id)`, then when the main
+control finishes execution, the target will make a best effort to
+create a copy of the packet that will be processed according to the
+parameters configured by the control plane for the mirror session
+numbered `session_id`, for mirror slot `slot_id`.  Note that this is
+best effort -- if the target device is already near its upper limit of
+its ability to create mirror copies, then some later mirror copies may
+not be made, even though the P4 program requested them.
+
+Each of the mirror slots is independent of each other.  For example,
+calling `mirror_packet(1, session_id)` has no effect on mirror slots
+0, 2, or 3.
+
+Mirror session id 0 is reserved by the architecture, and must not be
+used by a P4 developer.
+
+If multiple calls are made to `mirror_packet()` for the same mirror
+slot id in the same execution of the main control, only the last
+`session_id` value is used to create a copy of the packet.  That is,
+every call to `mirror_packet(slot_id, session_id)` overwrites the
+effects of any earlier to `mirror_packet()` with the same `slot_id`.
+
+The effects of `mirror_packet()` calls are independent of calls to
+`drop_packet()` and `send_to_port()`.  Regardless of which of those
+things is done to the original packet, up to one mirror packet per
+mirror slot can be created.
+
+The control plane code can configure the following properties of each
+mirror session, independently of other mirror sessions:
+
++ `packet_contents`
+
+If `PRE_MODIFY`, then the mirrored packet's contents will be the same
+as the original packet as it was when the packet began the execution
+of the main control that invoked the `mirror_packet()` function.
+
+If `POST_MODIFY`, then the mirrored packet's contents will be the same
+as the original packet that is being mirrored, after any modifications
+made during the execution of the main control that invoked the
+`mirror_packet()` function.
+
++ `truncate`
+
+`true` to limit the length of the mirrored packet to the
+`truncate_length`.  `false` to cause the mirrored packet not to be
+truncated, in which case the `truncate_length` property is ignored for
+this mirror session.
+
++ `truncate_length`
+
+In units of bytes.  Targets may limit the choices here, e.g. to a
+multiple of 32 bytes, or perhaps even a subset of those choices.
+
++ `sampling_method`
+
+One of the values: `RANDOM_SAMPLING`, `HASH_SAMPLING`.
+
+If `RANDOM_SAMPLING`, then a mirror copy requested for this mirror
+session will only be created with a configured probability given by
+the `sample_probability` property.
+
+If `HASH_SAMPLING`, then a target-specific hash function will be
+calculated over the packet's header fields resulting in a hash output
+value `H`.  A mirror copy will be created if `(H & sample_hash_mask)
+== sample_hash_value`.
+
++ `meter_parameters`
+
+If the conditions specified by the `sampling_method` and other
+sampling properties are passed, then a P4 meter dedicated for use by
+this mirror session will be updated.  If it returns a `GREEN` result,
+then the mirror copy will be created (still with best effort, if the
+target device's implementation is still oversubscribed with requests
+to create mirror copies).
+
+If the meter update returns any result other than `GREEN`, then no
+mirror copy will be created.
+
++ `destination_port`
+
+A network port id, or a vport id.
+
+If `destination_port` is a network port id, that network port is the
+destination of mirrored copy packets created by this session.  If the
+`mirror_packet()` call for this session was invoked in the
+`NET_TO_HOST` direction, mirror copy packets created will loop back in
+the host side of the target, and later come back for processing in the
+main block in the `HOST_TO_NET` direction, already destined for the
+network port `destination_port`.  That port can be overwritten by
+calls to forwarding functions.
+
+If `destination_port` is a vport id, that vport is the destination of
+mirrored copy packets created by this session.  If the
+`mirror_packet()` call for this session was invoked in the
+`HOST_TO_NET` direction, mirror copy packets created will loop back in
+the network port side of the NIC, and later come back for processing
+in the main block in the `NET_TO_HOST` direction, already destined for
+the vport `destination_port`.  That vport can be overwritten by calls
+to forwarding functions.
+
+~Begin TBD
+When a mirror copied packet comes back to the main control, it will
+have some metadata indicating it is mirror copy.  We should define a
+way in PNA to recognize such mirror copies, e.g. some new extern
+function call returning true if the packet was created by a
+`mirror_packet` operation.
+~End TBD
+
 ## Packet recirculation
 
 # PNA Extern Objects
