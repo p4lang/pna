@@ -50,7 +50,6 @@ limitations under the License.
  * Note that the width of typedef <name>Uint_t will always be the same
  * as the width of type <name>_t. */
 typedef bit<32> PortIdUint_t;
-typedef bit<32> VportIdUint_t;
 typedef bit<32> InterfaceIdUint_t;
 typedef bit<32> MulticastGroupUint_t;
 typedef bit<16> MirrorSessionIdUint_t;
@@ -67,8 +66,6 @@ typedef bit<32> SecurityAssocIdUint_t;
 
 @p4runtime_translation("p4.org/pna/v1/PortId_t", 32)
 type PortIdUint_t         PortId_t;
-@p4runtime_translation("p4.org/pna/v1/VportId_t", 32)
-type VportIdUint_t        VportId_t;
 @p4runtime_translation("p4.org/pna/v1/InterfaceId_t", 32)
 type InterfaceIdUint_t    InterfaceId_t;
 @p4runtime_translation("p4.org/pna/v1/MulticastGroup_t", 32)
@@ -121,7 +118,6 @@ const MirrorSessionId_t PNA_MIRROR_SESSION_TO_CPU = (MirrorSessionId_t) 0;
  * Note that the width of typedef <name>Uint_t will always be the same
  * as the width of type <name>_t. */
 typedef bit<unspecified> PortIdUint_t;
-typedef bit<unspecified> VportIdUint_t;
 typedef bit<unspecified> InterfaceIdUint_t;
 typedef bit<unspecified> MulticastGroupUint_t;
 typedef bit<unspecified> MirrorSessionIdUint_t;
@@ -138,8 +134,6 @@ typedef bit<unspecified> SecurityAssocIdUint_t;
 
 @p4runtime_translation("p4.org/pna/v1/PortId_t", 32)
 type PortIdUint_t         PortId_t;
-@p4runtime_translation("p4.org/pna/v1/VportId_t", 32)
-type VportIdUint_t         VportId_t;
 @p4runtime_translation("p4.org/pna/v1/InterfaceId_t", 32)
 type InterfaceIdUint_t     InterfaceId_t;
 @p4runtime_translation("p4.org/pna/v1/MulticastGroup_t", 32)
@@ -202,7 +196,6 @@ const MirrorSessionId_t PNA_MIRROR_SESSION_TO_CPU = (MirrorSessiontId_t) unspeci
 /* See the comments near the definition of PortIdUint_t for why these
  * typedef definitions exist. */
 typedef bit<32> PortIdInHeaderUint_t;
-typedef bit<32> VportIdInHeaderUint_t;
 typedef bit<32> InterfaceIdInHeaderUint_t;
 typedef bit<32> MulticastGroupInHeaderUint_t;
 typedef bit<16> MirrorSessionIdInHeaderUint_t;
@@ -219,8 +212,6 @@ typedef bit<32> SecurityAssocIdInHeaderUint_t;
 
 @p4runtime_translation("p4.org/pna/v1/PortIdInHeader_t", 32)
 type  PortIdInHeaderUint_t         PortIdInHeader_t;
-@p4runtime_translation("p4.org/pna/v1/VportIdInHeader_t", 32)
-type  VportIdInHeaderUint_t         VportIdInHeader_t;
 @p4runtime_translation("p4.org/pna/v1/InterfaceIdInHeader_t", 32)
 type  InterfaceIdInHeaderUint_t     InterfaceIdInHeader_t;
 @p4runtime_translation("p4.org/pna/v1/MulticastGroupInHeader_t", 32)
@@ -271,9 +262,6 @@ type  SecurityAssocIdInHeaderUint_t      SecurityAssocIdInHeader_t;
 PortId_t pna_PortId_header_to_int (in PortIdInHeader_t x) {
     return (PortId_t) (PortIdUint_t) (PortIdInHeaderUint_t) x;
 }
-VportId_t pna_VportId_header_to_int (in VportIdInHeader_t x) {
-    return (VportId_t) (VportIdUint_t) (VportIdInHeaderUint_t) x;
-}
 InterfaceId_t pna_InterfaceId_header_to_int (in InterfaceIdInHeader_t x) {
     return (InterfaceId_t) (InterfaceIdUint_t) (InterfaceIdInHeaderUint_t) x;
 }
@@ -307,9 +295,6 @@ PassNumber_t pna_PassNumber_header_to_int (in PassNumberInHeader_t x) {
 
 PortIdInHeader_t pna_PortId_int_to_header (in PortId_t x) {
     return (PortIdInHeader_t) (PortIdInHeaderUint_t) (PortIdUint_t) x;
-}
-VportIdInHeader_t pna_VportId_int_to_header (in VportId_t x) {
-    return (VportIdInHeader_t) (VportIdInHeaderUint_t) (VportIdUint_t) x;
 }
 InterfaceIdInHeader_t pna_InterfaceId_int_to_header (in InterfaceId_t x) {
     return (InterfaceIdInHeader_t) (InterfaceIdInHeaderUint_t) (InterfaceIdUint_t) x;
@@ -612,14 +597,11 @@ struct pna_main_parser_input_metadata_t {
     PNA_Direction_t          direction;
     PassNumber_t             pass;
     bool                     loopedback;
-
-    // input fields to main parser that are only initialized if
-    // direction == NET_TO_HOST
+    // If this packet has direction NET_TO_HOST, input_port contains
+    // the id of the network port on which the packet arrived.
+    // If this packet has direction HOST_TO_NET, input_port contains
+    // the id of the vport from which the packet came
     PortId_t                 input_port;   // network port id
-
-    // input fields to main parser that are only initialized if
-    // direction == HOST_TO_NET
-    VportId_t                input_vport;
 }
 
 struct pna_main_input_metadata_t {
@@ -631,14 +613,9 @@ struct pna_main_input_metadata_t {
     Timestamp_t              timestamp;
     ParserError_t            parser_error;
     ClassOfService_t         class_of_service;
-
-    // input fields to main control that are only initialized if
-    // direction == NET_TO_HOST
+    // See comments for field input_port in struct
+    // pna_main_parser_input_metadata_t
     PortId_t                 input_port;
-
-    // input fields to main control that are only initialized if
-    // direction == HOST_TO_NET
-    VportId_t                input_vport;
 }
 
 // BEGIN:Metadata_main_output
@@ -660,7 +637,6 @@ struct pna_main_output_metadata_t {
 
 // + drop_packet
 // + send_to_port
-// + send_to_vport
 
 
 // drop_packet() - Cause the packet to be dropped when it finishes
@@ -671,53 +647,7 @@ struct pna_main_output_metadata_t {
 extern void drop_packet();
 
 
-// send_to_port(x) - Cause the packet to go to the network port number
-// x, after first looping back if invoked in the NET_TO_HOST
-// direction.
-//
-// Invoking send_to_port(x) is supported only within the main control.
-//
-// If the packet being processed is in the HOST_TO_NET direction,
-// calling send_to_port(x) modifies hidden state for this packet, so
-// that the packet will be transmitted out of network port x, without
-// being looped back.
-//
-// If the packet being processed is in the NET_TO_HOST direction,
-// calling send_to_port(x) modifies hidden state for this packet, so
-// that when the packet is finished with the main control and main
-// deparser, it will loop back in the host side, and later return to
-// be processed by the main control in the HOST_TO_NET direction.  The
-// hidden state will remain associated with the packet during that
-// loopback, so that even if no further forwarding functions are
-// called for the packet, it will be transmitted out of network port
-// x.
-
 extern void send_to_port(PortId_t dest_port);
-
-
-// send_to_vport(x) - Cause the packet to go to a host with vport
-// number x, after first looping back if invoked in the HOST_TO_NET
-// direction.
-//
-// Invoking send_to_vport(x) is supported only within the main
-// control.
-//
-// If the packet being processed is in the NET_TO_HOST direction,
-// calling send_to_vport(x) modifies hidden state for this packet, so
-// that the packet will be sent to vport number x in the host, without
-// being looped back.
-//
-// If the packet being processed is in the HOST_TO_NET direction,
-// calling send_to_vport(x) modifies hidden state for this packet, so
-// that when the packet is finished with the main control and main
-// deparser, it will loop back in/near the network ports, and later
-// return to be processed by the main control in the NET_TO_HOST
-// direction.  The hidden state will remain associated with the packet
-// during that loopback, so that even if no further forwarding
-// functions are called for the packet, it will be sent to vport
-// number x in the host.
-
-extern void send_to_vport(VportId_t dest_vport);
 
 
 // mirror_packet(slot_id, session_id) - Cause a copy of the packet to
