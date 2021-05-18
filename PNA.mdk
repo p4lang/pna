@@ -894,6 +894,8 @@ specification.
 |-----------------------|------|---------------------------------------|
 | Property name         | Type | See also |
 +:----------------------+:-----+:--------------------------------------+
+| `add_on_miss`         | `boolean` | Section [#sec-add-on-miss] |
+|-----------------------|------|---------------------------------------|
 | `pna_direct_counter` | one `DirectCounter` instance name |  |
 |-----------------------|------|---------------------------------------|
 | `pna_direct_meter` | one `DirectMeter` instance name |  |
@@ -919,6 +921,52 @@ A PNA implementation must implement tables that have both a
 
 A PNA implementation need not support both `pna_implementation` and
 `pna_idle_timeout` properties on the same table.
+
+## Tables with add-on-miss capability {#sec-add-on-miss}
+
+PNA defines the `add_on_miss` table property.  If the value of this
+property is `true` for a table, the P4 developer is allowed to define
+a default action for the table that calls the `add_entry` extern
+function.  `add_entry` adds a new entry to the table whose default
+action calls the `add_entry` function.  The new entry will have the
+same key that was just looked up.
+
+The control plane API is still allowed to add, modify, and delete
+entries of such a table, but any entries added via the `add_entry`
+function do not require the control plane software to be involved in
+any way.  It is expected that PNA implementations will be able to
+sustain `add_entry` calls at a large fraction of their line rate, but
+it need not be at the same packet rate supported for processing
+packets that do not call `add_entry`.  The new table entry will be
+matchable when the next packet is processed that applies this table.
+
+~Begin P4Example
+extern bool add_entry<T>(string action_name,
+                         in T action_params);
+~End P4Example
+
+It is expected that many PNA implementations will restrict
+`add_entry()` to be called with the following restrictions:
+
+* Only from within an action
+* Only if the action is a default action of a table with property
+  `add_on_miss` equal to `true`.
+* Only for a table with all key fields having match_kind `exact`.
+* Only with an action name that is one of the hit actions of that same
+  table.  This action has parameters that are all directionless.
+* The type `T` is a struct containing one member for each
+  directionless parameter of the hit action to be added.  The member
+  names must match the hit action parameter names, and their types
+  must be the same as the corresponding hit action parameters.
+
+The new entry will have the same key field values that were
+searched for in the table when the miss occurred, which caused the
+table's default action to be executed.  The action will be the one
+named by the string that is the file of the parameter action_name.
+
+If the attempt to add a table entry succeeds, the return value is
+`true`, otherwise `false`.
+
 
 ## Table entry timeout notification {#sec-idle-timeout}
 

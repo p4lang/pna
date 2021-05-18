@@ -646,45 +646,13 @@ struct pna_main_output_metadata_t {
 
 extern void drop_packet();
 
-
 extern void send_to_port(PortId_t dest_port);
 
 extern void mirror_packet(MirrorSlotId_t mirror_slot_id,
                           MirrorSessionId_t mirror_session_id);
 
-
-// add_entry() causes an entry to be added to a table, controlled from
-// within the P4 program while a packet is being processed.  The new
-// table entry will be matchable when the next packet is processed
-// that applies this table.
-//
-// It is expected that many implementations will restrict add_entry()
-// to be called with the following restrictions:
-//
-// + Only from within an action
-// + Only if the action is a default (i.e. miss) action of a table
-//   with property add_on_miss equal to true.
-// + Only for a table with all key fields having match_kind exact.
-// + Only with an action name that is one of the hit actions of that
-//   same table.
-// + If that hit action to be added has parameters that are all
-//   directionless.
-// + The type T is a struct containing one member for each
-//   directionless parameter of the hit action to be added.  The
-//   member names must match the hit action parameter names, and their
-//   types must be the same as the corresponding hit action
-//   parameters.
-//
-// The new entry will have the same key field values that were
-// searched for in the table when the miss occurred, which caused the
-// table's default action to be executed.  The action will be the one
-// named by the string that is the file of the parameter action_name.
-//
 // TBD: Does it make sense to have a data plane add of a hit action
 // that has in, out, or inout parameters?
-//
-// If the attempt to add a table entry succeeds, the return value is
-// true, otherwise false.
 //
 // TBD: Should we require the return value?  Can most targets
 // implement it?  If not, consider having two separate variants of
