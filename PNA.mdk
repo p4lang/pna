@@ -1,5 +1,5 @@
 Title : P4 Portable NIC Architecture (PNA)
-Title Note: (working draft)
+Title Note: version 0.5
 Title Footer: &date;
 Author : The P4 Language Consortium
 Heading depth: 4
@@ -159,6 +159,10 @@ system.
 [TOC]
 
 # Introduction
+
+Note that this document is still a working draft.  Significant changes
+are expected to be made before version 1.0 of this specification is
+released.
 
 The Portable NIC Architecture (PNA) is P4 architecture that defines
 the structure and common capabilities for network interface controller
