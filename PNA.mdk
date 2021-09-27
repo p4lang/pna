@@ -966,7 +966,7 @@ It is expected that many PNA implementations will restrict
 The new entry will have the same key field values that were
 searched for in the table when the miss occurred, which caused the
 table's default action to be executed.  The action will be the one
-named by the string that is the file of the parameter action_name.
+named by the string that is passed as the parameter `action_name`.
 
 If the attempt to add a table entry succeeds, the return value is
 `true`, otherwise `false`.
