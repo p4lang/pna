@@ -78,10 +78,10 @@ bool TCP_ACK_flag_set(in bit<8> flags) {
 
 // Define names for different expire time profile id values.
 
-const ExpireTimeProfileId_t EXPIRE_TIME_PROFILE_NOW    = (ExpireTimeProfileId_t) 0;
-const ExpireTimeProfileId_t EXPIRE_TIME_PROFILE_MEDIUM = (ExpireTimeProfileId_t) 1;
-const ExpireTimeProfileId_t EXPIRE_TIME_PROFILE_LONG   = (ExpireTimeProfileId_t) 2;
-const ExpireTimeProfileId_t EXPIRE_TIME_PROFILE_NEVER  = (ExpireTimeProfileId_t) 3;
+const ExpireTimeProfileId_t EXPIRE_TIME_PROFILE_TCP_NOW    = (ExpireTimeProfileId_t) 0;
+const ExpireTimeProfileId_t EXPIRE_TIME_PROFILE_TCP_NEW    = (ExpireTimeProfileId_t) 1;
+const ExpireTimeProfileId_t EXPIRE_TIME_PROFILE_TCP_ESTABLISHED = (ExpireTimeProfileId_t) 2;
+const ExpireTimeProfileId_t EXPIRE_TIME_PROFILE_TCP_NEVER  = (ExpireTimeProfileId_t) 3;
 
 //////////////////////////////////////////////////////////////////////
 // Struct types for holding user-defined collections of headers and
@@ -247,15 +247,15 @@ control MainControlImpl(
                 if (TCP_SYN_flag_set(hdr.tcp.flags)) {
                     do_add_on_miss = true;
                     update_expire_time = true;
-                    new_expire_time = EXPIRE_TIME_PROFILE_LONG;
+                    new_expire_time = EXPIRE_TIME_PROFILE_TCP_NEW;
                 } else if (TCP_FIN_flag_set(hdr.tcp.flags) ||
                            TCP_RST_flag_set(hdr.tcp.flags))
                 {
                     update_expire_time = true;
-                    new_expire_time = EXPIRE_TIME_PROFILE_NOW;
+                    new_expire_time = EXPIRE_TIME_PROFILE_TCP_NOW;
                 } else {
                     update_expire_time = true;
-                    new_expire_time = EXPIRE_TIME_PROFILE_MEDIUM;
+                    new_expire_time = EXPIRE_TIME_PROFILE_TCP_ESTABLISHED;
                 }
             }
         }
