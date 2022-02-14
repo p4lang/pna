@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Intel Corporation
+Copyright 2021-2022 Intel Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -60,21 +60,14 @@ header tcp_t {
     bit<16> urgentPtr;
 }
 
-bool TCP_FIN_flag_set(in bit<8> flags) {
-    return (flags[0:0] == 1);
-}
-
-bool TCP_SYN_flag_set(in bit<8> flags) {
-    return (flags[1:1] == 1);
-}
-
-bool TCP_RST_flag_set(in bit<8> flags) {
-    return (flags[2:2] == 1);
-}
-
-bool TCP_ACK_flag_set(in bit<8> flags) {
-    return (flags[4:4] == 1);
-}
+// Masks of the bit positions of some bit flags within the TCP flags
+// field.
+const bit<8> TCP_URG_MASK = 0x20;
+const bit<8> TCP_ACK_MASK = 0x10;
+const bit<8> TCP_PSH_MASK = 0x08;
+const bit<8> TCP_RST_MASK = 0x04;
+const bit<8> TCP_SYN_MASK = 0x02;
+const bit<8> TCP_FIN_MASK = 0x01;
 
 // Define names for different expire time profile id values.
 
@@ -136,7 +129,6 @@ control PreControlImpl(
 }
 
 struct ct_tcp_table_hit_params_t {
-    FlowId_t flow_id;
 }
 
 control MainControlImpl(
@@ -156,12 +148,40 @@ control MainControlImpl(
     ExpireTimeProfileId_t new_expire_time;
 
     // Outputs from actions of ct_tcp_table
-    FlowId_t my_flow_id;
     bool add_succeeded;
     
+    action tcp_syn_packet () {
+        do_add_on_miss = true;
+        update_expire_time = true;
+        new_expire_time = EXPIRE_TIME_PROFILE_TCP_NEW;
+    }
+    action tcp_fin_or_rst_packet () {
+        update_expire_time = true;
+        new_expire_time = EXPIRE_TIME_PROFILE_TCP_NOW;
+    }
+    action tcp_other_packets () {
+        update_expire_time = true;
+        new_expire_time = EXPIRE_TIME_PROFILE_TCP_ESTABLISHED;
+    }
+
+    table set_ct_options {
+        key = {
+            hdr.tcp.flags: ternary;
+        }
+        actions = {
+            tcp_syn_packet;
+            tcp_fin_or_rst_packet;
+            tcp_other_packets;
+        }
+        const entries = {
+            TCP_SYN_MASK &&& TCP_SYN_MASK: tcp_syn_packet;
+            TCP_FIN_MASK &&& TCP_FIN_MASK: tcp_fin_or_rst_packet;
+            TCP_RST_MASK &&& TCP_RST_MASK: tcp_fin_or_rst_packet;
+        }
+        const default_action = tcp_other_packets;
+    }
     
-    action ct_tcp_table_hit (FlowId_t flow_id) {
-        my_flow_id = flow_id;
+    action ct_tcp_table_hit () {
         if (update_expire_time) {
             set_entry_expire_time(new_expire_time);
             restart_expire_timer();
@@ -173,11 +193,11 @@ control MainControlImpl(
 
     action ct_tcp_table_miss() {
         if (do_add_on_miss) {
-            my_flow_id = allocate_flow_id();
+            // This example does not need to use allocate_flow_id()
             add_succeeded =
                 add_entry(action_name = "ct_tcp_table_hit",  // name of action
                           action_params = (ct_tcp_table_hit_params_t)
-                                          {flow_id = my_flow_id});
+                                          {});
         }
         // a target might also support additional statements here, e.g.
         // mirror the packet
@@ -242,34 +262,15 @@ control MainControlImpl(
 
         do_add_on_miss = false;
         update_expire_time = false;
-        if (hdr.ipv4.isValid() && hdr.tcp.isValid()) {
-            if (istd.direction == PNA_Direction_t.HOST_TO_NET) {
-                if (TCP_SYN_flag_set(hdr.tcp.flags)) {
-                    do_add_on_miss = true;
-                    update_expire_time = true;
-                    new_expire_time = EXPIRE_TIME_PROFILE_TCP_NEW;
-                } else if (TCP_FIN_flag_set(hdr.tcp.flags) ||
-                           TCP_RST_flag_set(hdr.tcp.flags))
-                {
-                    update_expire_time = true;
-                    new_expire_time = EXPIRE_TIME_PROFILE_TCP_NOW;
-                } else {
-                    update_expire_time = true;
-                    new_expire_time = EXPIRE_TIME_PROFILE_TCP_ESTABLISHED;
-                }
-            }
+        if ((istd.direction == PNA_Direction_t.HOST_TO_NET) &&
+            hdr.ipv4.isValid() && hdr.tcp.isValid())
+        {
+            set_ct_options.apply();
         }
 
         // ct_tcp_table is a bidirectional table
         if (hdr.ipv4.isValid() && hdr.tcp.isValid()) {
-            if (ct_tcp_table.apply().hit) {
-                // do not drop the packet
-                if (do_add_on_miss) {
-                    // Code here to send mirror packet to control plane
-                    // software with some kind of header or error status
-                    // indicating that an attempted add_on_miss failed.
-                }
-            }
+            ct_tcp_table.apply();
         }
     }
 }
