@@ -18,9 +18,10 @@ limitations under the License.
 #include "../pna.p4"
 
 
-// Very simple PNA program intended only to demonstrate how to send
-// unicast packets to a destination network port, or host vport, based
-// upon the destination MAC address in the Ethernet header.
+// Very simple PNA program intended to demonstrate one use of an
+// add-on-miss table to do a simple form of TCP connection tracking,
+// where the per-entry expiration times can be modified in the data
+// plane, without the control plane changing them.
 
 
 typedef bit<48>  EthernetAddress;
