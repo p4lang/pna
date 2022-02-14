@@ -5,6 +5,20 @@ lead towards a published Portable NIC Architecture specification
 published by P4.org.
 
 
+## Getting started
+
+If you are new to the Portable NIC Architecture, we recommend starting
+with the 18-minute video [Portable NIC Architecture
+Update](https://www.youtube.com/watch?v=7SG-GxkQqfY) to get a quick
+introduction to the basic ideas.
+
+The latest version of the specification is given by its Madoko source
+file in [PNA.mdk](PNA.mdk), and the latest generated PDF version is
+[here](https://github.com/p4lang/pna/blob/main/generated-html/PNA-v0.5.0.pdf).
+The PDF version is not generated for every change to the Madoko source
+file.
+
+
 ## Setup instructions
 
 See the
