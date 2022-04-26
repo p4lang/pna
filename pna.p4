@@ -662,11 +662,22 @@ extern void mirror_packet(MirrorSlotId_t mirror_slot_id,
 
 // TBD: For add_entry calls to a table with property 'idle_timeout' or
 // 'idle_timeout_with_auto_delete' equal to true, there should
-// probably be an optional parameter at the end that specifies the new
-// entry's initial expire_time_profile_id.
+// probably be a parameter that specifies the new entry's initial
+// expire_time_profile_id.
 
 extern bool add_entry<T>(string action_name,
-                         in T action_params);
+                         in T action_params,
+                         in ExpireTimeProfileId_t expire_time_profile_id);
+
+// If we support the following variant of add_entry, with no
+// expire_time_profile_id parameter, then we need to define its
+// behavior in terms of what the added entry's value of
+// expire_time_profile_id is.  One option would be to define the
+// behavior to be the same as the 3-parameter version of add_entry
+// above, with expire_time_profile_id equal to 0.
+
+//extern bool add_entry<T>(string action_name,
+//                         in T action_params);
 
 extern FlowId_t allocate_flow_id();
 
@@ -675,9 +686,10 @@ extern FlowId_t allocate_flow_id();
 // a table with property 'idle_timeout' or
 // 'idle_timeout_with_auto_delete' equal to true.
 
-// Calling it causes the expiration time of the entry to be the one
-// that the control plane has configured for the specified
-// expire_time_profile_id.
+// Calling it causes the expiration time profile id of the matched
+// entry to become equal to expire_time_profile_id.
+
+// It _also_ behaves as if restart_expire_timer() was called.
 
 extern void set_entry_expire_time(
     in ExpireTimeProfileId_t expire_time_profile_id);
@@ -698,7 +710,37 @@ extern void set_entry_expire_time(
 // is that every hit action implicitly causes the entry's expiration
 // timer to be reset to its configured time interval in the future.
 
+// Note that for the PSA architecture with psa_idle_timeout = true,
+// there was an implicit assumption that _every_ time a table entry
+// was matched, the target behaved as if restart_expire_timer() was
+// called, but there was no such extern function defined by PSA.
+
+// The proposal for PNA is that it is possible to match an entry, but
+// _not_ call restart_expire_timer(), and this will cause the data
+// plane _not_ to restart the table entry's expiration time.  That is,
+// the expiration time of the entry will continue to be the same as
+// before it was matched.
+
 extern void restart_expire_timer();
+
+// The effect of this call:
+//
+//     update_expire_info(a, b, c)
+//
+// is exactly the same as the effect of the following code:
+//
+//    if (a) {
+//        if (b) {
+//            set_entry_expire_time(c);
+//        } else {
+//            restart_expire_timer();
+//        }
+//    }
+
+extern void update_expire_info(
+    in bool update_aging_info,
+    in bool update_expire_time,
+    in ExpireTimeProfileId_t expire_time_profile_id);
 
 
 // SelectByDirection is a simple pure function that behaves exactly as

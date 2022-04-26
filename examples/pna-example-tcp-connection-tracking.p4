@@ -145,24 +145,28 @@ control MainControlImpl(
     // Inputs from previous tables (or actions, or in general other P4
     // code) that can modify the behavior of actions of ct_tcp_table.
     bool do_add_on_miss;
+    bool update_aging_info;
     bool update_expire_time;
-    ExpireTimeProfileId_t new_expire_time;
+    ExpireTimeProfileId_t new_expire_time_profile_id;
 
     // Outputs from actions of ct_tcp_table
     bool add_succeeded;
     
     action tcp_syn_packet () {
         do_add_on_miss = true;
+        update_aging_info = true;
         update_expire_time = true;
-        new_expire_time = EXPIRE_TIME_PROFILE_TCP_NEW;
+        new_expire_time_profile_id = EXPIRE_TIME_PROFILE_TCP_NEW;
     }
     action tcp_fin_or_rst_packet () {
+        update_aging_info = true;
         update_expire_time = true;
-        new_expire_time = EXPIRE_TIME_PROFILE_TCP_NOW;
+        new_expire_time_profile_id = EXPIRE_TIME_PROFILE_TCP_NOW;
     }
     action tcp_other_packets () {
+        update_aging_info = true;
         update_expire_time = true;
-        new_expire_time = EXPIRE_TIME_PROFILE_TCP_ESTABLISHED;
+        new_expire_time_profile_id = EXPIRE_TIME_PROFILE_TCP_ESTABLISHED;
     }
 
     table set_ct_options {
@@ -183,22 +187,59 @@ control MainControlImpl(
     }
     
     action ct_tcp_table_hit () {
-        if (update_expire_time) {
-            set_entry_expire_time(new_expire_time);
-            restart_expire_timer();
+#ifdef AVOID_IF_INSIDE_ACTION
+        // This extern function update_expire_info has exactly the
+        // same behavior as the code in the #else part of this #ifdef.
+        // It is proposed as an extern function included in the
+        // standard pna.p4 include file specifically as a workaround
+        // for P4 compilers that do not have full support for if
+        // statements, such as the BMv2 back end as of 2022-Apr.
+
+        // Another reason to have such an extern function is as a
+        // convenience to P4 developers.  Even if their compiler
+        // supports if statements inside of actions, if they want the
+        // behavior of update_expire_info, this is less code to write
+        // and read.
+        update_expire_info(update_aging_info, update_expire_time,
+                           new_expire_time_profile_id);
+#else
+        if (update_aging_info) {
+            if (update_expire_time) {
+                set_entry_expire_time(new_expire_time_profile_id);
+                // This is implicit and automatic part of the behavior
+                // of set_entry_expire_time() call:
+                //restart_expire_timer();
+            } else {
+                restart_expire_timer();
+            }
+            // a target might also support additional statements here
         } else {
-            restart_expire_timer();
+            // Do nothing here.  In particular, DO NOT
+            // restart_expire_time().  Whatever state the target
+            // device uses per-entry to represent the last time this
+            // entry was matched is left UNCHANGED.  This can be
+            // useful in some connection tracking scenarios,
+            // e.g. where one wishes to "star the timer" when a FIN
+            // packet arrives, but it should KEEP RUNNING as later
+            // packets arrive, without being restarted.
+
+            // a target might also support additional statements here
         }
-        // a target might also support additional statements here
+#endif // AVOID_IF_INSIDE_ACTION
     }
 
     action ct_tcp_table_miss() {
         if (do_add_on_miss) {
-            // This example does not need to use allocate_flow_id()
+            // This example does not need to use allocate_flow_id(),
+            // because no later part of the P4 program uses its return
+            // value for anything.
             add_succeeded =
                 add_entry(action_name = "ct_tcp_table_hit",  // name of action
                           action_params = (ct_tcp_table_hit_params_t)
-                                          {});
+                                          {},
+                          expire_time_profile_id = new_expire_time_profile_id);
+        } else {
+            drop_packet();
         }
         // a target might also support additional statements here, e.g.
         // mirror the packet
@@ -231,6 +272,8 @@ control MainControlImpl(
         // from the data plane.
         add_on_miss = true;
 
+        default_idle_timeout_for_data_plane_added_entries = 1;
+
         // New PNA table property 'idle_timeout_with_auto_delete' is
         // similar to 'idle_timeout' in other architectures, except
         // that entries that have not been matched for their expire
@@ -251,7 +294,7 @@ control MainControlImpl(
 
         // + do_add_on_miss
         // + update_expire_time
-        // + new_expire_time
+        // + new_expire_time_profile_id
 
         // are assigned the values we want them to have _before_
         // calling ct_tcp_table.apply() below.  The conditions under
