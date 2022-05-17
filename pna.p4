@@ -665,19 +665,75 @@ extern void mirror_packet(MirrorSlotId_t mirror_slot_id,
 // probably be a parameter that specifies the new entry's initial
 // expire_time_profile_id.
 
-extern bool add_entry<T>(string action_name,
-                         in T action_params,
-                         in ExpireTimeProfileId_t expire_time_profile_id);
+// The bit width of this type is allowed to be different for different
+// target devices.  It must be at least a 1-bit wide type.
 
-// If we support the following variant of add_entry, with no
-// expire_time_profile_id parameter, then we need to define its
-// behavior in terms of what the added entry's value of
-// expire_time_profile_id is.  One option would be to define the
-// behavior to be the same as the 3-parameter version of add_entry
-// above, with expire_time_profile_id equal to 0.
+typedef bit<1> AddEntryErrorStatus_t;
 
-//extern bool add_entry<T>(string action_name,
-//                         in T action_params);
+const AddEntryErrorStatus_t ADD_ENTRY_SUCCESS = 0;
+const AddEntryErrorStatus_t ADD_ENTRY_NOT_DONE = 1;
+
+// Targets may define target-specific non-0 constants of type
+// AddEntryErrorStatus_t if they wish.
+
+// add_entry() must be called within the body of a P4 action that is
+// the default_action of a table with the table property `add_on_miss`
+// equal to true.
+//
+// The key of the entry added will always be the same as the key that
+// was just looked up in the table, and experienced a miss.
+//
+// `action_name` is the name of an action of this table.  It must be
+// possible for this action to be the action of an entry added to the
+// table, i.e. it is an error if the action has the annotation
+// `@defaultonly`.
+//
+// Type T must be a struct type whose field names have the same name
+// as the parameters of the action being added, in the same order, and
+// have the same type as the corresponding action parameters.
+//
+// `action_params` will become the action parameters of the new entry
+// to be added.
+//
+// `expire_time_profile_id` is the initial expire time profile id of
+// the entry added.
+//
+// The return value will be ADD_ENTRY_SUCCESS if the entry was
+// successfully added, otherwise it will be some other value not equal
+// to ADD_ENTRY_SUCCESS.  Targets are allowed to define only one
+// failure return value, or several if they wish to provide more
+// detail on the reason for the failure to add the entry.
+
+extern AddEntryErrorStatus_t add_entry<T>(
+    string action_name,
+    in T action_params,
+    in ExpireTimeProfileId_t expire_time_profile_id);
+
+// The following call to add_entry_if():
+//
+//     add_entry_if(expr, action_name, action_params, expire_time_profile_id);
+//
+// has exactly the same behavior as the following expression:
+//
+//     (expr) ? add_entry(action_name, action_params, expire_time_profile_id)
+//            : ADD_ENTRY_NOT_DONE;
+//
+// and it has the same restrictions on where it can appear in a P4
+// program as that equivalent code.
+//
+// Rationale: At the time PNA was being designed in 2022, there were
+// P4 targets, including the BMv2 software switch in the repository
+// https://github.com/p4lang/behavioral-model, that did not fully
+// support `if` statements within P4 actions.  add_entry_if() enables
+// writing P4 code without `if` statements within P4 actions that
+// would otherwise require an `if` statement to express the desired
+// behavior, if only the extern function add_entry() were provided.
+
+extern AddEntryErrorStatus_t add_entry_if<T>(
+    in bool do_add_entry,
+    string action_name,
+    in T action_params,
+    in ExpireTimeProfileId_t expire_time_profile_id);
 
 extern FlowId_t allocate_flow_id();
 

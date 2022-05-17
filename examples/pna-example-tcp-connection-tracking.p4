@@ -150,7 +150,7 @@ control MainControlImpl(
     ExpireTimeProfileId_t new_expire_time_profile_id;
 
     // Outputs from actions of ct_tcp_table
-    bool add_succeeded;
+    AddEntryErrorStatus_t add_status;
     
     action tcp_syn_packet () {
         do_add_on_miss = true;
@@ -159,11 +159,13 @@ control MainControlImpl(
         new_expire_time_profile_id = EXPIRE_TIME_PROFILE_TCP_NEW;
     }
     action tcp_fin_or_rst_packet () {
+        do_add_on_miss = false;
         update_aging_info = true;
         update_expire_time = true;
         new_expire_time_profile_id = EXPIRE_TIME_PROFILE_TCP_NOW;
     }
     action tcp_other_packets () {
+        do_add_on_miss = false;
         update_aging_info = true;
         update_expire_time = true;
         new_expire_time_profile_id = EXPIRE_TIME_PROFILE_TCP_ESTABLISHED;
@@ -229,11 +231,31 @@ control MainControlImpl(
     }
 
     action ct_tcp_table_miss() {
+#ifdef AVOID_IF_INSIDE_ACTION
+        // Note that this code is NOT completely equivalent to the
+        // code in the #else branch below, because it does not call
+        // drop_packet() if do_add_on_miss is false.  One way to make
+        // the two versions of the program equivalent, not shown here,
+        // would be to assign a value to a metadata variable here such
+        // as 'ct_tcp_table_got_miss = true;', and then write
+        // additional code after ct_tcp_table.apply() equivalent in
+        // behavior to this:
+        //
+        // if (ct_tcp_table_got_miss && !do_add_on_miss) {
+        //     drop_packet();
+        // }
+        add_status =
+            add_entry_if(do_add_entry = do_add_on_miss,
+                         action_name = "ct_tcp_table_hit",  // name of action
+                         action_params = (ct_tcp_table_hit_params_t)
+                                         {},
+                         expire_time_profile_id = new_expire_time_profile_id);
+#else
         if (do_add_on_miss) {
             // This example does not need to use allocate_flow_id(),
             // because no later part of the P4 program uses its return
             // value for anything.
-            add_succeeded =
+            add_status =
                 add_entry(action_name = "ct_tcp_table_hit",  // name of action
                           action_params = (ct_tcp_table_hit_params_t)
                                           {},
@@ -241,6 +263,7 @@ control MainControlImpl(
         } else {
             drop_packet();
         }
+#endif // AVOID_IF_INSIDE_ACTION
         // a target might also support additional statements here, e.g.
         // mirror the packet
         // update a counter
