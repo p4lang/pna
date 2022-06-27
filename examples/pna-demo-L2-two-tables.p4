@@ -77,7 +77,7 @@ control MainControlImpl(
         drop_packet();
     }
     action L2_send_to_port (PortId_t port_id) {
-        send_to_port(port_id);
+        ostd.egress_port = port_id;
     }
 
     // In this demo program, I have chosen to use the same action
