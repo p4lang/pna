@@ -79,12 +79,9 @@ control MainControlImpl(
     action L2_send_to_port (PortId_t port_id) {
         send_to_port(port_id);
     }
-    action L2_send_to_vport (VportId_t vport_id) {
-        send_to_vport(vport_id);
-    }
     table L2_fwd {
         key = { hdr.eth.dstAddr: exact; }
-        actions = { L2_send_to_port; L2_send_to_vport; drop; }
+        actions = { L2_send_to_port; drop; }
         default_action = drop;
     }
     apply {

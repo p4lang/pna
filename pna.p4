@@ -623,6 +623,7 @@ struct pna_main_output_metadata_t {
   // common fields used by the architecture to decide what to do with
   // the packet next, after the main parser, control, and deparser
   // have finished executing one pass, regardless of the direction.
+  PortId_t                 egress_port;
   ClassOfService_t         class_of_service; // 0
 }
 // END:Metadata_main_output
