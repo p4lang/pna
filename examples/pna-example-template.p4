@@ -135,9 +135,9 @@ control MainControlImpl(
     DirectCounter<PacketByteCounter_t>(PNA_CounterType_t.PACKETS_AND_BYTES)
         per_prefix_pkt_byte_count;
 
-    action next_hop(VportId_t vport) {
+    action next_hop(PortId_t port) {
         per_prefix_pkt_byte_count.count();
-        send_to_vport(vport);
+        send_to_port(port);
     }
     action default_route_drop() {
         per_prefix_pkt_byte_count.count();

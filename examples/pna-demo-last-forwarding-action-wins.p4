@@ -25,7 +25,6 @@ limitations under the License.
 // effect on the packet.
 
 // + sent_to_port
-// + send_to_vport
 // + drop_packet
 
 
@@ -85,9 +84,6 @@ control MainControlImpl(
     action my_send_to_port (PortId_t port_id) {
         send_to_port(port_id);
     }
-    action my_send_to_vport (VportId_t vport_id) {
-        send_to_vport(vport_id);
-    }
     action my_mirror0 (MirrorSessionId_t mirror_session_id) {
         // "mirror" and "clone" are synonyms.  No difference is
         // implied anywhere in the PNA spec between these two terms.
@@ -122,17 +118,17 @@ control MainControlImpl(
     }
     table t1_rx {
         key = { hdr.eth.srcAddr: exact; }
-        actions = { my_send_to_port; my_send_to_vport; my_drop; NoAction; }
+        actions = { my_send_to_port; my_drop; NoAction; }
         default_action = NoAction;
     }
     table t2_rx {
         key = { hdr.eth.dstAddr: exact; }
-        actions = { my_send_to_port; my_send_to_vport; my_drop; NoAction; }
+        actions = { my_send_to_port; my_drop; NoAction; }
         default_action = NoAction;
     }
     table t3_rx {
         key = { hdr.eth.etherType: exact; }
-        actions = { my_send_to_port; my_send_to_vport; my_drop; NoAction; }
+        actions = { my_send_to_port; my_drop; NoAction; }
         default_action = NoAction;
     }
     table mirror_decision_near_host_rx {
