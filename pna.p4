@@ -744,31 +744,27 @@ extern void update_expire_info(
 
 
 // Set the expire time of the matched entry in the table to the value
-// specified in the parameter expire_time_profile_id, if the value
-// parameter is equal to the data parameter. If the value and data
-// parameters are not equal, the function has no effect.
+// specified in the parameter expire_time_profile_id, if condition
+// in the first parameter evaluates to true. Otherwise, the function
+// has no effect.
 //
-// @param D          Tuple of fields of data to match with value.
-// @param data       Data that is matched to the value parameter
-//                   to determine if the expire time will be set.
-// @param value      Value that is matched with corresponding
-//                   data parameter.
-// @expire_time_profile_id
+// @param condition  The boolean expression to evaluate to determine
+//                   if the expire time will be set.
+// @param expire_time_profile_id
 //                   The expire time to set for the matched entry,
 //                   if the data and value parameters are equal.
 //
 // Examples:
-// set_expire_time_if({hdr.tcp.flags, meta.direction},
-//                    {TCP_FLG_SYN, OUTBOUND},
+// set_expire_time_if(hdr.tcp.flags == TCP_FLG_SYN &&
+//                    meta.direction == OUTBOUND,
 //                    tcp_connection_start_time_profile_id);
-// set_expire_time_if(hdr.tcp.flags, TCP_FLG_ACK,
+// set_expire_time_if(hdr.tcp.flags == TCP_FLG_ACK,
 //                    tcp_connection_continuation_time_protile_id);
-// set_expire_time_if(hdr.tcp.flags, TCP_FLG_FIN,
+// set_expire_time_if(hdr.tcp.flags == TCP_FLG_FIN,
 //                    tcp_connection_close_time_profile_id);
 
-extern void set_entry_expire_time_if<D>(
-    in D data,
-    in D value,
+extern void set_entry_expire_time_if(
+    in bool condition,
     in ExpireTimeProfileId_t expire_time_profile_id);
 
 
