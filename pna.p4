@@ -743,6 +743,31 @@ extern void update_expire_info(
     in ExpireTimeProfileId_t expire_time_profile_id);
 
 
+// Set the expire time of the matched entry in the table to the value
+// specified in the parameter expire_time_profile_id, if condition
+// in the first parameter evaluates to true. Otherwise, the function
+// has no effect.
+//
+// @param condition  The boolean expression to evaluate to determine
+//                   if the expire time will be set.
+// @param expire_time_profile_id
+//                   The expire time to set for the matched entry,
+//                   if the data and value parameters are equal.
+//
+// Examples:
+// set_expire_time_if(hdr.tcp.flags == TCP_FLG_SYN &&
+//                    meta.direction == OUTBOUND,
+//                    tcp_connection_start_time_profile_id);
+// set_expire_time_if(hdr.tcp.flags == TCP_FLG_ACK,
+//                    tcp_connection_continuation_time_protile_id);
+// set_expire_time_if(hdr.tcp.flags == TCP_FLG_FIN,
+//                    tcp_connection_close_time_profile_id);
+
+extern void set_entry_expire_time_if(
+    in bool condition,
+    in ExpireTimeProfileId_t expire_time_profile_id);
+
+
 // SelectByDirection is a simple pure function that behaves exactly as
 // the P4_16 function definition given in comments below.  It is an
 // extern function to ensure that the front/mid end of the p4c
