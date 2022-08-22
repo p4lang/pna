@@ -544,6 +544,100 @@ extern Digest<T> {
 }
 // END:Digest_extern
 
+// BEGIN:ExactMap_extern
+extern ExactMap<K, V, E> {
+    /**
+     * Create a table with match kinds all 'exact' and the specified
+     * size (number of entries).  The default value returned when a
+     * lookup experiences a miss is given by default_value.
+     */
+    ExactMap(int size, V default_value);
+
+    /**
+     * The same as the constructor with an explicit default_value,
+     * except the default_value is the default value for the type V as
+     * defined in the section "Default values" of the P4_16 language
+     * specification.
+     */
+    ExactMap(int size);
+
+    /**
+     * Create a table with match kinds all 'exact' and the specified
+     * size (number of entries).  The default value returned when a
+     * lookup experiences a miss is given by default_value.
+     * const_entries is a list of entries, similar to the 'const
+     * entries' table property for tables.
+     *
+     * Example where key and value types are bit<W>:
+
+     *     ExactMap<bit<8>, bit<16>, _>(
+     *         size = 1024,
+     *         const_entries = {
+     *             {5, 10},  // key 5, value 10
+     *             {6, 27},  // key 6, value 27
+     *             {10, 2}   // key 10, value 2
+     *         },
+     *         default_value = 42)  // default value returned for all other keys
+     *     vemap;
+
+     */
+    ExactMap(int size, E const_entries, V default_value);
+
+    /**
+     * Look up the key in the table.  Always hits, so always returns a
+     * value of type V.
+     */
+    V lookup(in K key);
+}
+// END:ExactMap_extern
+
+// BEGIN:TernaryMap_extern
+extern TernaryMap<K, V, E> {
+    /**
+     * Create a table with match kinds all 'ternary' and the specified
+     * size (number of entries).  The default value returned when a
+     * lookup experiences a miss is given by default_value.
+     */
+    TernaryMap(int size, V default_value);
+
+    /**
+     * The same as the constructor with an explicit default_value,
+     * except the default_value is the default value for the type V as
+     * defined in the section "Default values" of the P4_16 language
+     * specification.
+     */
+    TernaryMap(int size);
+
+    /**
+     * Create a table with match kinds all 'ternary' and the specified
+     * size (number of entries).  The default value returned when a
+     * lookup experiences a miss is given by default_value.
+     * const_entries is a list of entries, similar to the 'const
+     * entries' table property for tables.
+     *
+     * Example where key and value types are bit<W>:
+
+     *     TernaryMap<bit<24>, bit<16>, _>(
+     *         size = 1024,
+     *         const_entries = {
+     *             {{5, 0xffffff}, 10},  // ternary key with value 5, mask 0xffffff (exact match on least significant 24 bits), value 10
+     *             {{6, 0xffffff}, 27},  // ternary key with value 6, mask 0xffffff, value 27
+     *             {{10, 0x00ffff}, 2}   // ternary key with value 10, mask 0x00ffff (exact match on least significant 16 bits, wildcard on bits [23:16]), value 2
+     *         },
+     *         default_value = 42)  // default value returned for all other keys
+     *     vemap;
+
+     */
+    TernaryMap(int size, E const_entries, V default_value);
+
+    /**
+     * Look up the key in the table.  Always hits, so always returns a
+     * value of type V.
+     */
+    V lookup(in K key);
+}
+// END:TernaryMap_extern
+
 enum PNA_Direction_t {
     NET_TO_HOST,
     HOST_TO_NET
