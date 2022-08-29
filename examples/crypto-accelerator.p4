@@ -17,7 +17,7 @@ limitations under the License.
 #include <core.p4>
 #include "../pna.p4"
 
-/// Crypto accelerator extern
+/// Crypto accelerator Extern
 enum bit<8> crypto_algorithm_e {
     AES_GCM = 1
 }
@@ -27,6 +27,7 @@ enum bit<8> crypto_results_e {
     HW_ERROR = 2
 }
 
+#define ICV_AFTER_PAYLOAD ((int<32>)-1)
 extern crypto_accelerator {
     /// constructor
     /// Some methods provided in this object may be specific to an algorithm used.
@@ -72,6 +73,11 @@ extern crypto_accelerator {
     void disable();
 
     crypto_results_e get_results();       // get results of the previous operation
+}
+
+// Helper Externs (could not find it in pna spec/existign code)
+extern void recirc_packet() {
+    // Vendor specific implementation to cause a packet to get recirculated
 }
 
 /// Headers
@@ -130,21 +136,13 @@ header esp_h {
     bit<32>     seq;
 }
 
+// rfc4106 esp IV header on the wire
 header esp_iv_h {
     bit<64>     iv; // IV on the wire excludes the salt
 }
-
-header esp_trailer_pad_byte3 {
-    bit<24> pad3;
-}
-
-header esp_trailer_pad_byte2 {
-    bit<16> pad2;
-}
-
-header esp_trailer_pad_byte1 {
-    bit<8> pad1;
-}
+#define IPSEC_OP_NONE       0
+#define IPSEC_OP_ENCRYPT    1
+#define IPSEC_OP_DECRYPT    2
 
 // Program defined header used during recirculation
 header recirc_header_h {
@@ -166,17 +164,17 @@ struct headers_t {
 
     // inner layer - ipsec in tunnel mode
     ipv4_h ipv4_2;
-
-    esp_trailer_pad_byte1 pad_byte1;
-    esp_trailer_pad_byte2 pad_byte2;
-    esp_trailer_pad_byte3 pad_byte3;
 }
 
 /// Metadata
 
 struct main_metadata_t {
-    // empty for this skeleton
+    bit<32> sa_index;
+    bit<1> ipsec_decrypt_done;
 }
+
+/// Instantiate crypto accelerator for AES-GCM algorithm
+crypto_accelerator(crypto_algorithm_e.AES_GCM) ipsec_acc;
 
 control PreControlImpl(
     in    headers_t  hdr,
@@ -199,6 +197,10 @@ parser MainParserImpl(
     bit<2>  ipsec_op = 0;
 
     state start {
+        main_meta.sa_index = 1; // just for exmaple, used for encrypt
+
+        // TODO: can't find  better indication of recirc in the existing pna.p4
+        // This should be a field in istd or and extern
         transition select(istd.loopedback) {
             1 : parse_recirc_header;
             default : parse_packet;
@@ -209,15 +211,12 @@ parser MainParserImpl(
         packet.extract(hdr.recirc_header);
         is_recirc = 1;
         ipsec_op = hdr.recirc_header.ipsec_op;
-        // TODO: 
-        // transition parse_packet;
+        transition parse_packet;
     }
 
     state parse_packet {
-        main_meta.sa_index = 1; // just for exmaple, used for encrypt
         packet.extract(hdr.ethernet);
         transition select(hdr.ethernet.etherType) {
-            ETHERTYPE_CTAG : parse_ctag;
             ETHERTYPE_IPV4 : parse_ipv4;
             default : accept;
         }
@@ -225,8 +224,6 @@ parser MainParserImpl(
 
     state parse_ipv4 {
         packet.extract(hdr.ipv4_1);
-        main_meta.key_metadata.ipv4_src = hdr.ipv4_1.srcAddr;
-        main_meta.key_metadata.ipv4_dst = hdr.ipv4_1.dstAddr;
         transition select(hdr.ipv4_1.protocol) {
             IP_PROTO_TCP        : parse_tcp;
             IP_PROTO_UDP        : parse_udp;
@@ -237,7 +234,8 @@ parser MainParserImpl(
 
     state parse_crypto {
         transition select(is_recirc, ipsec_op) {
-            (0x1 &&& 0x1, 0x1 &&& 0x3) : parse_post_decrypt;
+            // ESP header is present after decrypt operation
+            (0x1 &&& 0x1, IPSEC_OP_DECRYPT &&& 0x3) : parse_post_decrypt;
             // If not recic, this is an encrypted packet, yet to be decrypted
             (0x0 &&& 0x1, 0x0 &&& 0x0) : parse_esp;
             default                    : reject;
@@ -245,22 +243,19 @@ parser MainParserImpl(
     }
     state parse_post_decrypt {
         main_meta.ipsec_decrypt_done = 1;
-        // on recirc after decrypt, remove the ESP headers
-        // TODO: check decrypt error and drop on error
-        transition reject;
 
-        // packet.extract(hdr.esp);
-        // packet.extract(hdr.esp_iv);
+        packet.extract(hdr.esp);
+        packet.extract(hdr.esp_iv);
 
-        // Next header is the decrypted ip header parse it again.
+        // Next header is the decrypted inner ip header parse it again.
         // Pipeline code will have to check the decrypt results and
         // remove any pad, esp trailer and esp auth data
-        // transition parse_ipv4;
+        transition parse_ipv4;
     }
     state parse_esp {
         packet.extract(hdr.esp);
         packet.extract(hdr.esp_iv);
-        main_meta.sa_index = hdr.esp.spi;   // used for decrypt
+        main_meta.sa_index = hdr.esp.spi;
         transition accept;
     }
     state parse_tcp {
@@ -275,54 +270,69 @@ parser MainParserImpl(
 }
 
 
-control ipsec_crypto(
-    inout headers_t       hdr,
-    inout main_metadata_t main_meta,
-    in    pna_main_input_metadata_t  istd)
+control ipsec_crypto( inout headers_t hdr,
+                      inout main_metadata_t main_meta,
+                      in pna_main_input_metadata_t istd)
 {
     action ipsec_esp_decrypt(in bit<32> spi,
                              in bit<32> salt,
                              in bit<256> key,
-                             in bit<9>  key_size,
-                             in bit<1>  ext_esn_en,
-                             in bit<1>  enable_auth,
-                             inout bit<64> esn) {
-        // TODO check the seq number and update local seq num (optional) - not done here
-
-        ipsec_acc.init(crypto_algorithm_e.AES_GCM);
-
-        bit<64>     seq_no;
-        seq_no[31:0] = hdr.esp.seq;
-        seq_no[63:32] = esn[63:32];
+                             in bit<9> key_size,
+                             in bit<1> ext_esn_en,
+                             in bit<1> enable_auth,
+                             in bit<64> esn) {
 
         // build IPSec specific IV
         bit<128> iv = (bit<128>)(salt ++ hdr.esp_iv.iv);
         ipsec_acc.set_iv(iv);
 
-        bit<32> aad_len = 0;
-        esp_aad_setup(spi, seq_no, ext_esn_en, aad_len);
-
         ipsec_acc.set_key(key, key_size);
 
-        ipsec_acc.set_payload_offset((bit<32>)0);
-        ipsec_acc.set_payload_len((bit<32>)0);
+        // Add protocol specific auth data and provide its offset and len
+        bit<16> aad_offset = hdr.ethernet.minSizeInBytes() + 
+                             hdr.ipv4_1.minSizeInBytes();
+
+        // For this exmaple 32bit seq num is used
+        bit<16> aad_len = hdr.esp.minSizeInBytes();
+        hdr.esp.seq = esn[31:0];
+
+        ipsec_acc.set_auth_data_offset(aad_offset);
+        ipsec_acc.set_auth_data_len(aad_len);
+
+        // payload_offset : points inner(original) ip header which follows the esp_iv header
+        bit<32> encr_pyld_offset = aad_offset + aad_len + hdr.esp_iv.minSizeInBytes();
+        ipsec_acc.set_payload_offset(encr_pyld_offset);
+
+        // Encrypted payload_len
+        // Remove protocol specific header (E.g. RFC4106)
+        bit<16> encr_pyld_len = hdr.ipv4_1.totalLen - hdr.ipv4_1.minSizeInBytes() -
+                                hdr.esp.minSizeInBytes() - hdr.esp_iv.minSizeInBytes();
+
+
+        ipsec_acc.set_payload_offset((bit<16>)encr_pyld_offset);
+        ipsec_acc.set_payload_len((bit<16>)encr_pyld_len);
 
         ipsec_acc.decrypt(enable_auth);
 
         // recirc
         // add a recirc header to provide decrption info to parser
+        hdr.recirc_header.ipsec_op = IPSEC_OP_DECRYPT;
+        hdr.recirc_header.ipsec_len = encr_pyld_len;
+        hdr.recirc_header.setValid();
+
+        // TODO: recirc_packet() is hardware specific extern
+        recirc_packet();
     }
 
     action ipsec_esp_encrypt(in bit<32> spi,
                              in bit<32> salt,
                              in bit<256> key,
-                             in bit<9>  key_size,
-                             in bit<1>  ext_esn_en,
-                             in bit<1>  enable_auth,
+                             in bit<9> key_size,
+                             in bit<1> ext_esn_en,
+                             in bit<1> enable_auth,
                              in bit<64> esn) {
 
         // Initialize the ipsec accelerator
-        ipsec_acc.init(crypto_algorithm_e.AES_GCM);
         // esn = esn + 1;
 
         // Set IV information needed for encryption
@@ -337,16 +347,25 @@ control ipsec_crypto(
         hdr.ipv4_2 = hdr.ipv4_1;
         hdr.ipv4_2.setValid();
 
-        // In this example which is an ipsec example using ESP header,
-        // the position of ESP header in the outgoing packet and size of
-        // ESP header is provided to accelerator  using methods
-        // set_auth_data_offset() and set_auth_data_len()
-        bit<32> aad_len = hdr.esp.minSizeInBytes();;
+        // Add protocol specific headers to the packet (rfc4106)
+        // 32bit seq number is used
         hdr.esp.spi = spi;
+        hdr.esp.seq = esn[31:0];
         hdr.esp.setValid();
-        bit<32> aad_offset = (bit<32>)(metadata.offset_metadata.l2 +
-                                       hdr.ethernet.minSizeInBytes() +
-                                       hdr.ipv4_1.minSizeInBytes());
+
+        hdr.esp_iv = esn;
+        hdr.esp_iv.setValid();
+
+        // update tunnel ip header
+        hdr.ipv4_1.totalLen = hdr.ipv4_2.totalLen + hdr.esp.minSizeInBytes() +
+                              hdr.esp_iv.minSizeInBytes();
+        // Set outer header's next header as ESP
+        hdr.ipv4_1.protocol = IP_PROTO_ESP;
+
+        bit<16> aad_offset = hdr.ethernet.minSizeInBytes() + 
+                             hdr.ipv4_1.minSizeInBytes();
+        bit<16> aad_len = hdr.esp.minSizeInBytes();
+
         ipsec_acc.set_auth_data_offset(aad_offset);
         ipsec_acc.set_auth_data_len(aad_len);
 
@@ -354,47 +373,21 @@ control ipsec_crypto(
         bit<32> encr_pyld_offset = aad_offset + aad_len;
         ipsec_acc.set_payload_offset(encr_pyld_offset);
 
-        bit<32> encr_pyld_len;
-        encr_pyld_len[15:8] = metadata.control_metadata.l4_len_hi;
-        encr_pyld_len[7:0 ] = metadata.control_metadata.l4_len_lo;
+        // payload_len : data to be encrypted
+        // Remove protocol specific header (E.g. RFC4106)
+        bit<16> encr_pyld_len = hdr.ipv4_2.totalLen;
 
-        // Include original ip header that is tunneled into the encr_pyld_len.
-        bit<16> ip_hdr_len = hdr.ipv4_1.ihl << 2;
-        encr_pyld_len = ip_hdr_len + encr_pyld_len + hdr.esp_trailer.minSizeInBytes();
         ipsec_acc.set_payload_len(encr_pyld_len);
 
-        // Add esp trailer
-        hdr.esp_trailer.setValid();
-        bit<8> pad_len = encr_pyld_len & 3;
-        hdr.esp_trailer.pad_len = pad_len;
+        // TODO: compute padding, build esp_trailer etc.
 
-        // RFC 4303 recommends minimal padding and right aligned to 32bit word.
-        // Add pad bytes to packet.
-        if (pad_len == 3) {
-            hdr.pad_byte3 = 3;
-            hdr.pad_byte3.setValid();
-        } else if (pad_len == 2) {
-            hdr.pad_byte2 = 2;
-            hdr.pad_byte2.setValid();
-        } else if (pad_len == 1) {
-            hdr.pad_byte1 = 1;
-            hdr.pad_byte1.setValid();
-        }
-
-        hdr.esp_trailer.next_hdr = hdr.ipv4_1.protocol;
-
-        // methods set_icv_offset() and set_icv_len() provide pointer to accelerator
-        // to store computed value. This example program lets accelerator store icv
-        // value after the esp_trailer.
-        ipsec_acc.set_icv_offset(encr_pyld_offset + encr_pyld_len);
+        // instruct engine to add icv after encrypted payload
+        ipsec_acc.set_icv_offset(ICV_AFTER_PAYLOAD);
         ipsec_acc.set_icv_len(4); // Four bytes of ICV value.
 
-        // Set outer header's next header as ESP
-        hdr.ipv4_1.protocol = IP_PROTO_ESP;
 
         // run encryption w/ authentication
         ipsec_acc.encrypt(enable_auth);
-
     }
 
     @name (".ipsec_sa_action")
@@ -437,6 +430,24 @@ control ipsec_post_decrypt(
 {
     // post decrypt processing happens here
     // E.g. remove any unrequired headers such as outer headers in tunnel mode etc..
+    if (ipsec_acc.get_results() != crypto_results_e.SUCCESS) {
+        // TODO:
+        // Check if this is AUTH error or some other error.
+        // Drop the packet or do other things as needed
+        drop_packet();
+        return;
+    }
+    // remove outer (tunnel headers), make inner header
+    hdr.ipv4_1 = hdr.ipv4_2;
+    hdr.ipv4_2.setInvalid();
+
+    // Remove ipsec related headers from the packet
+    hdr.ipsec_esp.setInvalid();
+    hdr.ipsec_esp_iv.setInvalid();
+
+    // Process rest of packet as required
+    // ...
+    return;
 }
 
 control MainControlImpl(
@@ -464,14 +475,11 @@ control MainDeparserImpl(
         pkt.emit(hdr.recirc_header);
         pkt.emit(hdr.ethernet);
         pkt.emit(hdr.ipv4_1);
+        pkt.emit(hdr.esp);
+        pkt.emit(hdr.esp_iv);
+        pkt.emit(hdr.ipv4_2);
         pkt.emit(hdr.tcp);
         pkt.emit(hdr.udp);
-        pkt.emit(hdr.esp);
-        pkt.emit(hdr.ipv4_2);
-        pkt.emit(hdr.esp_iv);
-        pkt.emit(hdr.pad_byte1);
-        pkt.emit(hdr.pad_byte2);
-        pkt.emit(hdr.pad_byte3);
     }
 }
 
