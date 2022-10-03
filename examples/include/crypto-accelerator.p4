@@ -28,6 +28,12 @@ enum crypto_results_e {
     HW_ERROR
 }
 
+enum crypto_mode_e {
+    TUNNEL,
+    TRANSPORT,
+    TRANSPORT_NAT_T
+}
+
 /// special value to indicate that ICV is after the crypto payload
 #define ICV_AFTER_PAYLOAD ((int<32>)-1)
 
@@ -121,6 +127,55 @@ extern crypto_accelerator {
     // auth data computed, is added to specified icv_offset/len
     void enable_encrypt<T>(in T enable_auth);
     void enable_decrypt<T>(in T enable_auth);
+
+    // crypto accelerator runs immediately and returns control flow to the current pipeline
+    // stage. The method is responsible for defining the contents of the ESP header, 
+    // calculating the payload offset and lengths, encrypting the payload appropriately and 
+    // reparsing the packet. User can decide if to proceed or reinject.
+    //
+    // Pre-conditions: The parser must have been executed prior to this extern. The packet 
+    // headers and metadata from the parser are provided as inout params.
+    // Post-conditions: The deparser will be executed prior to encapsulation, the packet 
+    // bytestream will be updated and encryption will be performed on the payload. The 
+    // packet will be reparsed and parser states updated.
+    // Side-effects: parser states will be re-evaluated if crypto has succeeded.
+    //
+    // H - inout Headers is the output of the parser block
+    // M - inout Metadata is from the parser block and shared with the control 
+    // T - in enable_auth flag enables authentication check
+    // S - in seq is the optional sequence number
+    // I - in iv is the initialization vector
+    crypto_results_e encrypt_inline<H,M,T,S,I>(packet_in pkt,
+                        inout H hdr, 
+                        inout M meta,
+                        in crypto_mode_e mode,
+                        in T enable_auth,
+                        in bit<32> spi,
+                        in S seq,
+                        in I iv);
+
+    // crypto accelerator runs immediately and returns control flow to the current pipeline
+    // stage. The method is responsible for decrypting the payload appropriately, removing
+    // the ESP header, calculating the payload offset and lengths, and reparsing the packet.
+    // The user should then check the status.
+    //
+    // Pre-conditions: The parser will have been executed prior to this extern. The packet 
+    // headers and metadata from the parser are provided as inout params.
+    // Post-conditions: The deparser will be executed prior to decapsulation, the packet
+    // bytestream will be updated and decryption will be performed on the payload. The 
+    // packet will be reparsed and parser states recalculated.
+    // Side-effects: parser states will be re-evaluated if crypto has succeeded.
+    //
+    // H - inout Headers is the output of the parser block
+    // M - inout Metadata is from the parser block and shared with the control 
+    // T - in enable_auth flag enables authentication check
+    // S - in seq is the optional sequence number
+    crypto_results_e decrypt_inline<H,M,T,S>(packet_in pkt,
+                        inout H hdr,
+                        inout M meta,
+                        in crypto_mode_e mode,
+                        in T enable_auth,
+                        in S seq);
 
     // disable crypto engine. Between enable and disable methods,
     // whichever method is called last overrides the previous calls
