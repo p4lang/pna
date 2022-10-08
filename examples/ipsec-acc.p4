@@ -14,10 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/// p4test --Wdisable='unused' --top4 MidEndLast ./ipsec-acc.p4 2>&1 | tee make.out
+/// p4test --Wdisable='unused' --excludeMidendPasses Predication ./ipsec-acc.p4 2>&1 | tee make.out
 
 /// IPSec tunnel mode example using crypto-accelerator extern object
-#include "./crypto-accelerator.p4"
+#include <core.p4>
+#include "../pna.p4"
+#include "./include/crypto-accelerator.p4"
 
 // Helper Externs (could not find it in pna spec/existign code)
 // Vendor specific implementation to cause a packet to get recirculated
