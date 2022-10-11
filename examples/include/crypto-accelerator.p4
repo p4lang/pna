@@ -43,8 +43,9 @@ enum bit<8> crypto_error_action_e {
 /// 
 /// Crypto Engine takes the following inputs:
 ///     - key, iv, icv_location/size, enable_auth, auth_data (aka AAD), payload location
-///     In some protocols AAD can be present in the packet, in that case AAD can be specified
-///         as offset/len within the packet.
+///     In some protocols AAD can be present in the packet (e.g ESP header), in that case AAD
+///         can be specified as offset/len within the packet. Additional auth data 
+///         that is not part of the packet can also be provided
 ///     On encrypt operation, icv_location/size indicates that icv is inserted in the
 ///         packet at the specified packet offset
 ///     On decrypt operation, icv_location and size is used for auth validation
@@ -53,15 +54,15 @@ enum bit<8> crypto_error_action_e {
 /// Encrypt operation:
 ///     Parameters passed : key, iv, icv_location/size, enable_auth, auth_data
 ///     Packet presented to the engine -
-///     +------------------+------------------------+-----------+
-///     | Headers not to   | Encryption protocol    | payload   | 
-///     | Encrypted        | headers (E.g Esp, AH)  |           |
-///     +------------------+------------------------+-----------+
+///     +------------------+--------------------------+-----------+
+///     | Headers not to   | Encryption protocol      | payload   | 
+///     | Encrypted        | headers (E.g Esp, Esp-IV)|           |
+///     +------------------+-----------------------  -+-----------+
 ///     Packet after Encryption:
-///     +------------------+------------------------+-----------+-----------+
-///     | Headers not to   | Encryption protocol    | Encrypted | ICV (opt) |
-///     | Encrypted        | headers (E.g Esp, AH)  | Payload   |           |
-///     +------------------+------------------------+-----------+-----------+
+///     +------------------+--------------------------+-----------+-----------+
+///     | Headers not to   | Encryption protocol      | Encrypted | ICV (opt) |
+///     | Encrypted        | headers (E.g Esp, Esp-IV)| Payload   |           |
+///     +------------------+--------------------------+-----------+-----------+
 ///     ICV can be inserted either before or right after the encrypted payload 
 ///     as specified by icv_location/size
 ///     Results: Success, Hardware Error
@@ -69,15 +70,15 @@ enum bit<8> crypto_error_action_e {
 /// Decrypt operation:
 ///     Parameters passed : key, iv, icv_location/size, enable_auth, auth_data
 ///     Packet presented to the engine -
-///     +------------------+------------------------+-----------+-----+
-///     | Headers not to   | Encryption protocol    | Encrypted | ICV |
-///     | Encrypted        | headers (E.g Esp, AH)  | Payload   |     |
-///     +------------------+------------------------+-----------+-----+
+///     +------------------+--------------------------+-----------+-----+
+///     | Headers not to   | Encryption protocol      | Encrypted | ICV |
+///     | Encrypted        | headers (E.g Esp, Esp-IV)| Payload   |     |
+///     +------------------+--------------------------+-----------+-----+
 ///     Packet after decrytion:
-///     +------------------+------------------------+-----------+-----+
-///     | Headers not to   | Encryption protocol    | cleartext | ICV |
-///     | Encrypted        | headers (E.g Esp, AH)  | Payload   |     |
-///     +------------------+------------------------+-----------+-----+
+///     +------------------+--------------------------+-----------+-----+
+///     | Headers not to   | Encryption protocol      | cleartext | ICV |
+///     | Encrypted        | headers (E.g Esp, Esp-IV)| Payload   |     |
+///     +------------------+--  ----------------------+-----------+-----+
 ///     Results: Success, Auth Failure, Hardware Error
 ///
 extern crypto_accelerator {

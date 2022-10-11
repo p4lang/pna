@@ -214,6 +214,31 @@ parser MainParserImpl(
     }
 }
 
+/// This example assumes ESP implementaion as described in rfc 4303
+/// The packet format for encapsulated packet on the wire is as follows (from RFC)
+///      0                   1                   2                   3
+///      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+///    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+///    |               Security Parameters Index (SPI)                 |
+///    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+///    |                      Sequence Number                          |
+///    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+///    |                    IV (optional)                              | ^ p
+///    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ | a
+///    |                    Rest of Payload Data  (variable)           | | y
+///    ~                                                               ~ | l
+///    |                                                               | | o
+///    +               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ | a
+///    |               |         TFC Padding * (optional, variable)    | v d
+///    +-+-+-+-+-+-+-+-+         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+///    |                         |        Padding (0-255 bytes)        |
+///    +-+-+-+-+-+-+-+-+-+-+-+-+-+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+///    |                               |  Pad Length   | Next Header   |
+///    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+///    |         Integrity Check Value-ICV   (variable)                |
+///    ~                                                               ~
+///    |                                                               |
+///    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 control ipsec_crypto( inout headers_t hdr,
                       inout main_metadata_t main_meta,
@@ -227,7 +252,8 @@ control ipsec_crypto( inout headers_t hdr,
                              bit<1> enable_auth,
                              bit<64> esn) {
 
-        // build IPSec specific IV
+        // IV(nonce) needed for AES-GCM algorithm
+        // if consists of iv that is sent on the wire plus an internally maintained salt value
         bit<128> iv = (bit<128>)(salt ++ hdr.esp_iv.iv);
         ipsec_acc.set_iv(iv);
 
@@ -238,8 +264,15 @@ control ipsec_crypto( inout headers_t hdr,
                              hdr.ipv4_1.minSizeInBytes();
 
         // For this exmaple 32bit seq num is used
+        // ESP header - spi and 32bit seq number are included in ICV computation. These are
+        // considered as AAD (additional Auth data) here. If 64bit seq number is used, the
+        // upper 32bits of the ESN must be included in the AAD.
         bit<16> aad_len = hdr.esp.minSizeInBytes();
-        hdr.esp.seq = esn[31:0];
+
+        // Action parameter esn is expected to be stateful, i.e. the following operations
+        // are possible to update esn and check every packet against expected seq number
+        // to perform anti-replay checks.. this is not shown in this example
+        // esn = esn + 1;
 
         ipsec_acc.set_auth_data_offset(aad_offset);
         ipsec_acc.set_auth_data_len(aad_len);
