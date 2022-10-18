@@ -563,35 +563,6 @@ enum PNA_PacketPath_t {
     FROM_HOST_RECIRCULATED
 }
 
-struct pna_pre_input_metadata_t {
-    PortId_t                 input_port;
-    ParserError_t            parser_error;
-    PNA_Direction_t          direction;
-    PassNumber_t             pass;
-    bool                     loopedback;
-}
-
-struct pna_pre_output_metadata_t {
-    bool                     decrypt;  // TBD: or use said==0 to mean no decrypt?
-
-    // The following things are stored internally within the decrypt
-    // block, in a table indexed by said:
-
-    // + The decryption algorithm, e.g. AES256, etc.
-    // + The decryption key
-    // + Any read-modify-write state in the data plane used to
-    //   implement anti-replay attack detection.
-
-    SecurityAssocId_t        said;
-    bit<16>                  decrypt_start_offset;  // in bytes?
-
-    // TBD whether it is important to explicitly pass information to a
-    // decryption extern in a way visible to a P4 program about where
-    // headers were parsed and found.  An alternative is to assume
-    // that the architecture saves the pre parser results somewhere,
-    // in a way not visible to the P4 program.
-}
-
 struct pna_main_parser_input_metadata_t {
     // common fields initialized for all packets that are input to main
     // parser, regardless of direction.
@@ -882,21 +853,13 @@ extern T SelectByDirection<T>(
 
 
 // BEGIN:Programmable_blocks
-control PreControlT<PH, PM>(
-    in    PH pre_hdr,
-    inout PM pre_user_meta,
-    in    pna_pre_input_metadata_t  istd,
-    inout pna_pre_output_metadata_t ostd);
-
 parser MainParserT<PM, MH, MM>(
     packet_in pkt,
-    //in    PM pre_user_meta,
     out   MH main_hdr,
     inout MM main_user_meta,
     in    pna_main_parser_input_metadata_t istd);
 
 control MainControlT<PM, MH, MM>(
-    //in    PM pre_user_meta,
     inout MH main_hdr,
     inout MM main_user_meta,
     in    pna_main_input_metadata_t  istd,
@@ -910,7 +873,6 @@ control MainDeparserT<MH, MM>(
 
 package PNA_NIC<PH, PM, MH, MM>(
     MainParserT<PM, MH, MM> main_parser,
-    PreControlT<PH, PM> pre_control,
     MainControlT<PM, MH, MM> main_control,
     MainDeparserT<MH, MM> main_deparser);
 // END:Programmable_blocks
