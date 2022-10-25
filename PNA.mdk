@@ -880,7 +880,7 @@ regardless of whether they are for the PNA.
 
 See the PSA specification for definitions of all of these externs.
 There is work under way as of this writing that may result in these
-extern defintions being moved from the PSA specification into a
+extern definitions being moved from the PSA specification into a
 separate standard library of P4 extern definitions, and if this is
 done, both the PSA and PNA specifications will reference that.
 
