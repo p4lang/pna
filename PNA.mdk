@@ -514,11 +514,8 @@ these statements is true:
 ~ End P4Example
 
 ## Match kinds
-~Begin TBD
-Consider simply referencing the corresponding section of the PSA
-specification for this, unless we want to have something different in
-PNA.
-~End TBD
+PNA supports the `match_kinds` specified in section 4.3 of the
+PSA specification.
 
 ## Data plane vs. control plane data representations {#sec-data-plane-vs-control-plane-values}
 
