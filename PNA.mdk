@@ -931,8 +931,9 @@ a default action for the table that calls the `add_entry` extern
 function.  `add_entry` adds a new entry to the table whose default
 action calls the `add_entry` function.  The new entry will have the
 same key that was just looked up. The new entry value, as in a (key,value)
-pair, is obtained from network headers of the packet that caused the
-table lookup to miss.
+pair, is obtained from sources such as packet headers that caused the
+table lookup to miss. Other sources are metadata and results from
+prior processing of the P4 program before `add_entry` is called.
 
 The control plane API is still allowed to add, modify, and delete
 entries of such a table, but any entries added via the `add_entry`
@@ -974,9 +975,13 @@ as the parameter `action_name`.
 If the attempt to add a table entry succeeds, the return value is
 `true`, otherwise `false`.
 
+An example program is included below using `add_entry`.
+
 ~Begin P4Example
 action hit(bit<8> a0, bit<16> a1) {}
 action miss(bit<8> a0, bit<16> a1) {
+  meta.a0 = a0;
+  meta.a1 = a1;
   add_entry("hit", {hdr.a0, hdr.a1}, expire_time_prof_id);
 }
 
