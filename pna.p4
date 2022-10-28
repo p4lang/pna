@@ -676,17 +676,24 @@ const AddEntryErrorStatus_t ADD_ENTRY_NOT_DONE = 1;
 // Targets may define target-specific non-0 constants of type
 // AddEntryErrorStatus_t if they wish.
 
-// add_entry() must be called within the body of a P4 action that is
-// the default_action of a table with the table property `add_on_miss`
-// equal to true.
+// The add_entry() extern function causes an entry, i.e. a key and its
+// corresponding action and action parameter values, to be added to a
+// table from the data plane, i.e. without the control plane having to
+// take any action at all to cause the table entry to be added.
 //
-// The key of the entry added will always be the same as the key that
-// was just looked up in the table, and experienced a miss.
+// The key of the new entry added will always be the same as the key
+// that was just looked up in the table, and experienced a miss.
 //
-// `action_name` is the name of an action of this table.  It must be
-// possible for this action to be the action of an entry added to the
-// table, i.e. it is an error if the action has the annotation
-// `@defaultonly`.
+// `action_name` is the name of an action that must satisfy these
+// restrictions:
+// + It must be an action that is in the list specified as the
+//   `actions` property of the table.
+// + It must be possible for this action to be the action of an entry
+//   added to the table, e.g. it is an error if the action has the
+//   annotation `@defaultonly`.
+// + The action to be added must not itself contain a call to
+//   add_entry(), or anything else that is not supported in a table's
+//   "hit action".
 //
 // Type T must be a struct type whose field names have the same name
 // as the parameters of the action being added, in the same order, and
@@ -703,6 +710,19 @@ const AddEntryErrorStatus_t ADD_ENTRY_NOT_DONE = 1;
 // to ADD_ENTRY_SUCCESS.  Targets are allowed to define only one
 // failure return value, or several if they wish to provide more
 // detail on the reason for the failure to add the entry.
+//
+// It is NOT defined by PNA, and need not be supported by PNA
+// implementations, to call add_entry() within an action that is added
+// as an entry of a table, i.e. as a "hit action".  It is only defined
+// if called within an action that is the default_action, i.e. a "miss
+// action" of a table.
+//
+// For tables with `add_on_miss = true`, some PNA implementations
+// might only support `default_action` with the `const` qualifier.
+// However, if a PNA implementation can support run-time modifiable
+// default actions for such a table, some of which call add_entry()
+// and some of which do not, the behavior of such an implementation is
+// defined by PNA, and this may be a useful feature.
 
 extern AddEntryErrorStatus_t add_entry<T>(
     string action_name,
@@ -727,7 +747,9 @@ extern AddEntryErrorStatus_t add_entry<T>(
 // support `if` statements within P4 actions.  add_entry_if() enables
 // writing P4 code without `if` statements within P4 actions that
 // would otherwise require an `if` statement to express the desired
-// behavior, if only the extern function add_entry() were provided.
+// behavior.  Admittedly, this is a work-around for targets with
+// limited support for `if` statements within P4 actions.  See
+// https://github.com/p4lang/pna/issues/63 for more details.
 
 extern AddEntryErrorStatus_t add_entry_if<T>(
     in bool do_add_entry,
