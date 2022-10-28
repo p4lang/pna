@@ -930,10 +930,8 @@ property is `true` for a table, the P4 developer is allowed to define
 a default action for the table that calls the `add_entry` extern
 function.  `add_entry` adds a new entry to the table whose default
 action calls the `add_entry` function.  The new entry will have the
-same key that was just looked up. The new entry value, as in a (key,value)
-pair, is obtained from sources such as packet headers that caused the
-table lookup to miss. Other sources are metadata and results from
-prior processing of the P4 program before `add_entry` is called.
+same key that was just looked up. The new entry gets its value, as in
+key-value pair, from the parameters to `add_entry`.
 
 The control plane API is still allowed to add, modify, and delete
 entries of such a table, but any entries added via the `add_entry`
