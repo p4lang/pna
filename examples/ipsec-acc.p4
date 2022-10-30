@@ -253,7 +253,7 @@ control ipsec_crypto( inout headers_t hdr,
                              bit<64> esn) {
 
         // IV(nonce) needed for AES-GCM algorithm
-        // if consists of iv that is sent on the wire plus an internally maintained salt value
+        // it consists of iv that is sent on the wire plus an internally maintained salt value
         bit<128> iv = (bit<128>)(salt ++ hdr.esp_iv.iv);
         ipsec_acc.set_iv(iv);
 
@@ -270,10 +270,9 @@ control ipsec_crypto( inout headers_t hdr,
         bit<16> aad_len = hdr.esp.minSizeInBytes();
 
         // Action parameter esn is expected to be stateful, i.e. the following operations
-        // are possible to update esn and check every packet against expected seq number
-        // to perform anti-replay checks.. this is not shown in this example
-        // esn = esn + 1;
-
+        // esn checking / anti-replay attack prevention is not shown in this example
+        // as it can be implemented in P4 pipeline and does not affect use of 
+        // the extern object shown in this example
         ipsec_acc.set_auth_data_offset(aad_offset);
         ipsec_acc.set_auth_data_len(aad_len);
 
@@ -300,7 +299,7 @@ control ipsec_crypto( inout headers_t hdr,
         hdr.recirc_header.ipsec_len = encr_pyld_len;
         hdr.recirc_header.setValid();
 
-        // TODO: recirc_packet() is hardware specific extern
+        // TODO: recirc_packet() is hardware specific extern, or it can be standardized
         recirc_packet();
     }
 
@@ -312,7 +311,9 @@ control ipsec_crypto( inout headers_t hdr,
                              bit<1> enable_auth,
                              bit<64> esn) {
 
-        // Initialize the ipsec accelerator
+        // update sequence number for each transmitted packet
+        // This can be done using stateful registers currently defined in P4
+        // it is not shown in this example
         // esn = esn + 1;
 
         // Set IV information needed for encryption
@@ -363,7 +364,7 @@ control ipsec_crypto( inout headers_t hdr,
 
         // instruct engine to add icv after encrypted payload
         ipsec_acc.set_icv_offset(ICV_AFTER_PAYLOAD);
-        ipsec_acc.set_icv_len((bit<32>)4); // Four bytes of ICV value.
+        ipsec_acc.set_icv_len(32w4); // Four bytes of ICV value.
 
         // run encryption w/ authentication
         ipsec_acc.enable_encrypt(enable_auth);
@@ -386,8 +387,10 @@ control ipsec_crypto( inout headers_t hdr,
             ipsec_esp_decrypt(spi, salt, key, key_size, ext_esn_en, auth_en, esn);
         }
     }
-    // setup crypto accelerator for decryption - get info from sa table
+    // setup crypto accelerator for encryption/decryption - get info from sa table
     // lookup sa_table using esp.spi
+    //  In this example same SA index is used for encrypt/decrypt, in real
+    // implementation it can be separated into two entries
     table ipsec_sa {
         key = {
             // For encrypt case get sa_idx from parser

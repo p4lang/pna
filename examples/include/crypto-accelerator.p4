@@ -14,29 +14,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/// Crypto accelerator Extern
-enum bit<8> crypto_algorithm_e {
-    AES_GCM = 1
-}
-enum bit<8> crypto_results_e {
-    SUCCESS = 0,
-    AUTH_FAILURE = 1,
-    HW_ERROR = 2
+/// Crypto accelerator Extern definition
+
+/// Crypto accelerator object is instantiated for each crypto algorithm
+enum crypto_algorithm_e {
+    AES_GCM
 }
 
-enum bit<8> crypto_error_action_e {
-    NO_ACTION = 0,
-    DROP_PACKET = 1,
-    SEND_TO_PORT = 2
+/// Results from crypto accelerator
+enum crypto_results_e {
+    SUCCESS,
+    AUTH_FAILURE,
+    HW_ERROR
 }
 
+/// special value to indicate that ICV is after the crypto payload
 #define ICV_AFTER_PAYLOAD ((int<32>)-1)
 
 /// The crypto_accelerator engine used in this example uses AES-GCM algorithm.
 /// It is assumed to be agnostic to wire protocols i.e. does not understand protocol 
 /// specific headers like ESP, AH etc
 ///
-/// Note that crypto accelerator does not modify the packet outside the payload area and ICV
+/// The crypto accelerator does not modify the packet outside the payload area and ICV
 ///     Any wire-protocol header, trailer add/remove is handled by P4 pipeline
 ///     The engine does not perform additional functions such as anti-replay protection, it
 ///     is done in P4 pipeline
@@ -56,12 +55,12 @@ enum bit<8> crypto_error_action_e {
 ///     Packet presented to the engine -
 ///     +------------------+--------------------------+-----------+
 ///     | Headers not to   | Encryption protocol      | payload   | 
-///     | Encrypted        | headers (E.g Esp, Esp-IV)|           |
+///     | be Encrypted     | headers (E.g Esp, Esp-IV)|           |
 ///     +------------------+-----------------------  -+-----------+
 ///     Packet after Encryption:
 ///     +------------------+--------------------------+-----------+-----------+
 ///     | Headers not to   | Encryption protocol      | Encrypted | ICV (opt) |
-///     | Encrypted        | headers (E.g Esp, Esp-IV)| Payload   |           |
+///     | be Encrypted     | headers (E.g Esp, Esp-IV)| Payload   |           |
 ///     +------------------+--------------------------+-----------+-----------+
 ///     ICV can be inserted either before or right after the encrypted payload 
 ///     as specified by icv_location/size
@@ -127,10 +126,6 @@ extern crypto_accelerator {
     // whichever method is called last overrides the previous calls
     void disable();
 
-    crypto_results_e get_results();       // get results of the previous operation
-
-    // set_error_action() indicates behavior on encoutering an error
-    // Default action is NO_ACTION i.e. report error via get_results()
-    // Certain actions may need action parameters, e.g send_to_port
-    void set_error_action<T>(crypto_error_action_e error_action, in T action_param);
+    // get results of the previous operation
+    crypto_results_e get_results();
 }
