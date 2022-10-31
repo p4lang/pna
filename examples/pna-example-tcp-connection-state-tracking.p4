@@ -174,7 +174,10 @@ control MainControlImpl(
         inout bit<32> h2n_seqNo; // NEW: support for write back entry
         inout bit<32> n2h_ackNo; // NEW: support for write back entry
         inout bit<32> h2n_ackNo; // NEW: support for write back entry
+        // More action data that is not written back can be here as well
         ) {
+        // some table types, e.g., T-CAM-based ones, may not support re-writable
+        // entries. 
         if ((hdr.tcp.flags & TCP_SYN_MASK) != 0) {
             if ((hdr.tcp.flags & TCP_ACK_MASK) == 0 ) {
                 if (SelectByDirection(istd.direction,n2h_seqNo,h2n_seqNo)!=hdr.tcp.seqNo) {
