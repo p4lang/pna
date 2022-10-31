@@ -129,17 +129,6 @@ parser MainParserImpl(
     }
 }
 
-control PreControlImpl(
-    in    headers_t  hdr,
-    inout metadata_t meta,
-    in    pna_pre_input_metadata_t  istd,
-    inout pna_pre_output_metadata_t ostd)
-{
-    apply {
-        // No need to do anything in the PreControl.
-    }
-}
-
 struct ct_tcp_table_hit_params_t {
     bit<32> n2h_seqNo;
     bit<32> h2n_seqNo;
@@ -177,7 +166,7 @@ control MainControlImpl(
         // More action data that is not written back can be here as well
         ) {
         // some table types, e.g., T-CAM-based ones, may not support re-writable
-        // entries. 
+        // entries.
         if ((hdr.tcp.flags & TCP_SYN_MASK) != 0) {
             if ((hdr.tcp.flags & TCP_ACK_MASK) == 0 ) {
                 if (SelectByDirection(istd.direction,n2h_seqNo,h2n_seqNo)!=hdr.tcp.seqNo) {
@@ -294,7 +283,6 @@ control MainDeparserImpl(
 
 PNA_NIC(
     MainParserImpl(),
-    PreControlImpl(),
     MainControlImpl(),
     MainDeparserImpl()
     // Hoping to make this optional parameter later, but not supported
