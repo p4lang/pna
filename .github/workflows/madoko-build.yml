@@ -55,7 +55,7 @@ jobs:
 
     - name: Commit changes
       run: |
-        git commit -m "docs for ${{ steps.vars.outputs.sha_short }}" docs/PNA-working-draft.{html,pdf}
+        git commit --amend -m "docs for ${{ steps.vars.outputs.sha_short }}" docs/PNA-working-draft.{html,pdf}
 
     - name: Push commit to gh-pages branch
       run: git push -f origin gh-pages
