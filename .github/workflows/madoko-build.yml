@@ -1,0 +1,61 @@
+name: Build and push specification files
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    if: ${{ github.repository == 'p4lang/pna' }}
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        # Fetch all history for all branches
+        fetch-depth: 0
+
+    - name: Install madoko
+      run: sudo npm install -g madoko
+
+    - name: Install LaTeX packages and fonts
+      run: |
+        sudo apt-get update
+        sudo apt-get install -qq texlive-latex-recommended texlive-latex-extra texlive-fonts-extra ttf-xfree86-nonfree texlive-science texlive-xetex dvipng
+
+    - name: Configure git
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "p4lang@users.noreply.github.com"
+
+    - name: Rebase gh-pages branch
+      run: |
+        git checkout gh-pages
+        git rebase --quiet main
+
+    - name: Install local fonts
+      # This step should run after checkout to gh-pages
+      run: |
+        sudo mkdir -p /usr/share/fonts/truetype/UtopiaStd /usr/share/fonts/truetype/LuxiMono
+        sudo cp fonts/UtopiaStd-Regular.otf /usr/share/fonts/truetype/UtopiaStd/
+        sudo cp fonts/luximr.ttf /usr/share/fonts/truetype/LuxiMono/
+        sudo cp fonts/fix_helvetica.conf /etc/fonts/local.conf
+        fc-cache -fv
+
+    - name: Build PNA spec
+      run: |
+        make -C .
+        cp build/PNA.html docs/PNA-working-draft.html
+        cp build/PNA.pdf docs/PNA-working-draft.pdf
+
+    - name: Declare sha_short variable
+      id: vars
+      shell: bash
+      run: |
+        echo "::set-output name=sha_short::$(git rev-parse --short $GITHUB_SHA)"
+
+    - name: Commit changes
+      run: |
+        git commit -m "docs for ${{ steps.vars.outputs.sha_short }}" docs/PNA-working-draft.{html,pdf}
+
+    - name: Push commit to gh-pages branch
+      run: git push -f origin gh-pages
