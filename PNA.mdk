@@ -1202,4 +1202,9 @@ could be a host CPU complex and its DRAM.
 +:---:+-----+-----+
 | 0.1 | November 5, 2020 | Skeleton specification. |
 | 0.5 | May 15, 2021 | Initial draft. |
+| 0.7 | December 25, 2022 | Version 0.7 |
 +-----+-----+-----+
+
+## Changes made in version 0.7
+
+TODO
