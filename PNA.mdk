@@ -172,7 +172,7 @@ the structure and common capabilities for network interface controller
 different "packet paths" going between the various ports on the device
 (e.g., network interfaces or the host system it is attached to), and
 
-2. A library of types (e.g., intrinsict and standard metadata) and
+2. A library of types (e.g., intrinsic and standard metadata) and
 P4~16~ externs (e.g., counters, meters, and registers).
 
 PNA is designed to model the common features of a broad class of NIC
@@ -1023,7 +1023,7 @@ Restrictions on the TTL values and notifications:
 
 - PNA does not require a timeout value for a default action entry. The
   reason for not making this mandatory in the specification is that
-  tthe default action may not have an explicit table entry to
+  the default action may not have an explicit table entry to
   represent it, and also there are no known compelling use cases for a
   controller knowing when no misses have occurred for a particular
   table for a long time. The default action entry will not be aged
