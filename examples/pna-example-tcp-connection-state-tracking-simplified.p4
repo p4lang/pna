@@ -241,7 +241,4 @@ PNA_NIC(
     MainParserImpl(),
     MainControlImpl(),
     MainDeparserImpl()
-    // Hoping to make this optional parameter later, but not supported
-    // by p4c yet.
-    //, PreParserImpl()
     ) main;
