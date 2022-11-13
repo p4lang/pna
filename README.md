@@ -36,6 +36,23 @@ software that enables you to produce HTML and PDF versions of the PNA
 specification from its Madoko source file.
 
 
+## Meetings to discuss changes to this specification
+
+P4.org architecture work group meetings are held on most Mondays as
+of 2022.  See the calendar on the [P4.org Working Groups
+page](https://p4.org/working-groups/) for dates, times, and
+instructions for joining the meetings.
+
+Notes from past meetings are maintained in a Google Docs document
+[here](https://docs.google.com/document/d/1vX5GStrE01Pbj6d-liuuHF-4sYXjc601n5zJ4FHQXpM).
+Notes from new meetings are added at the end of the document.
+
+Issues are tracked using [Github issues on this
+repository](https://github.com/p4lang/pna/issues) and suggested
+changes are made by creating [Github pull
+requests](https://github.com/p4lang/pna/pulls).
+
+
 ## Spec release process
 
 Note: The following instructions were copied from the corresponding
