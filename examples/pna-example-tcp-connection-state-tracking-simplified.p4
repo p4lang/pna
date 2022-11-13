@@ -159,10 +159,10 @@ control MainControlImpl(
 
 
     action ct_tcp_table_hit (
-        inout bit<32> n2h_seqNo; // NEW: support for write back entry
-        inout bit<32> h2n_seqNo; // NEW: support for write back entry
-        inout bit<32> n2h_ackNo; // NEW: support for write back entry
-        inout bit<32> h2n_ackNo; // NEW: support for write back entry
+        rmw bit<32> n2h_seqNo; // NEW: support for write back entry
+        rmw bit<32> h2n_seqNo; // NEW: support for write back entry
+        rmw bit<32> n2h_ackNo; // NEW: support for write back entry
+        rmw bit<32> h2n_ackNo; // NEW: support for write back entry
         // More action data that is not written back can be here as well
         ) {
         // some table types, e.g., T-CAM-based ones, may not support re-writable
