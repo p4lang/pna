@@ -880,6 +880,16 @@ extern T SelectByDirection<T>(
 
 
 
+// Struct to contain vendor-specific metadata fields that can be
+// accessed while pakcets are being processed in the main control.
+// The definition of the fields and their behavior is completely
+// vendor-specific, and this part of the pna.p4 header file is
+// expected to be customized by each vendor implementing PNA.
+
+struct vendor_metadata_t {
+}
+
+
 
 // BEGIN:Programmable_blocks
 control PreControlT<PH, PM>(
@@ -895,10 +905,13 @@ parser MainParserT<PM, MH, MM>(
     inout MM main_user_meta,
     in    pna_main_parser_input_metadata_t istd);
 
-control MainControlT<PM, MH, MM>(
+control MainControlT<PM, MH, MM, MTX, MRX>(
     //in    PM pre_user_meta,
     inout MH main_hdr,
     inout MM main_user_meta,
+    inout vendor_metadata_t vmeta,
+    inout MTX txmeta,
+    inout MRX rxmeta,
     in    pna_main_input_metadata_t  istd,
     inout pna_main_output_metadata_t ostd);
 
@@ -908,10 +921,10 @@ control MainDeparserT<MH, MM>(
     in    MM main_user_meta,
     in    pna_main_output_metadata_t ostd);
 
-package PNA_NIC<PH, PM, MH, MM>(
+package PNA_NIC<PH, PM, MH, MM, MTX, MRX>(
     MainParserT<PM, MH, MM> main_parser,
     PreControlT<PH, PM> pre_control,
-    MainControlT<PM, MH, MM> main_control,
+    MainControlT<PM, MH, MM, MTX, MRX> main_control,
     MainDeparserT<MH, MM> main_deparser);
 // END:Programmable_blocks
 
