@@ -201,36 +201,13 @@ plane, but are not intended to be programmed using P4.
 
 ## Packet processing in the network to host direction
 
-Packets arriving from a network port first go through a `MainParser`
-and a `PreControl`. The `PreControl` can optionally perform
-table lookups. Its purpose is to determine whether a packet requires
-processing by the net-to-host inline extern block.
-
-For example, the net-to-host inline extern block may perform
-decryption of packet payloads according to the IPsec protocol. In this
-case, the main parser and pre control would be programmed to identify
-whether the packet was encrypted using IPsec, and if so, what security
-association it belongs to. For instance, the `PreControl` code might
-drop the packet if the packet had an IPsec header, but one or more P4
-table lookups determined that the packet does not belong to any
-security association that had been established by the control plane
-software. Note that the net-to-host inline extern block may modify the
-entire payload of the received packet---e.g., decrypting the encrypted
-portion of the payload. Hence, the resulting packet might contain not
-only the original headers that were parsed by the first invocation of
-the `MainParser`, but also headers that could not have been parsed as
-they were previously encrypted. See section [#appendix-reparsing] for
-additional details.
-
-After decryption, the `MainParser` can perform the full parsing
-required for implementing the desired data plane functionality.
-
-The `MainControl` is typically where the bulk of code would be written
-for processing packets. It transforms headers, updates stateful
-elements like counters, meters, and registers, and optionally
-associates additional user-defined metadata with the packet. The
-`MainDeparser` serializes the headers back into a packet that can be
-sent onwards.
+Packets arriving from a network port first go through a `MainParser`,
+which is responsible for extracting all relevant packet headers.  The
+`MainControl` is typically where the bulk of code would be written for
+processing packets. It transforms headers, updates stateful elements
+like counters, meters, and registers, and optionally associates
+additional user-defined metadata with the packet. The `MainDeparser`
+serializes the headers back into a packet that can be sent onwards.
 
 After the `MainDeparser`, the packet may either:
 * proceed to the message processing part of the NIC, and then typically on
@@ -291,9 +268,9 @@ MTU size packets (if the host has not already done so) in the message
 processing block, and are then sent to the main block for further
 processing.
 
-The same `MainParser`, `PreControl`, `MainControl`, and `MainDeparser`
-that process packets from the network are also used to process packets
-from the host. PNA was designed this way for two reasons:
+The same `MainParser`, `MainControl`, and `MainDeparser` that process
+packets from the network are also used to process packets from the host.
+PNA was designed this way for two reasons:
 
 - It is expected that in many cases, the packet processing in both
   directions will have many similarities between them. Writing common
@@ -829,39 +806,38 @@ the places mentioned in Table [#table-extern-usage].
 |-------------------|----------------------------------------------|
 | Extern type       | Where it may be instantiated and called from |
 +:------------------+:---------------------------------------------+
-| `ActionProfile`   | PreControl, MainControl |
+| `ActionProfile`   | MainControl |
 |-------------------|----------------------------------------------|
-| `ActionSelector`  | PreControl, MainControl |
+| `ActionSelector`  | MainControl |
 |-------------------|----------------------------------------------|
 | `Checksum`        | MainParser, MainDeparser |
 |-------------------|----------------------------------------------|
-| `Counter`         | PreControl, MainControl |
+| `Counter`         | MainControl |
 |-------------------|----------------------------------------------|
 | `Digest`          | MainDeparser |
 |-------------------|----------------------------------------------|
-| `DirectCounter`   | PreControl, MainControl |
+| `DirectCounter`   | MainControl |
 |-------------------|----------------------------------------------|
-| `DirectMeter`     | PreControl, MainControl |
+| `DirectMeter`     | MainControl |
 |-------------------|----------------------------------------------|
-| `Hash`            | PreControl, MainControl |
+| `Hash`            | MainControl |
 |-------------------|----------------------------------------------|
 | `InternetChecksum` | MainParser, MainDeparser |
 |-------------------|----------------------------------------------|
-| `Meter`           | PreControl, MainControl |
+| `Meter`           | MainControl |
 |-------------------|----------------------------------------------|
-| `Random`          | PreControl, MainControl |
+| `Random`          | MainControl |
 |-------------------|----------------------------------------------|
-| `Register`        | PreControl, MainControl |
+| `Register`        | MainControl |
 |-------------------|----------------------------------------------|
 ~
 
 For example, `Counter` being restricted to "Pre, Main" means that
-every `Counter` instance must be instantiated within either the `PreControl`
-control block or the `MainControl` block, or be a descendant of one of
-those nodes in the instantiation tree. If a `Counter` instance is
-instantiated in Main, for example, then it cannot be referenced, and
-thus its methods cannot be called, from any block except `MainControl`
-or one of its descendants in the tree.
+every `Counter` instance must be instantiated within the `MainControl`
+block, or be a descendant of one of those nodes in the instantiation
+tree. If a `Counter` instance is instantiated in Main, for example, then
+it cannot be referenced, and thus its methods cannot be called, from any
+block except `MainControl` or one of its descendants in the tree.
 
 PNA implementations need not support instantiating these externs at
 the top level. PNA implementations are allowed to accept programs that
@@ -1049,13 +1025,6 @@ Andy can write this one.  Basic reasons are summarized in
 existing slides.
 ~End TBD
 
-## Why separate programmable pre blocks for pre-decryption packet processing?
-
-~Begin TBD 
-Andy can write this one.  Basic reasons are summarized in
-existing slides.
-~End TBD
-
 ## Is it inefficient to have the `MainParser` redo work? {#appendix-reparsing}
 
 If the only changes made by the inline extern in the network-to-host
@@ -1179,7 +1148,7 @@ called the VM to VM path.
 The host-to-net inline extern may be no-op or perform encryption, as
 directed by the P4 code in the `MainControl`. The net-to-host inline
 extern may be no-op or perform decryption, as directed by the P4 code
-in the `PreControl`.
+in the `MainControl`.
 
 ## Port to port
 

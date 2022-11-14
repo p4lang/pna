@@ -75,35 +75,6 @@ struct headers_t {
     ipv4_t ipv4;
 }
 
-control PreControlImpl(
-    in    headers_t  hdr,
-    inout main_metadata_t meta,
-    in    pna_pre_input_metadata_t  istd,
-    inout pna_pre_output_metadata_t ostd)
-{
-    apply {
-        // Note: This program does not demonstrate all of the code
-        // that would be necessary if you were implementing IPsec
-        // packet decryption.
-
-        // If it did, then this pre control implementation would do
-        // one or more table lookups in order to determine whether the
-        // packet was IPsec encapsulated, and if so, whether it is
-        // part of a security association that was established by the
-        // control plane software.
-
-        // It would also likely perform anti-replay attack detection
-        // on the IPsec sequence number, which is in the unencrypted
-        // part of the packet.
-
-        // Any headers parsed by the pre parser in pre_hdr will be
-        // forgotten after this point.  The main parser will start
-        // parsing over from the beginning, either on the same packet
-        // if the inline extern block did nothing, or on the packet as
-        // modified by the inline extern block.
-    }
-}
-
 parser MainParserImpl(
     packet_in pkt,
     out   headers_t       hdr,
@@ -179,11 +150,7 @@ control MainDeparserImpl(
 // BEGIN:Package_Instantiation_Example
 PNA_NIC(
     MainParserImpl(),
-    PreControlImpl(),
     MainControlImpl(),
     MainDeparserImpl()
-    // Hoping to make this optional parameter later, but not supported
-    // by p4c yet.
-    //, PreParserImpl()
     ) main;
 // END:Package_Instantiation_Example
