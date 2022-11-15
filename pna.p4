@@ -853,13 +853,13 @@ extern T SelectByDirection<T>(
 
 
 // BEGIN:Programmable_blocks
-parser MainParserT<PM, MH, MM>(
+parser MainParserT<MH, MM>(
     packet_in pkt,
     out   MH main_hdr,
     inout MM main_user_meta,
     in    pna_main_parser_input_metadata_t istd);
 
-control MainControlT<PM, MH, MM>(
+control MainControlT<MH, MM>(
     inout MH main_hdr,
     inout MM main_user_meta,
     in    pna_main_input_metadata_t  istd,
@@ -871,9 +871,9 @@ control MainDeparserT<MH, MM>(
     in    MM main_user_meta,
     in    pna_main_output_metadata_t ostd);
 
-package PNA_NIC<PH, PM, MH, MM>(
-    MainParserT<PM, MH, MM> main_parser,
-    MainControlT<PM, MH, MM> main_control,
+package PNA_NIC<MH, MM>(
+    MainParserT<MH, MM> main_parser,
+    MainControlT<MH, MM> main_control,
     MainDeparserT<MH, MM> main_deparser);
 // END:Programmable_blocks
 

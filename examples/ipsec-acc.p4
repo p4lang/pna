@@ -121,17 +121,6 @@ struct main_metadata_t {
 /// Instantiate crypto accelerator for AES-GCM algorithm
 crypto_accelerator(crypto_algorithm_e.AES_GCM) ipsec_acc;
 
-control PreControlImpl(
-    in    headers_t  hdr,
-    inout main_metadata_t meta,
-    in    pna_pre_input_metadata_t  istd,
-    inout pna_pre_output_metadata_t ostd)
-{
-    apply {
-        // Not used in this example
-    }
-}
-
 parser MainParserImpl(
     packet_in pkt,
     out   headers_t       hdr,
@@ -481,7 +470,6 @@ control MainDeparserImpl(
 // Package_Instantiation
 PNA_NIC(
     MainParserImpl(),
-    PreControlImpl(),
     MainControlImpl(),
     MainDeparserImpl()
     ) main;
