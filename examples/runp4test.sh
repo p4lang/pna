@@ -1,5 +1,8 @@
 #! /bin/bash
 
+# The scirpt will exit if the return code of a command is not 0.
+set -e
+
 # With these extra command line options to p4test, it skips the Predication
 # pass, which as of most p4c versions up to at least 2022-Oct-04, and
 # probably for a while longer, causes p4test to give an error when an
