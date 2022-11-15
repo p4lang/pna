@@ -17,14 +17,10 @@ The latest version of the specification is given by:
 + its Madoko source file in [PNA.mdk](PNA.mdk), and
 + the include file [`pna.p4`](pna.p4)
 
-HTML and PDF versions of the latest released version can be found on
-the P4.org specifications page [here](https://p4.org/specs).
-
-At least up until 2022-Nov-13, and perhaps for a few weeks more, the
-latest working draft is _not_ correct at the link above.  Until the
-official specifications page linked above is updated, you can find it
-[here](https://jafingerhut.github.io/p4-specs/p4-specification-documents.html)
-instead.
+HTML and PDF versions of the latest released version, and for the
+latest working draft versions (udpated within an hour or so after each
+commit to this repository), can be found on the P4.org specifications
+page [here](https://p4.org/specs).
 
 
 ## Setup instructions
