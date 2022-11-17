@@ -103,6 +103,25 @@ control MainControlImpl(
 
     // Example instantiation from documentation comments for ExactMap
     // extern in pna.p4
+/*
+    The control plane API for ExactMap emap1 is exactly the same as
+    for the following P4 table.  The action name `lookup` is
+    hard-coded into the P4 compiler as the action name for _all_
+    instances of ExactMap and TernaryMap externs.
+
+    table emap1 {
+        key = {
+            // The key fields are all of the fields of struct
+            // emap1_key, with the same names as the member field
+            // names in the declaration of struct emap1_key.  All have
+            // match_kind exact, because emap1 is ExactMap, not
+            // TernaryMap.
+            my_field: exact;
+        }
+        actions = { lookup; }
+        default_action = lookup(42);
+    }
+*/
     ExactMap<emap1_key, bit<16>>(
         size = 1024,
         const_entries = (list<exactmap_const_entry_t<emap1_key, bit<16>>>) {
@@ -113,6 +132,21 @@ control MainControlImpl(
         default_value = 42)  // default value returned for all other keys
     emap1;
 
+/*
+    The control plane API for ExactMap emap2 is exactly the same as
+    for the following P4 table.
+
+    table emap2 {
+        key = {
+            // The key fields are all of the fields of struct
+            // emap2_key.
+            val1: exact;
+            val2: exact;
+        }
+        actions = { lookup; }
+        default_action = lookup({val1= 0, val2=  28});
+    }
+*/
     ExactMap<emap2_key, emap2_val>(
         size = 128,
         initial_entries = (list<exactmap_initial_entry_t<emap2_key, emap2_val>>) {
@@ -127,6 +161,21 @@ control MainControlImpl(
         default_value = {val1=9, val2=42})
     emap2;
 
+/*
+    The control plane API for TernaryMap tmap1 is exactly the same as
+    for the following P4 table.
+
+    table tmap1 {
+        key = {
+            // The key fields are all of the fields of struct
+            // tmap1_key.
+            f1: ternary;
+            f2: ternary;
+        }
+        actions = { lookup; }
+        default_action = lookup(42);
+    }
+*/
     TernaryMap<tmap1_key, bit<16>>(
         size = 1024,
         const_entries = (list<ternarymap_const_entry_t<tmap1_key, bit<16>>>) {
@@ -164,6 +213,20 @@ control MainControlImpl(
         default_value = 42)  // default value returned for all other keys
     tmap1;
 
+/*
+    The control plane API for TernaryMap tmap2 is exactly the same as
+    for the following P4 table.
+
+    table tmap2 {
+        key = {
+            // The key fields are all of the fields of struct
+            // tmap2_key.
+            only_field: ternary;
+        }
+        actions = { lookup; }
+        default_action = lookup({v1=42, v2=42});
+    }
+*/
     TernaryMap<tmap2_key, tmap2_val>(
         size = 1024,
         largest_priority_wins = true,
