@@ -1,0 +1,10 @@
+#!/bin/bash
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+podman run \
+    --rm \
+    -v "$SCRIPT_DIR/../../pna.p4":/usr/local/share/p4c/p4include/pna.p4:z \
+    -v "$SCRIPT_DIR/../../examples":/p4c:z \
+    docker.io/p4lang/p4c:latest \
+    p4test "$@"

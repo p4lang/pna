@@ -336,7 +336,8 @@ enum PNA_IdleTimeout_t {
 // BEGIN:Match_kinds
 match_kind {
     range,   /// Used to represent min..max intervals
-    selector /// Used for dynamic action selection via the ActionSelector extern
+    selector, /// Used for dynamic action selection via the ActionSelector extern
+    optional /// Either an exact match, or a wildcard matching any value for the entire field
 }
 // END:Match_kinds
 
@@ -780,35 +781,6 @@ enum PNA_PacketPath_t {
     FROM_HOST_RECIRCULATED
 }
 
-struct pna_pre_input_metadata_t {
-    PortId_t                 input_port;
-    ParserError_t            parser_error;
-    PNA_Direction_t          direction;
-    PassNumber_t             pass;
-    bool                     loopedback;
-}
-
-struct pna_pre_output_metadata_t {
-    bool                     decrypt;  // TBD: or use said==0 to mean no decrypt?
-
-    // The following things are stored internally within the decrypt
-    // block, in a table indexed by said:
-
-    // + The decryption algorithm, e.g. AES256, etc.
-    // + The decryption key
-    // + Any read-modify-write state in the data plane used to
-    //   implement anti-replay attack detection.
-
-    SecurityAssocId_t        said;
-    bit<16>                  decrypt_start_offset;  // in bytes?
-
-    // TBD whether it is important to explicitly pass information to a
-    // decryption extern in a way visible to a P4 program about where
-    // headers were parsed and found.  An alternative is to assume
-    // that the architecture saves the pre parser results somewhere,
-    // in a way not visible to the P4 program.
-}
-
 struct pna_main_parser_input_metadata_t {
     // common fields initialized for all packets that are input to main
     // parser, regardless of direction.
@@ -883,19 +855,97 @@ extern void mirror_packet(MirrorSlotId_t mirror_slot_id,
 // probably be a parameter that specifies the new entry's initial
 // expire_time_profile_id.
 
-extern bool add_entry<T>(string action_name,
-                         in T action_params,
-                         in ExpireTimeProfileId_t expire_time_profile_id);
+// The bit width of this type is allowed to be different for different
+// target devices.  It must be at least a 1-bit wide type.
 
-// If we support the following variant of add_entry, with no
-// expire_time_profile_id parameter, then we need to define its
-// behavior in terms of what the added entry's value of
-// expire_time_profile_id is.  One option would be to define the
-// behavior to be the same as the 3-parameter version of add_entry
-// above, with expire_time_profile_id equal to 0.
+typedef bit<1> AddEntryErrorStatus_t;
 
-//extern bool add_entry<T>(string action_name,
-//                         in T action_params);
+const AddEntryErrorStatus_t ADD_ENTRY_SUCCESS = 0;
+const AddEntryErrorStatus_t ADD_ENTRY_NOT_DONE = 1;
+
+// Targets may define target-specific non-0 constants of type
+// AddEntryErrorStatus_t if they wish.
+
+// The add_entry() extern function causes an entry, i.e. a key and its
+// corresponding action and action parameter values, to be added to a
+// table from the data plane, i.e. without the control plane having to
+// take any action at all to cause the table entry to be added.
+//
+// The key of the new entry added will always be the same as the key
+// that was just looked up in the table, and experienced a miss.
+//
+// `action_name` is the name of an action that must satisfy these
+// restrictions:
+// + It must be an action that is in the list specified as the
+//   `actions` property of the table.
+// + It must be possible for this action to be the action of an entry
+//   added to the table, e.g. it is an error if the action has the
+//   annotation `@defaultonly`.
+// + The action to be added must not itself contain a call to
+//   add_entry(), or anything else that is not supported in a table's
+//   "hit action".
+//
+// Type T must be a struct type whose field names have the same name
+// as the parameters of the action being added, in the same order, and
+// have the same type as the corresponding action parameters.
+//
+// `action_params` will become the action parameters of the new entry
+// to be added.
+//
+// `expire_time_profile_id` is the initial expire time profile id of
+// the entry added.
+//
+// The return value will be ADD_ENTRY_SUCCESS if the entry was
+// successfully added, otherwise it will be some other value not equal
+// to ADD_ENTRY_SUCCESS.  Targets are allowed to define only one
+// failure return value, or several if they wish to provide more
+// detail on the reason for the failure to add the entry.
+//
+// It is NOT defined by PNA, and need not be supported by PNA
+// implementations, to call add_entry() within an action that is added
+// as an entry of a table, i.e. as a "hit action".  It is only defined
+// if called within an action that is the default_action, i.e. a "miss
+// action" of a table.
+//
+// For tables with `add_on_miss = true`, some PNA implementations
+// might only support `default_action` with the `const` qualifier.
+// However, if a PNA implementation can support run-time modifiable
+// default actions for such a table, some of which call add_entry()
+// and some of which do not, the behavior of such an implementation is
+// defined by PNA, and this may be a useful feature.
+
+extern AddEntryErrorStatus_t add_entry<T>(
+    string action_name,
+    in T action_params,
+    in ExpireTimeProfileId_t expire_time_profile_id);
+
+// The following call to add_entry_if():
+//
+//     add_entry_if(expr, action_name, action_params, expire_time_profile_id);
+//
+// has exactly the same behavior as the following expression:
+//
+//     (expr) ? add_entry(action_name, action_params, expire_time_profile_id)
+//            : ADD_ENTRY_NOT_DONE;
+//
+// and it has the same restrictions on where it can appear in a P4
+// program as that equivalent code.
+//
+// Rationale: At the time PNA was being designed in 2022, there were
+// P4 targets, including the BMv2 software switch in the repository
+// https://github.com/p4lang/behavioral-model, that did not fully
+// support `if` statements within P4 actions.  add_entry_if() enables
+// writing P4 code without `if` statements within P4 actions that
+// would otherwise require an `if` statement to express the desired
+// behavior.  Admittedly, this is a work-around for targets with
+// limited support for `if` statements within P4 actions.  See
+// https://github.com/p4lang/pna/issues/63 for more details.
+
+extern AddEntryErrorStatus_t add_entry_if<T>(
+    in bool do_add_entry,
+    string action_name,
+    in T action_params,
+    in ExpireTimeProfileId_t expire_time_profile_id);
 
 extern FlowId_t allocate_flow_id();
 
@@ -1021,21 +1071,13 @@ extern T SelectByDirection<T>(
 
 
 // BEGIN:Programmable_blocks
-control PreControlT<PH, PM>(
-    in    PH pre_hdr,
-    inout PM pre_user_meta,
-    in    pna_pre_input_metadata_t  istd,
-    inout pna_pre_output_metadata_t ostd);
-
-parser MainParserT<PM, MH, MM>(
+parser MainParserT<MH, MM>(
     packet_in pkt,
-    //in    PM pre_user_meta,
     out   MH main_hdr,
     inout MM main_user_meta,
     in    pna_main_parser_input_metadata_t istd);
 
-control MainControlT<PM, MH, MM>(
-    //in    PM pre_user_meta,
+control MainControlT<MH, MM>(
     inout MH main_hdr,
     inout MM main_user_meta,
     in    pna_main_input_metadata_t  istd,
@@ -1047,10 +1089,9 @@ control MainDeparserT<MH, MM>(
     in    MM main_user_meta,
     in    pna_main_output_metadata_t ostd);
 
-package PNA_NIC<PH, PM, MH, MM>(
-    MainParserT<PM, MH, MM> main_parser,
-    PreControlT<PH, PM> pre_control,
-    MainControlT<PM, MH, MM> main_control,
+package PNA_NIC<MH, MM>(
+    MainParserT<MH, MM> main_parser,
+    MainControlT<MH, MM> main_control,
     MainDeparserT<MH, MM> main_deparser);
 // END:Programmable_blocks
 

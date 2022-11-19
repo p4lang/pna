@@ -1,0 +1,20 @@
+name: "Test P4 Examples"
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Add .github/scripts to PATH
+      run: echo "$GITHUB_WORKSPACE/.github/scripts" >> $GITHUB_PATH
+    - name: Print p4test version
+      run: p4test --version
+    - name: Run runp4test.sh
+      working-directory: ./examples
+      run: bash runp4test.sh

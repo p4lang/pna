@@ -12,11 +12,15 @@ with the 18-minute video [Portable NIC Architecture
 Update](https://www.youtube.com/watch?v=7SG-GxkQqfY) to get a quick
 introduction to the basic ideas.
 
-The latest version of the specification is given by its Madoko source
-file in [PNA.mdk](PNA.mdk), and the latest generated PDF version is
-[here](https://github.com/p4lang/pna/blob/main/generated-html/PNA-v0.5.0.pdf).
-The PDF version is not generated for every change to the Madoko source
-file.
+The latest version of the specification is given by:
+
++ its Madoko source file in [PNA.mdk](PNA.mdk), and
++ the include file [`pna.p4`](pna.p4)
+
+HTML and PDF versions of the latest released version, and for the
+latest working draft versions (udpated within an hour or so after each
+commit to this repository), can be found on the P4.org specifications
+page [here](https://p4.org/specs).
 
 
 ## Setup instructions
@@ -26,6 +30,23 @@ See the
 for the P4_16 language specification for instructions on installing
 software that enables you to produce HTML and PDF versions of the PNA
 specification from its Madoko source file.
+
+
+## Meetings to discuss changes to this specification
+
+P4.org architecture work group meetings are held on most Mondays as
+of 2022.  See the calendar on the [P4.org Working Groups
+page](https://p4.org/working-groups/) for dates, times, and
+instructions for joining the meetings.
+
+Notes from past meetings are maintained in a Google Docs document
+[here](https://docs.google.com/document/d/1vX5GStrE01Pbj6d-liuuHF-4sYXjc601n5zJ4FHQXpM).
+Notes from new meetings are added at the end of the document.
+
+Issues are tracked using [Github issues on this
+repository](https://github.com/p4lang/pna/issues) and suggested
+changes are made by creating [Github pull
+requests](https://github.com/p4lang/pna/pulls).
 
 
 ## Spec release process
