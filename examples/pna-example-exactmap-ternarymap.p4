@@ -82,18 +82,6 @@ parser MainParserImpl(
     }
 }
 
-control PreControlImpl(
-    in    headers_t  hdr,
-    inout metadata_t meta,
-    in    pna_pre_input_metadata_t  istd,
-    inout pna_pre_output_metadata_t ostd)
-{
-    apply {
-        // No IPsec decryption for this example program, so pre
-        // control does nothing.
-    }
-}
-
 control MainControlImpl(
     inout headers_t  hdr,
     inout metadata_t meta,
@@ -302,10 +290,6 @@ control MainDeparserImpl(
 
 PNA_NIC(
     MainParserImpl(),
-    PreControlImpl(),
     MainControlImpl(),
     MainDeparserImpl()
-    // Hoping to make this optional parameter later, but not supported
-    // by p4c yet.
-    //, PreParserImpl()
     ) main;
