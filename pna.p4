@@ -637,6 +637,7 @@ extern void mirror_packet(MirrorSlotId_t mirror_slot_id,
 // probably be a parameter that specifies the new entry's initial
 // expire_time_profile_id.
 
+// BEGIN:add_entry_extern_function
 // The bit width of this type is allowed to be different for different
 // target devices.  It must be at least a 1-bit wide type.
 
@@ -700,6 +701,7 @@ extern AddEntryErrorStatus_t add_entry<T>(
     string action_name,
     in T action_params,
     in ExpireTimeProfileId_t expire_time_profile_id);
+// END:add_entry_extern_function
 
 // The following call to add_entry_if():
 //

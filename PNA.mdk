@@ -884,6 +884,8 @@ specification.
 |-----------------------|------|---------------------------------------|
 | `pna_idle_timeout` | `PNA_IdleTimeout_t` | Section [#sec-idle-timeout] |
 |-----------------------|------|---------------------------------------|
+| `idle_timeout_with_auto_delete` | `boolean` | Section [#sec-idle-timeout-auto-delete] |
+|-----------------------|------|---------------------------------------|
 ~
 
 A PNA implementation need not support both of a `pna_implementation`
@@ -902,24 +904,39 @@ A PNA implementation need not support both `pna_implementation` and
 ## Tables with add-on-miss capability {#sec-add-on-miss}
 
 PNA defines the `add_on_miss` table property.  If the value of this
-property is `true` for a table, the P4 developer is allowed to define
-a default action for the table that calls the `add_entry` extern
-function.  `add_entry` adds a new entry to the table whose default
-action calls the `add_entry` function.  The new entry will have the
-same key that was just looked up.
+property is `true` for a table `t`, the P4 developer is allowed to
+define a default action for `t` that calls the `add_entry` extern
+function.
 
-The control plane API is still allowed to add, modify, and delete
-entries of such a table, but any entries added via the `add_entry`
-function do not require the control plane software to be involved in
-any way.  It is expected that PNA implementations will be able to
-sustain `add_entry` calls at a large fraction of their line rate, but
-it need not be at the same packet rate supported for processing
-packets that do not call `add_entry`.  The new table entry will be
-matchable when the next packet is processed that applies this table.
+When `t.apply()` is invoked, `t`'s lookup key is constructed, and the
+entries of the table are searched.  If there is no match, i.e. the
+lookup results in a miss, `t`'s default action is executed.  So far,
+this is all standard behavior as defined in the P4~16~ language
+specification.
+
+If `t`'s default action makes a call to `add_entry`, it causes a new
+entry to be added to the table with the same key that was just looked
+up and resulted in a miss, and the action name and action parameters
+specified by the parameters of the call to the `add_entry` extern
+function.  Thus, future packets that invoke `t.apply()` with the same
+lookup key will get a match and invoke the specified action (until and
+unless this new table entry is removed).  The new table entry will be
+matchable when the next packet is processed that invoked `t.apply()`.
+
+Some PNA implementations may allow the control plane software to add,
+modify, and delete entries of such a table, but any entries added via
+the `add_entry` function do not require the control plane software to
+be involved in any way.  Other PNA implementations may choose not to
+support control plane modification of the entries of an add-on-miss
+table.
+
+It is expected that PNA implementations will be able to sustain
+`add_entry` calls at a large fraction of their line rate, but it need
+not be at the same packet rate supported for processing packets that
+do not call `add_entry`.
 
 ~Begin P4Example
-extern bool add_entry<T>(string action_name,
-                         in T action_params);
+[INCLUDE=pna.p4:add_entry_extern_function]
 ~End P4Example
 
 It is expected that many PNA implementations will restrict
@@ -942,17 +959,20 @@ table's default action to be executed.  The action will be the one
 named by the string that is passed as the parameter `action_name`.
 
 If the attempt to add a table entry succeeds, the return value is
-`true`, otherwise `false`.
+`ADD_ENTRY_SUCCESS`, otherwise it will be some other value.  PNA
+implementations are free to define additional failure reasons other
+than `ADD_ENTRY_NOT_DONE`, but it is perfectly acceptable for a PNA
+implementation to only support those two possible return values.
 
 
 ## Table entry timeout notification {#sec-idle-timeout}
 
-PNA uses the `pna_idle_timeout` to enable a table implementation send
-notifications from the PNA device when a configurable time has passed
-since an entry was last matched. The property may take one of two
-values -- `NO_TIMEOUT`, and `NOTIFY_CONTROL`. `NO_TIMEOUT` disables
-idle timeout support for the table and it is the default value when
-the property is not present. `NOTIFY_CONTROL` enables the
+PNA defines the table property `pna_idle_timeout` to enable a table to
+send notifications from the PNA device when a configurable time has
+passed since an entry was last matched.  The property may take one of
+two values -- `NO_TIMEOUT`, and `NOTIFY_CONTROL`. `NO_TIMEOUT`
+disables idle timeout support for the table and it is the default
+value when the property is not present. `NOTIFY_CONTROL` enables the
 notification. A PNA implementation will then generate an API for the
 control plane to set time-to-live (TTL) values for table entries and
 if at any time during its lifetime, the table entry is not "hit" (&ie;
@@ -1008,6 +1028,29 @@ Restrictions on the TTL values and notifications:
 - Currently, tables implemented using ActionSelectors and
   ActionProfiles do not support the `pna_idle_timeout` property.
   Future versions of the specification may remove this restriction.
+
+
+## Table entry auto-delete on timeout {#sec-idle-timeout-auto-delete}
+
+PNA defines the table property `idle_timeout_with_auto_delete` to
+enable a table to automatically delete an entry from a table if a
+configurable time has passed since the entry was last matched.  The
+default value of this property is `false` if not specified for a
+table.
+
+PNA implementations may restrict `idle_timeout_with_auto_delete` to be
+`true` only for tables that also have `add_on_miss` equal to `true`.
+
+PNA implementations are expected to be able to perform add-on-miss at
+very high rates relative to line rate, and similarly for such
+add-on-miss tables, they should be able to perform auto-deletion of
+entries in the data plane at a similarly large rate.  If a P4
+developer wishes to use the high rate add-on-miss capabilities for a
+particular table, it is likely that they do not wish the control plane
+to be responsible for keeping up with a high rate of deleting stale
+entries, and thus will often use `add_on_miss = true` and
+`idle_timeout_with_auto_delete = true` together.
+
 
 # Timestamps
 
