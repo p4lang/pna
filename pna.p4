@@ -652,7 +652,7 @@ struct ternarymap_initial_entry_t<K,V> {
 
 /**
  * The type K must be a struct type.  Each of its members becomes a
- * separate key field of the ExactMap instance, with the member name
+ * separate key field of the TernaryMap instance, with the member name
  * as its control plane API name.
  *
  * The type V may be a struct type, or a scalar type.
