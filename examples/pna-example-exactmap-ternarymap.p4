@@ -48,7 +48,8 @@ struct emap1_key {
 }
 
 struct emap2_key {
-    bit<8> my_field;
+    bit<4> k1;
+    bit<9> k2;
 }
 
 struct emap2_val {
@@ -140,8 +141,8 @@ control MainControlImpl(
         key = {
             // The key fields are all of the fields of struct
             // emap2_key.
-            val1: exact;
-            val2: exact;
+            k1: exact;
+            k2: exact;
         }
         actions = { lookup; }
         default_action = lookup({val1= 0, val2=  28});
@@ -150,12 +151,12 @@ control MainControlImpl(
     ExactMap<emap2_key, emap2_val>(
         size = 128,
         initial_entries = (list<exactmap_initial_entry_t<emap2_key, emap2_val>>) {
-            // not const entry, key my_field=5, value {val1=10, val2=4}
-            {false, { 5}, {val1=10, val2=   4}},
-            // const entry, key my_field=6, value {val1=15, val2=4095}
-            { true, { 6}, {val1=15, val2=4095}},
-            // const entry, key my_field=10, value {val1=0, val2=28}
-            { true, {10}, {val1= 0, val2=  28}}
+            // not const entry, key {k1=5, k2=0}, value {val1=10, val2=4}
+            {false, { 5,   0}, {val1=10, val2=   4}},
+            // const entry, key {k1=6, k2=200}, value {val1=15, val2=4095}
+            { true, { 6, 200}, {val1=15, val2=4095}},
+            // const entry, key {k1=10, k2=511}, value {val1=0, val2=28}
+            { true, {10, 511}, {val1= 0, val2=  28}}
         },
         // default value returned for all other keys
         default_value = {val1=9, val2=42})
