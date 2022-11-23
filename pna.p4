@@ -588,7 +588,8 @@ extern ExactMap<K, V> {
      * entries' table property for tables.  This set of entries cannot
      * be removed or modified by the control plane, and also, the
      * control plane is not allowed to add any entries to an ExactMap
-     * instance created using this constructor.
+     * instance created using this constructor.  Duplicate key values
+     * are not allowed.
      *
      * Example where key is type emap1_key and value is type bit<16>:
      *
@@ -615,9 +616,10 @@ extern ExactMap<K, V> {
      * `const_entries`, except that the control plane is allowed to
      * add entries to an ExactMap instance constructed using this
      * constructor (subject to capacity constraints, as usual), and
-     * the control plane can modify or remove any entries whose first
-     * tuple element is false.  Any entries whose first tuple element
-     * is true cannot be modified or removed by the control plane.
+     * the control plane can modify or remove any entries that has a
+     * `const_entry` field equal to false.  Any entries with a
+     * `const_entry` field value equal to true cannot be modified or
+     * removed by the control plane.
      */
     ExactMap(int size,
         list<exactmap_initial_entry_t<K,V>> initial_entries,
@@ -681,7 +683,10 @@ extern TernaryMap<K, V> {
      * entries' table property for tables.  This set of entries cannot
      * be removed or modified by the control plane, and also, the
      * control plane is not allowed to add any entries to an
-     * TernaryMap instance created using this constructor.
+     * TernaryMap instance created using this constructor.  The
+     * relative priority of these entries is that if a lookup key
+     * matches multiple entries in the list, then the first entry
+     * "wins", i.e. that entry's value is returned.
      *
      * Example where key is type tmap1_key and value is type bit<16>:
      *
@@ -736,18 +741,19 @@ extern TernaryMap<K, V> {
      * `const_entries`, except that the control plane is allowed to
      * add entries to a TernaryMap instance constructed using this
      * constructor (subject to capacity constraints, as usual), and
-     * the control plane can modify or remove any entries whose first
-     * tuple element is false.  Any entries whose first tuple element
-     * is true cannot be modified or removed by the control plane.
+     * the control plane can modify or remove any entries that has a
+     * `const_entry` field equal to false.  Any entries with a
+     * `const_entry` field value equal to true cannot be modified or
+     * removed by the control plane.
      *
-     * The second element of each tuple is the priority of the entry.
-     * If largest_priority_wins is true, then when a search key
-     * matches multiple entries, the one with the largest priority
-     * value wins.  If largest_priority_wins is false, then an entry
-     * with the smallest priority value wins.  If multiple entries
-     * have the same priority value, it is unspecified which of the
-     * entries with the same priority value will win if more than one
-     * of them match the lookup key.
+     * The `priority` field specifies the priority of an entry.  If
+     * largest_priority_wins is true, then when a search key matches
+     * multiple entries, the one with the largest priority value wins.
+     * If largest_priority_wins is false, then an entry with the
+     * smallest priority value wins.  If multiple entries have the
+     * same priority value, it is unspecified which of the entries
+     * with the same priority value will win if more than one of them
+     * match the lookup key.
      */
     TernaryMap(int size,
         bool largest_priority_wins,
