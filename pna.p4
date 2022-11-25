@@ -327,11 +327,14 @@ PassNumberInHeader_t pna_PassNumber_int_to_header (in PassNumber_t x) {
     return (PassNumberInHeader_t) (PassNumberInHeaderUint_t) (PassNumberUint_t) x;
 }
 
+// BEGIN:enum_PNA_IdleTimeout_t
 /// Supported range of values for the pna_idle_timeout table properties
 enum PNA_IdleTimeout_t {
     NO_TIMEOUT,
-    NOTIFY_CONTROL
+    NOTIFY_CONTROL,
+    AUTO_DELETE
 };
+// END:enum_PNA_IdleTimeout_t
 
 // BEGIN:Match_kinds
 match_kind {
