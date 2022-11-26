@@ -328,7 +328,7 @@ PassNumberInHeader_t pna_PassNumber_int_to_header (in PassNumber_t x) {
 }
 
 // BEGIN:enum_PNA_IdleTimeout_t
-/// Supported range of values for the pna_idle_timeout table properties
+/// Supported values for the pna_idle_timeout table property
 enum PNA_IdleTimeout_t {
     NO_TIMEOUT,
     NOTIFY_CONTROL,
