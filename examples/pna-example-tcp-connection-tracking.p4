@@ -283,14 +283,19 @@ control MainControlImpl(
         // from the data plane.
         add_on_miss = true;
 
-        default_idle_timeout_for_data_plane_added_entries = 1;
+        // TODO: Andy Fingerhut added the next line to the example on
+        // 2022-Apr-26, but this table property is not yet documented
+        // anywhere.
+        // default_idle_timeout_for_data_plane_added_entries = 1;
 
-        // New PNA table property 'idle_timeout_with_auto_delete' is
-        // similar to 'idle_timeout' in other architectures, except
-        // that entries that have not been matched for their expire
-        // time interval will be deleted, without the control plane
-        // having to delete the entry.
-        idle_timeout_with_auto_delete = true;
+        // Value AUTO_DELETE of table property pna_idle_timeout is new
+        // in PNA relative to PSA.  It is similar to the value
+        // NOTIFY_CONTROL in the PSA architecture, except that entries
+        // that have not been matched for their idle time interval
+        // will be deleted, without the control plane having to delete
+        // the entry.  Also, no notification messages will be sent to
+        // the control plane when this happens.
+        pna_idle_timeout = PNA_IdleTimeout_t.AUTO_DELETE;
         const default_action = ct_tcp_table_miss;
     }
 
