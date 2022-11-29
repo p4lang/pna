@@ -606,6 +606,7 @@ struct pna_main_output_metadata_t {
   // common fields used by the architecture to decide what to do with
   // the packet next, after the main parser, control, and deparser
   // have finished executing one pass, regardless of the direction.
+  PortId_t                 egress_port;
   ClassOfService_t         class_of_service; // 0
 }
 // END:Metadata_main_output
@@ -619,7 +620,6 @@ struct pna_main_output_metadata_t {
 // actually take effect for the packet.
 
 // + drop_packet
-// + send_to_port
 
 
 // drop_packet() - Cause the packet to be dropped when it finishes
@@ -628,8 +628,6 @@ struct pna_main_output_metadata_t {
 // Invoking drop_packet() is supported only within the main control.
 
 extern void drop_packet();
-
-extern void send_to_port(PortId_t dest_port);
 
 extern void mirror_packet(MirrorSlotId_t mirror_slot_id,
                           MirrorSessionId_t mirror_session_id);
