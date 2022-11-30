@@ -116,6 +116,13 @@ control MainControlImpl(
         actions = { lookup; }
         default_action = lookup(42);
     }
+
+    Note that as of 2022-Nov, the open source p4c front end gives a
+    compile time error if there is a table and an extern instance
+    defined within a control that have the same name as each other.
+    Thus we can generate control plane API files, e.g. P4Info files,
+    assuming that extern instances of ExactMap and TernaryMap will
+    never have the same names as any P4 tables in the same control.
 */
     ExactMap<emap1_key, bit<16>>(
         size = 1024,
