@@ -327,11 +327,14 @@ PassNumberInHeader_t pna_PassNumber_int_to_header (in PassNumber_t x) {
     return (PassNumberInHeader_t) (PassNumberInHeaderUint_t) (PassNumberUint_t) x;
 }
 
-/// Supported range of values for the pna_idle_timeout table properties
+// BEGIN:enum_PNA_IdleTimeout_t
+/// Supported values for the pna_idle_timeout table property
 enum PNA_IdleTimeout_t {
     NO_TIMEOUT,
-    NOTIFY_CONTROL
+    NOTIFY_CONTROL,
+    AUTO_DELETE
 };
+// END:enum_PNA_IdleTimeout_t
 
 // BEGIN:Match_kinds
 match_kind {
@@ -343,7 +346,13 @@ match_kind {
 
 // BEGIN:Hash_algorithms
 enum PNA_HashAlgorithm_t {
-  // TBD what this type's values will be for PNA
+  IDENTITY,
+  CRC32,
+  CRC32_CUSTOM,
+  CRC16,
+  CRC16_CUSTOM,
+  ONES_COMPLEMENT16,  /// One's complement 16-bit sum used for IPv4 headers,
+                      /// TCP, and UDP.
   TARGET_DEFAULT      /// target implementation defined
 }
 // END:Hash_algorithms
@@ -443,6 +452,7 @@ enum PNA_CounterType_t {
 /// Indirect counter with n_counters independent counter values, where
 /// every counter value has a data plane size specified by type W.
 
+@noWarn("unused")
 extern Counter<W, S> {
   Counter(bit<32> n_counters, PNA_CounterType_t type);
   void count(in S index);
@@ -450,6 +460,7 @@ extern Counter<W, S> {
 // END:Counter_extern
 
 // BEGIN:DirectCounter_extern
+@noWarn("unused")
 extern DirectCounter<W> {
   DirectCounter(PNA_CounterType_t type);
   void count();
@@ -861,6 +872,7 @@ extern void mirror_packet(MirrorSlotId_t mirror_slot_id,
 // probably be a parameter that specifies the new entry's initial
 // expire_time_profile_id.
 
+// BEGIN:add_entry_extern_function
 // The bit width of this type is allowed to be different for different
 // target devices.  It must be at least a 1-bit wide type.
 
@@ -924,6 +936,7 @@ extern AddEntryErrorStatus_t add_entry<T>(
     string action_name,
     in T action_params,
     in ExpireTimeProfileId_t expire_time_profile_id);
+// END:add_entry_extern_function
 
 // The following call to add_entry_if():
 //
