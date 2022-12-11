@@ -164,7 +164,7 @@ Note that this document is still a working draft.  Significant changes
 are expected to be made before version 1.0 of this specification is
 released.
 
-The Portable NIC Architecture (PNA) is P4 architecture that defines
+The Portable NIC Architecture (PNA) is the P4 architecture that defines
 the structure and common capabilities for network interface controller
 (NIC) devices. PNA comprises two main components:
 
@@ -187,11 +187,11 @@ multiple NIC devices that are conformant to the PNA[^PNAPortability].
     programs that are able to compile on multiple NIC devices should
     process packets as described in this document.
 
-The Portable NIC Architecture (PNA) Model has four programmable P4
+The Portable NIC Architecture (PNA) Model has three programmable P4
 blocks and several fixed-function blocks, as shown in Figure
 [#fig-nic]. The behavior of the programmable blocks is specified using
-P4. The network ports, packet queues, and (optional) inline extern
-blocks are fixed-function blocks that can be configured by the control
+P4. The network ports, packet queues, and (optional) inline accelerators
+are fixed-function blocks that can be configured by the control
 plane, but are not intended to be programmed using P4.
 
 ~ Figure {#fig-nic; caption: "Programmable NIC Architecture Block Diagram"; page-align: here;}
@@ -209,10 +209,15 @@ like counters, meters, and registers, and optionally associates
 additional user-defined metadata with the packet. The `MainDeparser`
 serializes the headers back into a packet that can be sent onwards.
 
-After the `MainDeparser`, the packet may either:
-* proceed to the message processing part of the NIC, and then typically on
+After the `MainDeparser`, the packet is processed by one or more
+inline accelerators. The P4 program executed in the `MainControl` determines
+whether and how each inline accelerator processes the packet by either setting
+corresponding intrinsic metadata or executing methods of corresponding extern
+object(s).
+Upon existing the inline accelerators, a packet may either:
+- proceed to the message processing part of the NIC, and then typically on
   to the host system, or
-* turn around and head back towards the network ports. This enables
+- turn around and head back towards the network ports. This enables
   on-NIC processing of port-to-port packets without ever traversing the host system.
 
 Figure [#fig-nic] shows multiple hosts. Some NICs support PCI Express
@@ -225,7 +230,7 @@ considered as another host.
 
 ## Message processing
 
-The focus in the current version of this specification is on the four
+The focus in the current version of this specification is on the three
 P4-programmable blocks mentioned above. The details of how one can
 use P4 to program the message processing portion of a NIC is left as
 a future extension of this specification. While there are options for
@@ -292,23 +297,26 @@ jnfoster: should we add a forward reference to add-on-miss?
 ~ End Comment
 
 After finishing processing in the `MainControl`, the packet may be
-enqueued in one of several queues (the number of such queues is target
-specific). After queueing there may be a host-to-net inline extern.
-For example, the host-to-net inline extern block may perform
-encryption of packet payloads according to the IPsec protocol. In this
-case, the `MainControl` would indicate that this processing should be
-form via assigning appropriate values to standard metadata fields
-created for this purpose.
+processed by one or more inline accelerators. The `MainControl` would
+indicate that this processing should be
+performed and how via assigning appropriate values to standard metadata fields
+created for this purpose or by executing methods of corresponding extern
+object(s).
 
 Next, the two primary choices for the next place the packet will go are:
 
-- proceed to be emitted out of one of the network ports, or 
+- proceed to be emitted out of one of the network ports, or
 - turn around and head back towards the host system, which enables
   on-NIC processing of VM-to-VM or host-to-host packets (i.e., on a
   system with multiple hosts).
+  ~ Begin Comment
+  mariobaldi: in the current architecture, based on the statement below,
+  return to the host is not possible. However, this will be overcome in
+  an updated version of the architecture with a more flexible interconnect.
+  ~ End Comment
 
-The choices of which queue to use, what kind of processing to perform
-in the host-to-net inline extern, which network port to go to, or
+The choices of what kind of processing to perform
+in the inline accelerators, which network port to go to, or
 whether to loop back, are all controlled from the P4 code running in
 the `MainControl` block, via extern functions defined by this PNA
 specification.
@@ -335,7 +343,7 @@ example). Note that the `main` package is not to be confused with the
 `MainControl`.
 
 ~ Begin Comment
-jnfoster: should this be turned into a subsection like "Guidelines for Portability"? 
+jnfoster: should this be turned into a subsection like "Guidelines for Portability"?
 ~ End Comment
 
 A P4 programmer wishing to maximize the portability of their program
@@ -380,7 +388,7 @@ must be supported by a PNA implementation. An implementation is
 allowed to support paths for packets that are not described here.
 
 ~Begin TBD
-Create another figure with names for the paths.
+Create another figure with the updated architecture diagram and names for the paths.
 ~End TBD
 
 ~ Figure {#fig-packet-paths; caption: "Packet Paths in PNA"; page-align: here;}
@@ -521,9 +529,13 @@ Need to decide where multicast replication can occur, and in what
 conditions.
 ~End TBD
 
-~Begin TBD 
+~Begin TBD
 Need to decide where packet mirroring occurs, and in what
 conditions, and how the mirrored packets differ from the originals.
+~End TBD
+
+~Begin TBD
+Rewrite this section once the overall architecture is approved
 ~End TBD
 
 ## Initial values of packets processed by main parser
@@ -546,22 +558,13 @@ Packet is as came out of host-to-net received from Ethernet port.
 
 There can be user-defined metadata included with these packets.
 
-## Behavior of packets after pre block is complete
-
-Cases: drop vs. not, do something in net-to-host inline extern block
-or not.
-
 ## Initial values of packets processed in network-to-host direction by main block
 
 ### Initial packet contents for normal packets
 
-The packet should be either:
-+ exactly as arrived at the pre parser, if the net-to-host inline
-  extern was directed not to modify the packet
-+ exact as output by the net-to-host inline extern
+The packet should be ...
 
-The user-defined metadata should be exactly as output by the pre
-control.
+The user-defined metadata should be ...
 
 The standard metadata contents should be specified in detail here.
 
@@ -902,39 +905,24 @@ A PNA implementation need not support both `pna_implementation` and
 ## Tables with add-on-miss capability {#sec-add-on-miss}
 
 PNA defines the `add_on_miss` table property.  If the value of this
-property is `true` for a table `t`, the P4 developer is allowed to
-define a default action for `t` that calls the `add_entry` extern
-function.
+property is `true` for a table, the P4 developer is allowed to define
+a default action for the table that calls the `add_entry` extern
+function.  `add_entry` adds a new entry to the table whose default
+action calls the `add_entry` function.  The new entry will have the
+same key that was just looked up.
 
-When `t.apply()` is invoked, `t`'s lookup key is constructed, and the
-entries of the table are searched.  If there is no match, i.e. the
-lookup results in a miss, `t`'s default action is executed.  So far,
-this is all standard behavior as defined in the P4~16~ language
-specification.
-
-If `t`'s default action makes a call to `add_entry`, it causes a new
-entry to be added to the table with the same key that was just looked
-up and resulted in a miss, and the action name and action parameters
-specified by the parameters of the call to the `add_entry` extern
-function.  Thus, future packets that invoke `t.apply()` with the same
-lookup key will get a match and invoke the specified action (until and
-unless this new table entry is removed).  The new table entry will be
-matchable when the next packet is processed that invoked `t.apply()`.
-
-Some PNA implementations may allow the control plane software to add,
-modify, and delete entries of such a table, but any entries added via
-the `add_entry` function do not require the control plane software to
-be involved in any way.  Other PNA implementations may choose not to
-support control plane modification of the entries of an add-on-miss
-table.
-
-It is expected that PNA implementations will be able to sustain
-`add_entry` calls at a large fraction of their line rate, but it need
-not be at the same packet rate supported for processing packets that
-do not call `add_entry`.
+The control plane API is still allowed to add, modify, and delete
+entries of such a table, but any entries added via the `add_entry`
+function do not require the control plane software to be involved in
+any way.  It is expected that PNA implementations will be able to
+sustain `add_entry` calls at a large fraction of their line rate, but
+it need not be at the same packet rate supported for processing
+packets that do not call `add_entry`.  The new table entry will be
+matchable when the next packet is processed that applies this table.
 
 ~Begin P4Example
-[INCLUDE=pna.p4:add_entry_extern_function]
+extern bool add_entry<T>(string action_name,
+                         in T action_params);
 ~End P4Example
 
 It is expected that many PNA implementations will restrict
@@ -957,60 +945,72 @@ table's default action to be executed.  The action will be the one
 named by the string that is passed as the parameter `action_name`.
 
 If the attempt to add a table entry succeeds, the return value is
-`ADD_ENTRY_SUCCESS`, otherwise it will be some other value.  PNA
-implementations are free to define additional failure reasons other
-than `ADD_ENTRY_NOT_DONE`, but it is perfectly acceptable for a PNA
-implementation to only support those two possible return values.
+`true`, otherwise `false`.
 
 
-## Table entry idle timeout {#sec-idle-timeout}
+## Table entry timeout notification {#sec-idle-timeout}
 
-PNA defines the table property `pna_idle_timeout` to enable specifying
-whether a table should maintain an idle time for each of its entries,
-and if so, what the data plane should do when a table entry has not
-been matched for a length of time at least its configured idle time.
+PNA uses the `pna_idle_timeout` to enable a table implementation send
+notifications from the PNA device when a configurable time has passed
+since an entry was last matched. The property may take one of two
+values -- `NO_TIMEOUT`, and `NOTIFY_CONTROL`. `NO_TIMEOUT` disables
+idle timeout support for the table and it is the default value when
+the property is not present. `NOTIFY_CONTROL` enables the
+notification. A PNA implementation will then generate an API for the
+control plane to set time-to-live (TTL) values for table entries and
+if at any time during its lifetime, the table entry is not "hit" (&ie;
+not selected by any packet lookup) for a lapse of time greater or
+equal to its TTL, the device should generate a notification to the
+control plane. The rate and mode of how the notifications are
+generated and delivered to the control plane are subject to
+configuration parameters specified by the control plane API.
 
-The value assigned to `pna_idle_timeout` must be a value of type
-`PNA_IdleTimeout_t`:
+Example:
 
 ~Begin P4Example
-[INCLUDE=pna.p4:enum_PNA_IdleTimeout_t]
+enum PNA_IdleTimeout_t {
+  NO_TIMEOUT,
+  NOTIFY_CONTROL
+}
+
+table t {
+  action a1 () { ... }
+  action a2 () { ... }
+  key = { hdr.f1: exact; }
+  actions = { a1; a2; }
+  default_action = a2;
+  pna_idle_timeout = PNA_IdleTimeout_t.NOTIFY_CONTROL;
+}
 ~End P4Example
 
-If the property `pna_idle_timeout` is not specified for a table, its
-default value is `NO_TIMEOUT`.  Such tables need not maintain an idle
-time for any of its table entries, and will not perform any special
-action regardless of how long a table entry remains unmatched.
+Restrictions on the TTL values and notifications:
 
-If the property `pna_idle_timeout` is assigned a value of
-`NOTIFY_CONTROL`, the behavior is the same as defined in the Portable
-Switch Architecture if a table has its property `psa_idle_timeout`
-assigned a value of `NOTIFY_CONTROL`.  See the section titled "Table
-entry timeout notification" in the PSA specification[^PSA].
+- It is likely that any hardware implementation will have a limited
+  number of bits to represent the values, and, since the values are
+  programmed at runtime, it is the responsibility of the runtime
+  (P4Runtime or other controller software) to guarantee that the TTL
+  values can be represented in the device. This can be done by scaling
+  the values to the number of bits available on the platform, ensuring
+  that the range of values between different entries are
+  representable. A PNA implementation should only enable the
+  programming of such tables, and return an error if the device does
+  not support the idle timeout at all.
 
-[^PSA]: The Portable Switch Architecture specification can be found here:
-    <https://p4.org/specs>
+- If no value is programmed for a table entry, even though the table
+  has enabled the idle timeout property, the entry will not generate a
+  notification.
 
-If the property `pna_idle_timeout` is assigned a value of
-`AUTO_DELETE`, the behavior is similar to the behavior of the value
-`NOTIFY_CONTROL`, except that no notification message is generated to
-the control plane when an entry's idle time is reached.  Instead, the
-data plane deletes the table entry.
+- PNA does not require a timeout value for a default action entry. The
+  reason for not making this mandatory in the specification is that
+  the default action may not have an explicit table entry to
+  represent it, and also there are no known compelling use cases for a
+  controller knowing when no misses have occurred for a particular
+  table for a long time. The default action entry will not be aged
+  out.
 
-PNA implementations may restrict `pna_idle_timeout` to be
-`AUTO_DELETE` only for tables that also have `add_on_miss` equal to
-`true`.
-
-PNA implementations are expected to be able to perform add-on-miss at
-very high rates relative to line rate, and similarly for such
-add-on-miss tables, they should be able to perform auto-deletion of
-entries in the data plane at a similarly large rate.  If a P4
-developer wishes to use the high rate add-on-miss capabilities for a
-particular table, it is likely that they do not wish the control plane
-to be responsible for keeping up with a high rate of deleting idle
-entries, and thus will often use `add_on_miss = true` and
-`pna_idle_timeout = PNA_IdleTimeout_t.AUTO_DELETE` together.
-
+- Currently, tables implemented using ActionSelectors and
+  ActionProfiles do not support the `pna_idle_timeout` property.
+  Future versions of the specification may remove this restriction.
 
 # Timestamps
 
