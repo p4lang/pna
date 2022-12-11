@@ -574,8 +574,8 @@ enum PNA_PacketPath_t {
     FROM_HOST_RECIRCULATED
 }
 
-struct pna_main_parser_input_metadata_t {
-    // common fields initialized for all packets that are input to main
+struct pna_parser_input_metadata_t {
+    // common fields initialized for all packets that are input to
     // parser, regardless of direction.
     PNA_Direction_t          direction;
     PassNumber_t             pass;
@@ -587,8 +587,8 @@ struct pna_main_parser_input_metadata_t {
     PortId_t                 input_port;   // network port id
 }
 
-struct pna_main_input_metadata_t {
-    // common fields initialized for all packets that are input to main
+struct pna_input_metadata_t {
+    // common fields initialized for all packets that are input to
     // parser, regardless of direction.
     PNA_Direction_t          direction;
     PassNumber_t             pass;
@@ -597,18 +597,18 @@ struct pna_main_input_metadata_t {
     ParserError_t            parser_error;
     ClassOfService_t         class_of_service;
     // See comments for field input_port in struct
-    // pna_main_parser_input_metadata_t
+    // pna_parser_input_metadata_t
     PortId_t                 input_port;
 }
 
-// BEGIN:Metadata_main_output
-struct pna_main_output_metadata_t {
+// BEGIN:Metadata_output
+struct pna_output_metadata_t {
   // common fields used by the architecture to decide what to do with
-  // the packet next, after the main parser, control, and deparser
+  // the packet next, after the parser, control, and deparser
   // have finished executing one pass, regardless of the direction.
   ClassOfService_t         class_of_service; // 0
 }
-// END:Metadata_main_output
+// END:Metadata_output
 // END:Metadata_types
 
 
@@ -623,9 +623,9 @@ struct pna_main_output_metadata_t {
 
 
 // drop_packet() - Cause the packet to be dropped when it finishes
-// completing the main control.
+// completing the control.
 //
-// Invoking drop_packet() is supported only within the main control.
+// Invoking drop_packet() is supported only within the control.
 
 extern void drop_packet();
 
@@ -866,28 +866,28 @@ extern T SelectByDirection<T>(
 
 
 // BEGIN:Programmable_blocks
-parser MainParserT<MH, MM>(
+parser ParserT<H, M>(
     packet_in pkt,
-    out   MH main_hdr,
-    inout MM main_user_meta,
-    in    pna_main_parser_input_metadata_t istd);
+    out   H hdr,
+    inout M user_meta,
+    in    pna_parser_input_metadata_t istd);
 
-control MainControlT<MH, MM>(
-    inout MH main_hdr,
-    inout MM main_user_meta,
-    in    pna_main_input_metadata_t  istd,
-    inout pna_main_output_metadata_t ostd);
+control ControlT<H, M>(
+    inout H hdr,
+    inout M user_meta,
+    in    pna_input_metadata_t  istd,
+    inout pna_output_metadata_t ostd);
 
-control MainDeparserT<MH, MM>(
+control DeparserT<H, M>(
     packet_out pkt,
-    in    MH main_hdr,
-    in    MM main_user_meta,
-    in    pna_main_output_metadata_t ostd);
+    in    MH hdr,
+    in    MM user_meta,
+    in    pna_output_metadata_t ostd);
 
-package PNA_NIC<MH, MM>(
-    MainParserT<MH, MM> main_parser,
-    MainControlT<MH, MM> main_control,
-    MainDeparserT<MH, MM> main_deparser);
+package PNA_NIC<H, M>(
+    ParserT<H, M> parser,
+    ControlT<H, M> control,
+    DeparserT<H, M> deparser);
 // END:Programmable_blocks
 
 #endif   // __PNA_P4__
