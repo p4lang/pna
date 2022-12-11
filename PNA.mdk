@@ -197,7 +197,7 @@ plane, but are not intended to be programmed using P4.
 ~ Figure {#fig-nic; caption: "Programmable NIC Architecture Block Diagram"; page-align: here;}
 ![nic]
 ~
-[nic]: figs/pna-block-diagram.png { width: 100%;}
+[nic]: figs/accelerator-arch.png { width: 100%;}
 
 ## Packet processing in the network to host direction
 
