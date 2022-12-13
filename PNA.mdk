@@ -860,6 +860,24 @@ extern definitions being moved from the PSA specification into a
 separate standard library of P4 extern definitions, and if this is
 done, both the PSA and PNA specifications will reference that.
 
+## Extern Objects for Inline Accelerators {#sec-extern-restrictions}
+
+A variety of inline accelerators can be present on a PNA target. These
+accelerators perform specific functions on a packet. These functions are
+typically implemented in hardware.
+
+These hardware functions are represented as extern objects in a P4 program.
+An extern object representing a specific accelerator E.g. AES-GCM crypto
+accelerator, can be instantiated in P4 program. The methods defined by
+the extern object are used to control the behavior of the inline accelator
+it represents. This section provides one example definition of a crypto
+acceleration engine. Other extern objects can be defined based on the
+functionality provided by the hardware accelerators.
+
+~Begin P4Example
+[INCLUDE=examples/include/crypto-accel.p4:Crypto_accelerator_extern_object]
+~End P4Example
+
 # PNA Table Properties
 
 Table [#table-table-properties] lists all P4 table properties defined

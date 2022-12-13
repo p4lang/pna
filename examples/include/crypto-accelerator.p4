@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/// Crypto accelerator Extern definition
+// BEGIN:Crypto_accelerator_extern_object
 
 /// Crypto accelerator object is instantiated for each crypto algorithm
 enum crypto_algorithm_e {
@@ -129,3 +129,4 @@ extern crypto_accelerator {
     // get results of the previous operation
     crypto_results_e get_results();
 }
+// END:Crypto_accelerator_extern_object
