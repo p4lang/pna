@@ -31,7 +31,7 @@ extern void recirc_packet();
 
 #define IP_PROTO_TCP    0x06
 #define IP_PROTO_UDP    0x11
-#define IP_PROTO_ESP    0x50
+#define IP_PROTO_ESP    50
 
 typedef bit<48>  EthernetAddress;
 
