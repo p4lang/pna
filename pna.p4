@@ -556,6 +556,230 @@ extern Digest<T> {
 }
 // END:Digest_extern
 
+// BEGIN:ExactMap_extern
+struct exactmap_const_entry_t<K,V> {
+    K key;
+    V val;
+}
+
+struct exactmap_initial_entry_t<K,V> {
+    bool const_entry;
+    K key;
+    V val;
+}
+
+/**
+ * The type K must be a struct type.  Each of its members becomes a
+ * separate key field of the ExactMap instance, with the member name
+ * as its control plane API name.
+ *
+ * The type V may be a struct type, or a scalar type.
+ */
+extern ExactMap<K, V> {
+    /**
+     * Create a table with match kinds all 'exact' and the specified
+     * size (number of entries).  The default value returned when a
+     * lookup experiences a miss is given by default_value.
+     */
+    ExactMap(int size, V default_value);
+
+    /**
+     * The same as the constructor with an explicit default_value,
+     * except the default_value is the default value for the type V as
+     * defined in the section "Default values" of the P4_16 language
+     * specification.
+     */
+    ExactMap(int size);
+
+    /**
+     * Create a table with match kinds all 'exact' and the specified
+     * size (number of entries).  The default value returned when a
+     * lookup experiences a miss is given by default_value.
+     * const_entries is a list of entries, similar to the 'const
+     * entries' table property for tables.  This set of entries cannot
+     * be removed or modified by the control plane, and also, the
+     * control plane is not allowed to add any entries to an ExactMap
+     * instance created using this constructor.  Duplicate key values
+     * are not allowed.
+     *
+     * Example where key is type emap1_key and value is type bit<16>:
+     *
+     *     struct emap1_key {
+     *         bit<8> my_field;
+     *     }
+     *
+     *     ExactMap<emap1_key, bit<16>>(
+     *         size = 1024,
+     *         const_entries = {
+     *             {{5}, 10},  // key my_field=5, value 10
+     *             {{6}, 27},  // key my_field=6, value 27
+     *             {{10}, 2}   // key my_field=10, value 2
+     *         },
+     *         default_value = 42)  // default value returned for all other keys
+     *     emap1;
+     */
+    ExactMap(int size,
+        list<exactmap_const_entry_t<K,V>> const_entries,
+        V default_value);
+
+    /**
+     * The same as the ExactMap constructor with a parameter named
+     * `const_entries`, except that the control plane is allowed to
+     * add entries to an ExactMap instance constructed using this
+     * constructor (subject to capacity constraints, as usual), and
+     * the control plane can modify or remove any entries that has a
+     * `const_entry` field equal to false.  Any entries with a
+     * `const_entry` field value equal to true cannot be modified or
+     * removed by the control plane.
+     */
+    ExactMap(int size,
+        list<exactmap_initial_entry_t<K,V>> initial_entries,
+        V default_value);
+
+    /**
+     * Look up the key in the table.  Every call to lookup() returns a
+     * value of type V, because either the search will match an entry,
+     * or if no entry matches, the default_value will be returned.
+     */
+    V lookup(in K key);
+}
+// END:ExactMap_extern
+
+// BEGIN:TernaryMap_extern
+typedef bit<32> EntryPriority_t;
+
+struct ternarymap_const_entry_t<K,V> {
+    K key_val;
+    K key_mask;
+    V val;
+}
+
+struct ternarymap_initial_entry_t<K,V> {
+    bool const_entry;
+    EntryPriority_t priority;
+    K key_val;
+    K key_mask;
+    V val;
+}
+
+
+/**
+ * The type K must be a struct type.  Each of its members becomes a
+ * separate key field of the TernaryMap instance, with the member name
+ * as its control plane API name.
+ *
+ * The type V may be a struct type, or a scalar type.
+ */
+extern TernaryMap<K, V> {
+    /**
+     * Create a table with match kinds all 'ternary' and the specified
+     * size (number of entries).  The default value returned when a
+     * lookup experiences a miss is given by default_value.
+     */
+    TernaryMap(int size, V default_value);
+
+    /**
+     * The same as the constructor with an explicit default_value,
+     * except the default_value is the default value for the type V as
+     * defined in the section "Default values" of the P4_16 language
+     * specification.
+     */
+    TernaryMap(int size);
+
+    /**
+     * Create a table with match kinds all 'ternary' and the specified
+     * size (number of entries).  The default value returned when a
+     * lookup experiences a miss is given by default_value.
+     * const_entries is a list of entries, similar to the 'const
+     * entries' table property for tables.  This set of entries cannot
+     * be removed or modified by the control plane, and also, the
+     * control plane is not allowed to add any entries to an
+     * TernaryMap instance created using this constructor.  The
+     * relative priority of these entries is that if a lookup key
+     * matches multiple entries in the list, then the first entry
+     * "wins", i.e. that entry's value is returned.
+     *
+     * Example where key is type tmap1_key and value is type bit<16>:
+     *
+     *     struct tmap1_key {
+     *         bit<24> f1;
+     *         bit<3> f2;
+     *     }
+     *
+     *     TernaryMap<tmap1_key, bit<16>>(
+     *         size = 1024,
+     *         const_entries = {
+     *             // ternary key with
+     *             // + value 5, mask 0xffffff (exact match on least
+     *             //   significant 24 bits) for field f1,
+     *             // + value 2, mask 0x7 (exact match on all 3 bits)
+     *             //   for field f2,
+     *             // and value 10:
+     *             {{{       5,   2},
+     *               {0xffffff, 0x7}},
+     *               10},
+     *
+     *             // ternary key with
+     *             // + value 6, mask 0xff00ff (wildcard on middle 8
+     *             //   bits, exact match on the rest) for field f1,
+     *             // + value 2, mask 0x7 (exact match on all 3 bits)
+     *             //   for field f2,
+     *             // and value 27:
+     *             {{{       6,   2},
+     *               {0xff00ff, 0x7}},
+     *               27},
+     *
+     *             // ternary key with
+     *             // + value 10, mask 0x00ffff (exact match on least
+     *             //   significant 16 bits, wildcard on bits
+     *             //   [23:16]),
+     *             // + value 0, mask 0x2 (exact match on only the
+     *             //   middle bit) for field f2,
+     *             // and value 2:
+     *             {{{      10,   0},
+     *               {0x00ffff, 0x2}},
+     *               2}
+     *         },
+     *         default_value = 42)  // default value returned for all other keys
+     *     tmap1;
+     */
+    TernaryMap(int size,
+        list<ternarymap_const_entry_t<K,V>> const_entries,
+        V default_value);
+
+    /**
+     * The same as the TernaryMap constructor with a parameter named
+     * `const_entries`, except that the control plane is allowed to
+     * add entries to a TernaryMap instance constructed using this
+     * constructor (subject to capacity constraints, as usual), and
+     * the control plane can modify or remove any entries that has a
+     * `const_entry` field equal to false.  Any entries with a
+     * `const_entry` field value equal to true cannot be modified or
+     * removed by the control plane.
+     *
+     * The `priority` field specifies the priority of an entry.  If
+     * largest_priority_wins is true, then when a search key matches
+     * multiple entries, the one with the largest priority value wins.
+     * If largest_priority_wins is false, then an entry with the
+     * smallest priority value wins.  If multiple entries have the
+     * same priority value, it is unspecified which of the entries
+     * with the same priority value will win if more than one of them
+     * match the lookup key.
+     */
+    TernaryMap(int size,
+        bool largest_priority_wins,
+        list<ternarymap_initial_entry_t<K,V>> initial_entries,
+        V default_value);
+
+    /**
+     * Look up the key in the table.  Every call to lookup() returns a
+     * value of type V, because either the search will match an entry,
+     * or if no entry matches, the default_value will be returned.
+     */
+    V lookup(in K key);
+}
+// END:TernaryMap_extern
+
 enum PNA_Direction_t {
     NET_TO_HOST,
     HOST_TO_NET
