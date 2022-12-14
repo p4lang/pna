@@ -864,15 +864,21 @@ done, both the PSA and PNA specifications will reference that.
 
 A variety of inline accelerators can be present on a PNA target. These
 accelerators perform specific functions on a packet. These functions are
-typically implemented in hardware.
+typically implemented in hardware. These accelerators perform specific
+functions on a packet after the deparser has finished executing.
 
 These hardware functions are represented as extern objects in a P4 program.
 An extern object representing a specific accelerator E.g. AES-GCM crypto
-accelerator, can be instantiated in P4 program. The methods defined by
-the extern object are used to control the behavior of the inline accelator
-it represents. This section provides one example definition of a crypto
-acceleration engine. Other extern objects can be defined based on the
-functionality provided by the hardware accelerators.
+accelerator, can be instantiated in a P4 program. The methods defined by
+the extern object are used to send and receive information to/from the
+inline accelerator. Since the accelerators are present after the deparser,
+the information sent to the accelerator takes effect only when packet reaches
+the accelerator. Similarly any information received from accelerator is
+for the previous function performed on the packet.
+
+This section provides one example definition of a crypto acceleration engine.
+Other extern objects can be defined in future based on the functionality
+provided by the hardware accelerators.
 
 ~Begin P4Example
 [INCLUDE=examples/include/crypto-accel.p4:Crypto_accelerator_extern_object]
