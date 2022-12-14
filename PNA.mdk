@@ -368,7 +368,7 @@ In this document we use the following naming conventions:
 
 - Types are named using CamelCase followed by `_t`. For example, `PortId_t`.
 - Control types and extern object types are named using CamelCase. For
-  example `IngressParser`.
+  example `MainParser`.
 - Struct types are named using lower case words separated by `_`
   followed by `_t`. For example `pna_ingress_input_metadata_t`.
 - Actions, extern methods, extern functions, headers, structs, and
@@ -807,29 +807,29 @@ the places mentioned in Table [#table-extern-usage].
 |-------------------|----------------------------------------------|
 | Extern type       | Where it may be instantiated and called from |
 +:------------------+:---------------------------------------------+
-| `ActionProfile`   | Control |
+| `ActionProfile`   | MainControl |
 |-------------------|----------------------------------------------|
-| `ActionSelector`  | Control |
+| `ActionSelector`  | MainControl |
 |-------------------|----------------------------------------------|
-| `Checksum`        | Parser, Deparser |
+| `Checksum`        | MainParser, MainDeparser |
 |-------------------|----------------------------------------------|
-| `Counter`         | Control |
+| `Counter`         | MainControl |
 |-------------------|----------------------------------------------|
-| `Digest`          | Deparser |
+| `Digest`          | MainDeparser |
 |-------------------|----------------------------------------------|
-| `DirectCounter`   | Control |
+| `DirectCounter`   | MainControl |
 |-------------------|----------------------------------------------|
-| `DirectMeter`     | Control |
+| `DirectMeter`     | MainControl |
 |-------------------|----------------------------------------------|
-| `Hash`            | Control |
+| `Hash`            | MainControl |
 |-------------------|----------------------------------------------|
-| `InternetChecksum` | Parser, Deparser |
+| `InternetChecksum` | MainParser, MainDeparser |
 |-------------------|----------------------------------------------|
-| `Meter`           | Control |
+| `Meter`           | MainControl |
 |-------------------|----------------------------------------------|
-| `Random`          | Control |
+| `Random`          | MainControl |
 |-------------------|----------------------------------------------|
-| `Register`        | Control |
+| `Register`        | MainControl |
 |-------------------|----------------------------------------------|
 ~
 
