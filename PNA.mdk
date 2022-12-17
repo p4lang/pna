@@ -325,7 +325,7 @@ containing the PNA specification[^PNAExamplePrograms].
     <https://github.com/p4lang/pna/tree/master/examples>
 
 
-## Guidelines for Portability"?
+## Guidelines for Portability"
 
 A P4 programmer wishing to maximize the portability of their program should
 follow several general guidelines:
