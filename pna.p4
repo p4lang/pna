@@ -556,46 +556,34 @@ extern Digest<T> {
 }
 // END:Digest_extern
 
-enum PNA_Direction_t {
-    NET_TO_HOST,
-    HOST_TO_NET
+enum PNA_Source_t {
+    FROM_HOST,
+    FROM_NET
 }
 
 // BEGIN:Metadata_types
-enum PNA_PacketPath_t {
-    // TBD if this type remains, whether it should be an enum or
-    // several separate fields representing the same cases in a
-    // different form.
-    FROM_NET_PORT,
-    FROM_NET_LOOPEDBACK,
-    FROM_NET_RECIRCULATED,
-    FROM_HOST,
-    FROM_HOST_LOOPEDBACK,
-    FROM_HOST_RECIRCULATED
-}
 
 struct pna_main_parser_input_metadata_t {
     // common fields initialized for all packets that are input to main
     // parser, regardless of direction.
-    PNA_Direction_t          direction;
-    PassNumber_t             pass;
-    bool                     loopedback;
-    // If this packet has direction NET_TO_HOST, input_port contains
+    bool                     recirculated;
+    // If this packet has FROM_NET source, input_port contains
     // the id of the network port on which the packet arrived.
-    // If this packet has direction HOST_TO_NET, input_port contains
+    // If this packet has FROM_HOST source, input_port contains
     // the id of the vport from which the packet came
-    PortId_t                 input_port;   // network port id
+    PortId_t                 input_port;   // network/host port id
 }
+
+extern bool Is_host_port (PortID_t p);
+extern bool Is_net_port (PortID_t p);
 
 struct pna_main_input_metadata_t {
     // common fields initialized for all packets that are input to main
     // parser, regardless of direction.
-    PNA_Direction_t          direction;
-    PassNumber_t             pass;
-    bool                     loopedback;
+    bool                     recirculated;
     Timestamp_t              timestamp;
     ParserError_t            parser_error;
-    ClassOfService_t         class_of_service;
+    ClassOfService_t         class_of_service; //TODO: is this to stay?
     // See comments for field input_port in struct
     // pna_main_parser_input_metadata_t
     PortId_t                 input_port;
