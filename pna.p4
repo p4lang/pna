@@ -60,7 +60,6 @@ typedef bit<16> MulticastInstanceUint_t;
 typedef bit<64> TimestampUint_t;
 typedef bit<32> FlowIdUint_t;
 typedef bit<8>  ExpireTimeProfileIdUint_t;
-typedef bit<3>  PassNumberUint_t;
 
 typedef bit<32> SecurityAssocIdUint_t;
 
@@ -86,8 +85,6 @@ type TimestampUint_t      Timestamp_t;
 type FlowIdUint_t      FlowId_t;
 @p4runtime_translation("p4.org/pna/v1/ExpireTimeProfileId_t", 8)
 type ExpireTimeProfileIdUint_t      ExpireTimeProfileId_t;
-@p4runtime_translation("p4.org/pna/v1/PassNumber_t", 8)
-type PassNumberUint_t      PassNumber_t;
 
 @p4runtime_translation("p4.org/pna/v1/SecurityAssocId_t", 64)
 type SecurityAssocIdUint_t      SecurityAssocId_t;
@@ -128,7 +125,6 @@ typedef bit<unspecified> MulticastInstanceUint_t;
 typedef bit<unspecified> TimestampUint_t;
 typedef bit<unspecified> FlowIdUint_t;
 typedef bit<unspecified> ExpireTimeProfileIdUint_t;
-typedef bit<unspecified> PassNumberUint_t;
 
 typedef bit<unspecified> SecurityAssocIdUint_t;
 
@@ -154,8 +150,6 @@ type TimestampUint_t      Timestamp_t;
 type FlowIdUint_t      FlowId_t;
 @p4runtime_translation("p4.org/pna/v1/ExpireTimeProfileId_t", 8)
 type ExpireTimeProfileIdUint_t      ExpireTimeProfileId_t;
-@p4runtime_translation("p4.org/pna/v1/PassNumber_t", 8)
-type PassNumberUint_t      PassNumber_t;
 
 @p4runtime_translation("p4.org/pna/v1/SecurityAssocId_t", 64)
 type SecurityAssocIdUint_t      SecurityAssocId_t;
@@ -206,7 +200,6 @@ typedef bit<16> MulticastInstanceInHeaderUint_t;
 typedef bit<64> TimestampInHeaderUint_t;
 typedef bit<32> FlowIdInHeaderUint_t;
 typedef bit<8>  ExpireTimeProfileIdInHeaderUint_t;
-typedef bit<8>  PassNumberInHeaderUint_t;
 
 typedef bit<32> SecurityAssocIdInHeaderUint_t;
 
@@ -232,8 +225,6 @@ type  TimestampInHeaderUint_t      TimestampInHeader_t;
 type  FlowIdInHeaderUint_t      FlowIdInHeader_t;
 @p4runtime_translation("p4.org/pna/v1/ExpireTimeProfileIdInHeader_t", 8)
 type  ExpireTimeProfileIdInHeaderUint_t      ExpireTimeProfileIdInHeader_t;
-@p4runtime_translation("p4.org/pna/v1/PassNumberInHeader_t", 8)
-type  PassNumberInHeaderUint_t      PassNumberInHeader_t;
 
 @p4runtime_translation("p4.org/pna/v1/SecurityAssocIdInHeader_t", 64)
 type  SecurityAssocIdInHeaderUint_t      SecurityAssocIdInHeader_t;
@@ -289,9 +280,6 @@ FlowId_t pna_FlowId_header_to_int (in FlowIdInHeader_t x) {
 ExpireTimeProfileId_t pna_ExpireTimeProfileId_header_to_int (in ExpireTimeProfileIdInHeader_t x) {
     return (ExpireTimeProfileId_t) (ExpireTimeProfileIdUint_t) (ExpireTimeProfileIdInHeaderUint_t) x;
 }
-PassNumber_t pna_PassNumber_header_to_int (in PassNumberInHeader_t x) {
-    return (PassNumber_t) (PassNumberUint_t) (PassNumberInHeaderUint_t) x;
-}
 
 PortIdInHeader_t pna_PortId_int_to_header (in PortId_t x) {
     return (PortIdInHeader_t) (PortIdInHeaderUint_t) (PortIdUint_t) x;
@@ -322,9 +310,6 @@ FlowIdInHeader_t pna_FlowId_int_to_header (in FlowId_t x) {
 }
 ExpireTimeProfileIdInHeader_t pna_ExpireTimeProfileId_int_to_header (in ExpireTimeProfileId_t x) {
     return (ExpireTimeProfileIdInHeader_t) (ExpireTimeProfileIdInHeaderUint_t) (ExpireTimeProfileIdUint_t) x;
-}
-PassNumberInHeader_t pna_PassNumber_int_to_header (in PassNumber_t x) {
-    return (PassNumberInHeader_t) (PassNumberInHeaderUint_t) (PassNumberUint_t) x;
 }
 
 // BEGIN:enum_PNA_IdleTimeout_t
