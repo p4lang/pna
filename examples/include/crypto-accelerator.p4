@@ -14,8 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/// Crypto accelerator Extern definition
-
 /// Crypto accelerator object is instantiated for each crypto algorithm
 enum crypto_algorithm_e {
     AES_GCM
@@ -80,6 +78,9 @@ enum crypto_results_e {
 ///     +------------------+--  ----------------------+-----------+-----+
 ///     Results: Success, Auth Failure, Hardware Error
 ///
+
+// BEGIN:Crypto_accelerator_extern_object
+
 extern crypto_accelerator {
     /// constructor
     /// Some methods provided in this object may be specific to an algorithm used.
@@ -129,3 +130,4 @@ extern crypto_accelerator {
     // get results of the previous operation
     crypto_results_e get_results();
 }
+// END:Crypto_accelerator_extern_object
