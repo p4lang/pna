@@ -262,14 +262,14 @@ control MainControlImpl(
         /* add_on_miss table is restricted to have all exact match fields */
         key = {
             // other key fields also possible, e.g. VRF
-            SelectByDirection(istd.direction, hdr.ipv4.srcAddr, hdr.ipv4.dstAddr):
+            SelectByDirection(is_net_port(istd.input_port), hdr.ipv4.srcAddr, hdr.ipv4.dstAddr):
                 exact @name("ipv4_addr_0");
-            SelectByDirection(istd.direction, hdr.ipv4.dstAddr, hdr.ipv4.srcAddr):
+            SelectByDirection(is_net_port(istd.input_port), hdr.ipv4.dstAddr, hdr.ipv4.srcAddr):
                 exact @name("ipv4_addr_1");
             hdr.ipv4.protocol : exact;
-            SelectByDirection(istd.direction, hdr.tcp.srcPort, hdr.tcp.dstPort):
+            SelectByDirection(is_net_port(istd.input_port), hdr.tcp.srcPort, hdr.tcp.dstPort):
                 exact @name("tcp_port_0");
-            SelectByDirection(istd.direction, hdr.tcp.dstPort, hdr.tcp.srcPort):
+            SelectByDirection(is_net_port(istd.input_port), hdr.tcp.dstPort, hdr.tcp.srcPort):
                 exact @name("tcp_port_1");
         }
         actions = {
@@ -322,7 +322,7 @@ control MainControlImpl(
 
         do_add_on_miss = false;
         update_expire_time = false;
-        if ((istd.direction == PNA_Direction_t.HOST_TO_NET) &&
+        if (is_host_port(istd.input_port) &&
             hdr.ipv4.isValid() && hdr.tcp.isValid())
         {
             set_ct_options.apply();

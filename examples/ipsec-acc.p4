@@ -133,9 +133,7 @@ parser MainParserImpl(
     state start {
         main_meta.sa_index = 1; // just for exmaple, used for encrypt
 
-        // TODO: can't find  better indication of recirc in the existing pna.p4
-        // This should be a field in istd or and extern
-        transition select(istd.loopedback) {
+        transition select(istd.recirculated) {
             true : parse_recirc_header;
             default : parse_packet;
         }

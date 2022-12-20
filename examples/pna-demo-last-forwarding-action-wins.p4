@@ -125,7 +125,7 @@ control MainControlImpl(
         default_action = NoAction;
     }
     apply {
-        if (istd.direction == PNA_Direction_t.NET_TO_HOST) {
+        if (is_net_port(istd.input_port)) {
             mirror_decision_near_ports_rx.apply();
             t1_rx.apply();
             t2_rx.apply();

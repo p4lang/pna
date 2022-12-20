@@ -574,8 +574,12 @@ struct pna_main_parser_input_metadata_t {
     PortId_t                 input_port;   // network/host port id
 }
 
-extern bool Is_host_port (PortID_t p);
-extern bool Is_net_port (PortID_t p);
+// is_host_port(p) returns true if p is a host port, otherwise false.
+extern bool is_host_port (in PortId_t p);
+
+// is_net_port(p) returns true if p is a network port, otherwise
+// false.
+extern bool is_net_port (in PortId_t p);
 
 struct pna_main_input_metadata_t {
     // common fields initialized for all packets that are input to main
@@ -583,7 +587,7 @@ struct pna_main_input_metadata_t {
     bool                     recirculated;
     Timestamp_t              timestamp;
     ParserError_t            parser_error;
-    ClassOfService_t         class_of_service; //TODO: is this to stay?
+    ClassOfService_t         class_of_service;
     // See comments for field input_port in struct
     // pna_main_parser_input_metadata_t
     PortId_t                 input_port;
@@ -832,23 +836,28 @@ extern void set_entry_expire_time_if(
 
 /*
 T SelectByDirection<T>(
-    in PNA_Direction_t direction,
-    in T n2h_value,
-    in T h2n_value)
+    in bool is_network_port,
+    in T from_net_value,
+    in T from_host_value)
 {
-    if (direction == PNA_Direction_t.NET_TO_HOST) {
-        return n2h_value;
+    if (is_network_port) {
+        return from_net_value;
     } else {
-        return h2n_value;
+        return from_host_value;
     }
 }
 */
 
+// A typical call would look like this example:
+//
+// SelectByDirection(is_net_port(istd.input_port), hdr.ipv4.src_addr,
+//                               hdr.ipv4.dst_addr)
+
 @pure
 extern T SelectByDirection<T>(
-    in PNA_Direction_t direction,
-    in T n2h_value,
-    in T h2n_value);
+    in bool is_network_port,
+    in T from_net_value,
+    in T from_host_value);
 
 
 

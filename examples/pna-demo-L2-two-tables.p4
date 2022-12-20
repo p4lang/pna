@@ -73,19 +73,20 @@ control MainControlImpl(
     // different program, one could of course choose for these tables
     // to have different actions from each other.
 
-    table L2_fwd_n2h {
+    table L2_fwd_from_network {
         key = { hdr.eth.dstAddr: exact; }
         actions = { L2_send_to_port; drop; }
         default_action = drop;
     }
-    table L2_fwd_h2n {
+    table L2_fwd_from_host {
         key = { hdr.eth.dstAddr: exact; }
         actions = { L2_send_to_port; drop; }
         default_action = drop;
     }
     apply {
-        // L2_fwd_n2h and L2_fwd_h2n are two distinct tables, each
-        // one used only by packets in a particular direction.
+        // L2_fwd_from_network and L2_fwd_from_host are two distinct
+        // tables, each one used only by packets in a particular
+        // direction.
 
         // The control plane API sees two separate tables, and can
         // add, modify, and/or delete entries in these tables
@@ -93,10 +94,10 @@ control MainControlImpl(
         // same keys, and if they do have a key K in common with each
         // other, they need not have the same action names or action
         // parameters.
-        if (istd.direction == PNA_Direction_t.NET_TO_HOST) {
-            L2_fwd_n2h.apply();
+        if (is_net_port(istd.input_port)) {
+            L2_fwd_from_network.apply();
         } else {
-            L2_fwd_h2n.apply();
+            L2_fwd_from_host.apply();
         }
     }
 }
