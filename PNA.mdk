@@ -325,7 +325,7 @@ containing the PNA specification[^PNAExamplePrograms].
     <https://github.com/p4lang/pna/tree/master/examples>
 
 
-## Guidelines for Portability"
+## Guidelines for Portability
 
 A P4 programmer wishing to maximize the portability of their program should
 follow several general guidelines:
@@ -580,38 +580,16 @@ extern void send_to_port(PortId_t dest_port);
 
 The extern function `send_to_port` is used to direct a packet to a
 specified network port, or to a vport.  Invoking `send_to_port(x)` is
-supported only within the main control.  There are four cases to
+supported only within the main control.  There are two cases to
 consider, detailed below.
 
-+ current packet direction is `HOST_TO_NET`, and `x` is a network port id.
++ `x` is a network port id.
 
 Calling `send_to_port(x)` modifies hidden state for this packet, so
 that the packet will be transmitted out of the network port with id
-`x`, without being looped back.
-
-+ current packet direction is `NET_TO_HOST`, and `x` is a network port id.
-
-Calling `send_to_port(x)` modifies hidden state for this packet, so
-that when the packet is finished with the main control and main
-deparser, it will loop back in the host side, and later return to
-be processed by the main control in the HOST_TO_NET direction.  The
-hidden state will remain associated with the packet during that
-loopback, so that even if no further forwarding functions are
-called for the packet, it will be transmitted out of network port
 `x`.
 
-+ current packet direction is `HOST_TO_NET`, and `x` is a vport id.
-
-Calling `send_to_port(x)` modifies hidden state for this packet, so
-that when the packet is finished with the main control and main
-deparser, it will take the port loopback path, and later return to
-be processed by the main control in the NET_TO_HOST direction.  The
-hidden state will remain associated with the packet during that
-loopback, so that even if no further forwarding functions are
-called for the packet, it will be sent to the vport with id `x` in
-the host.
-
-+ current packet direction is `NET_TO_HOST`, and `x` is a vport id.
++ `x` is a vport id.
 
 Calling `send_to_port(x)` modifies hidden state for this packet, so
 that the packet will be sent to the vport with id `x` in the host,

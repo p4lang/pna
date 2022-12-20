@@ -74,8 +74,8 @@ control MainControlImpl(
     }
     apply {
         // Note that table L2_fwd is one table accessed by packets
-        // being processed in both the NET_TO_HOST and the HOST_TO_NET
-        // directions.
+        // being processed regardless of whether they are from a
+        // network port or a host port.
 
         // As far as the control plane API is concerned, there is
         // exactly one table.
