@@ -366,9 +366,7 @@ Create another figure with the updated architecture diagram and names for the pa
 ~End TBD
 
 ~ Figure {#fig-packet-paths; caption: "Packet Paths in PNA"; page-align: here;}
-![packet-paths]
 ~
-[packet-paths]: figs/pna-packet-paths-figure.png { width: 100%;}
 
 Table [#results-of-one-pkt-thru-main] shows what can happen to a
 packet as a result of a single time being processed through the four
