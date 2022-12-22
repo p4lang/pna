@@ -1,5 +1,5 @@
 Title : P4 Portable NIC Architecture (PNA)
-Title Note: version 0.7-dev
+Title Note: version 0.7
 Title Footer: &date;
 Author : The P4.org Architecture Working Group
 Heading depth: 4
@@ -240,20 +240,21 @@ The same `MainParser`, `MainControl`, and `MainDeparser` that process packets
 from the network are also used to process packets from the host. PNA was
 designed this way for two reasons:
 
-  - It is expected that in many cases, the packet processing in both directions
-    will have many similarities between them. Writing common P4 code for both
-    eliminates code duplication that would occur if the code for each direction
-    was written separately. Having a single `MainControl` in the P4 language
-    enables tables and externs such as counters and registers to be instantiated
-    once, and shared by packets being processed in both directions. The hardware
-    of many NICs supports this design, without having to instantiate a
-    physically separate table for each direction. Especially for large tables
-    used by packet processing in both directions, this approach can
-    significantly reduce the memory required. It is also critical for some
-    stateful features (e.g. those using the table add-on-miss capability defined
-    later in this specification) to access the same table in memory when
+  - It is expected that in many cases, the packet processing in both
+    directions will have many similarities between them. Writing
+    common P4 code for both eliminates code duplication that would
+    occur if the code for each direction was written separately.
+  - Having a single `MainControl` in the P4 language enables tables
+    and externs such as counters and registers to be instantiated
+    once, and shared by packets being processed in both
+    directions. The hardware of many NICs supports this design,
+    without having to instantiate a physically separate table for each
+    direction. Especially for large tables used by packet processing
+    in both directions, this approach can significantly reduce the
+    memory required. It is also critical for some stateful features
+    (e.g. those using the table add-on-miss capability defined later
+    in this specification) to access the same table in memory when
     processing packets in either direction.
-
 
 Figure [#fig-nic] shows multiple hosts. Some NICs support PCI Express
 connections to multiple host CPU complexes. It is also common for NICs
@@ -994,7 +995,56 @@ entries, and thus will often use `add_on_miss = true` and
 
 # Atomicity of control plane API operations {#sec-atomicity-of-control-plane-api-operations}
 
-# Appendix: Open Issues {@h1:"A"}
+# Appendix: Revision History {#appendix-revision-history; @h1:"A"}
+
+|-----|-----|-----|
+| Release | Release Date | Summary of Changes |
++:---:+-----+-----+
+| 0.1 | November 5, 2020 | Skeleton specification. |
+| 0.5 | May 15, 2021 | Initial draft. |
+| 0.7 | December 22, 2022 | Version 0.7 |
++-----+-----+-----+
+
+## Changes made in version 0.7
+
+* Added extern functions `add_entry_if`, `set_entry_expire_time_if`,
+  and `update_expire_info`, intended to be more friendly to targets
+  with poor support for `if` statements inside of actions.
+* Added parameter `expire_time_profile_id` to extern function
+  `add_entry`, to specify the initial expire time profile id for a new
+  table entry added by the data plane.
+* Removed obsolete references to `send_to_vport` in example programs,
+  replacing with current `send_to_port`.
+* Add `crypto_accelerator` extern for basic encrypt / decrypt of a
+  specified portion of a packet, and example program
+  `ipsec-acc.p4` demonstrating its use.
+* Added `match_kind` `optional`.
+* Clarified restrictions on when extern function `add_entry` may be
+  called.
+* Removed `PreControl`, leaving `MainParser`, `MainControl`, and
+  `MainDeparser` as the P4-programmable blocks.
+* There is no more "loopback" in PNA.  A packet can be sent to a
+  network port or a host port, regardless of where it came from, and
+  this does NOT automatically cause the packet leaving the
+  MainDeparser to later come back for another pass of processing.  It
+  will only do so if recirculation is explicitly requested.
+* Defined possible values of type `PNA_HashAlgorithm_t`, to match the
+  values defined for PSA.
+* Added descriptions of the possible values of `pna_idle_timeout`
+  table property, and their behaviors.  What was originally proposed
+  as a new table property named `idle_timeout_with_auto_delete` was
+  instead defined as a new possible value for `pna_idle_timeout`.
+* Removed unused type `PNA_PacketPath_t` from `pna.p4`.
+* Modifications to intrinsic metadata fields: Removed `direction`,
+  `pass`, `loopedback`.  Added `recirculated`.  For something similar
+  to `direction` added extern functions `is_host_port` and
+  `is_net_port` that can be called to determine whether a port is a
+  host port or network port.  This also motivated a change to the
+  parameters of extern function `SelectByDirection`.
+* Many minor changes in example P4 programs to keep up with changes to
+  the specification and pna.p4 include file.
+
+# Appendix: Open Issues
 
 # Appendix: Rationale for design {#appendix-rationale}
 
@@ -1070,17 +1120,3 @@ that effort.
 ## From port, to port
 
 # Appendix: Packet ordering {#appendix-packet-ordering}
-
-# Appendix: Revision History {#appendix-revision-history}
-
-|-----|-----|-----|
-| Release | Release Date | Summary of Changes |
-+:---:+-----+-----+
-| 0.1 | November 5, 2020 | Skeleton specification. |
-| 0.5 | May 15, 2021 | Initial draft. |
-| 0.7 | December 25, 2022 | Version 0.7 |
-+-----+-----+-----+
-
-## Changes made in version 0.7
-
-TODO
