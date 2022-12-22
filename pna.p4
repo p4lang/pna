@@ -620,11 +620,6 @@ extern void mirror_packet(MirrorSlotId_t mirror_slot_id,
 // variant of add_entry seems difficult to use correctly, if it is
 // possible for entries to fail to be added.
 
-// TBD: For add_entry calls to a table with property 'idle_timeout' or
-// 'idle_timeout_with_auto_delete' equal to true, there should
-// probably be a parameter that specifies the new entry's initial
-// expire_time_profile_id.
-
 // BEGIN:add_entry_extern_function
 // The bit width of this type is allowed to be different for different
 // target devices.  It must be at least a 1-bit wide type.
@@ -723,8 +718,8 @@ extern FlowId_t allocate_flow_id();
 
 
 // set_entry_expire_time() may only be called from within an action of
-// a table with property 'idle_timeout' or
-// 'idle_timeout_with_auto_delete' equal to true.
+// a table with property 'pna_idle_timeout' having a value of
+// `NOTIFY_CONTROL` or `AUTO_DELETE`.
 
 // Calling it causes the expiration time profile id of the matched
 // entry to become equal to expire_time_profile_id.
@@ -736,24 +731,27 @@ extern void set_entry_expire_time(
 
 
 // restart_expire_timer() may only be called from within an action of
-// a table with property 'idle_timeout' or
-// 'idle_timeout_with_auto_delete' equal to true.
+// a table with property 'pna_idle_timeout' having a value of
+// `NOTIFY_CONTROL` or `AUTO_DELETE`.
 
 // Calling it causes the dynamic expiration timer of the entry to be
 // reset, so that the entry will remain active from the now until that
 // time in the future.
 
-// TBD: Do any targets support a table with one of the idle_timeout
-// properties such that matching an entry _does not_ cause this side
-// effect to occur?  If not, we could simply document it the way that
-// I believe it currently behaves in all existing architectures, which
-// is that every hit action implicitly causes the entry's expiration
-// timer to be reset to its configured time interval in the future.
+// TODO: Note that there are targets that support a table with
+// property pna_idle_timeout equal to `NOTIFY_CONTROL` or
+// `AUTO_DELETE` such that matching an entry _does not_ cause this
+// side effect to occur, i.e. it is possible to match an entry and
+// _not_ do what `restart_expire_timer()` does.  We should document
+// this explicitly as common for PNA devices, if that is agreed upon.
+// Andy is pretty sure that PSA devices were not expected to have this
+// option.
 
-// Note that for the PSA architecture with psa_idle_timeout = true,
-// there was an implicit assumption that _every_ time a table entry
-// was matched, the target behaved as if restart_expire_timer() was
-// called, but there was no such extern function defined by PSA.
+// Note that for the PSA architecture with psa_idle_timeout =
+// PSA_IdleTimeout_t.NOTIFY_CONTROL, I believe there was an implicit
+// assumption that _every_ time a table entry was matched, the target
+// behaved as if restart_expire_timer() was called, but there was no
+// such extern function defined by PSA.
 
 // The proposal for PNA is that it is possible to match an entry, but
 // _not_ call restart_expire_timer(), and this will cause the data
