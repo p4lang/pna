@@ -574,7 +574,7 @@ each occurs.
 ### Extern function `send_to_port`
 
 ~ Begin P4Example
-extern void send_to_port(PortId_t dest_port);
+extern void send_to_port(in PortId_t dest_port);
 ~ End P4Example
 
 The extern function `send_to_port` is used to direct a packet to a
@@ -597,8 +597,8 @@ without being looped back.
 ## Packet Mirroring
 
 ~ Begin P4Example
-extern void mirror_packet(MirrorSlotId_t mirror_slot_id,
-                          MirrorSessionId_t mirror_session_id);
+extern void mirror_packet(in MirrorSlotId_t mirror_slot_id,
+                          in MirrorSessionId_t mirror_session_id);
 ~ End P4Example
 
 The extern function `mirror_packet` is used to cause a mirror copy of

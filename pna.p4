@@ -606,10 +606,10 @@ struct pna_main_output_metadata_t {
 
 extern void drop_packet();
 
-extern void send_to_port(PortId_t dest_port);
+extern void send_to_port(in PortId_t dest_port);
 
-extern void mirror_packet(MirrorSlotId_t mirror_slot_id,
-                          MirrorSessionId_t mirror_session_id);
+extern void mirror_packet(in MirrorSlotId_t mirror_slot_id,
+                          in MirrorSessionId_t mirror_session_id);
 
 // TBD: Does it make sense to have a data plane add of a hit action
 // that has in, out, or inout parameters?
