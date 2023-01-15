@@ -574,7 +574,7 @@ each occurs.
 ### Extern function `send_to_port`
 
 ~ Begin P4Example
-extern void send_to_port(in PortId_t dest_port);
+[INCLUDE=pna.p4:send_to_port]
 ~ End P4Example
 
 The extern function `send_to_port` is used to direct a packet to a
@@ -597,8 +597,7 @@ without being looped back.
 ## Packet Mirroring
 
 ~ Begin P4Example
-extern void mirror_packet(in MirrorSlotId_t mirror_slot_id,
-                          in MirrorSessionId_t mirror_session_id);
+[INCLUDE=pna.p4:mirror_packet]
 ~ End P4Example
 
 The extern function `mirror_packet` is used to cause a mirror copy of
@@ -786,7 +785,7 @@ the places mentioned in Table [#table-extern-usage].
 |-------------------|----------------------------------------------|
 ~
 
-For example, `Counter` being restricted to "Pre, Main" means that
+For example, `Counter` being restricted to "MainControl" means that
 every `Counter` instance must be instantiated within the `MainControl`
 block, or be a descendant of one of those nodes in the instantiation
 tree. If a `Counter` instance is instantiated in Main, for example, then
@@ -1057,7 +1056,7 @@ existing slides.
 
 ## Is it inefficient to have the `MainParser` redo work? {#appendix-reparsing}
 
-If the only changes made by the inline extern in the network-to-host
+If the only changes made by the decryption fixed function block in the network-to-host
 direction were to decrypt parts of the packet that were previously
 encrypted, but everything before the first decrypted byte remained
 exactly the same, then it seems like it is a waste of effort that the
@@ -1084,19 +1083,19 @@ of the packet before the first decrypted byte:
   stack. The layer of software processing the decrypted packet should
   see what the last layer of software sent before it was encrypted.
 
-If any or all of the above are true of the inline extern block's
+If any or all of the above are true of the decryption fixed function block's
 changes to the packet, then it seems that the only way you could save
-the main parser some work is to somehow encode the results of the pre
-parser, and also undo those results for any headers that were modified
-in the inline extern. Then you would also need the main parser to be
+the main parser some work is to somehow encode the results of the earlier
+parser invocation, and also undo those results for any headers that were modified
+in the decryption fixed function block. Then you would also need the main parser to be
 able to start from one of multiple possible states in the parser state
 machine, and continue from there.
 
 That is all possible to do, but it seems like an awkward thing to
 expose to a P4 developer, e.g. should we require them to write a main
 parser that has a start state that immediately branches one of 7 ways
-based upon some intermediate state the the pre parser reached, as
-modified by the inline extern if it modified or removed some of those
+based upon some intermediate state that the previous invocation of the parser reached, as
+modified by the decryption fixed function block if it modified or removed some of those
 headers?
 
 A NIC implementation might do such things, and it seems likely an
