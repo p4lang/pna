@@ -606,10 +606,14 @@ struct pna_main_output_metadata_t {
 
 extern void drop_packet();
 
+// BEGIN:send_to_port
 extern void send_to_port(in PortId_t dest_port);
+// END:send_to_port
 
+// BEGIN:mirror_packet
 extern void mirror_packet(in MirrorSlotId_t mirror_slot_id,
                           in MirrorSessionId_t mirror_session_id);
+// END:mirror_packet
 
 // TBD: Does it make sense to have a data plane add of a hit action
 // that has in, out, or inout parameters?
@@ -793,13 +797,13 @@ extern void update_expire_info(
 //                   if the data and value parameters are equal.
 //
 // Examples:
-// set_expire_time_if(hdr.tcp.flags == TCP_FLG_SYN &&
-//                    meta.direction == OUTBOUND,
-//                    tcp_connection_start_time_profile_id);
-// set_expire_time_if(hdr.tcp.flags == TCP_FLG_ACK,
-//                    tcp_connection_continuation_time_protile_id);
-// set_expire_time_if(hdr.tcp.flags == TCP_FLG_FIN,
-//                    tcp_connection_close_time_profile_id);
+// set_entry_expire_time_if(hdr.tcp.flags == TCP_FLG_SYN &&
+//                          meta.direction == OUTBOUND,
+//                          tcp_connection_start_time_profile_id);
+// set_entry_expire_time_if(hdr.tcp.flags == TCP_FLG_ACK,
+//                          tcp_connection_continuation_time_protile_id);
+// set_entry_expire_time_if(hdr.tcp.flags == TCP_FLG_FIN,
+//                          tcp_connection_close_time_profile_id);
 
 extern void set_entry_expire_time_if(
     in bool condition,
