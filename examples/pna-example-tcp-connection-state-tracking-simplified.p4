@@ -129,14 +129,6 @@ parser MainParserImpl(
     }
 }
 
-struct ct_tcp_table_hit_params_t {
-    bit<32> n2h_seqNo;
-    bit<32> h2n_seqNo;
-    bit<32> n2h_ackNo;
-    bit<32> h2n_ackNo;
-    // other connection state being tracked can be added here
-}
-
 control MainControlImpl(
     inout headers_t  hdr,
     inout metadata_t meta,
