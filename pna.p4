@@ -599,6 +599,21 @@ struct pna_main_output_metadata_t {
 // + send_to_port
 
 
+// recirculate() - Cause the packet to be recirculated when it
+// finishes completing the main control.
+//
+// Invoking recirculate() is supported only within the main control.
+
+// TODO: Need to decide and document the PNA behavior when arbitrary
+// combinations of the functions drop_packet, send_to_port,
+// recirculate, and mirror_packet are called in one execution of the
+// main control, and also if the _order_ of such calls affects the
+// behavior, e.g. if the result of calling drop_packet then
+// recirculate is the same as calling recirculate then drop_packet, or
+// different.
+
+extern void recirculate();
+
 // drop_packet() - Cause the packet to be dropped when it finishes
 // completing the main control.
 //
@@ -615,10 +630,10 @@ extern void mirror_packet(in MirrorSlotId_t mirror_slot_id,
                           in MirrorSessionId_t mirror_session_id);
 // END:mirror_packet
 
-// TBD: Does it make sense to have a data plane add of a hit action
+// TODO: Does it make sense to have a data plane add of a hit action
 // that has in, out, or inout parameters?
 //
-// TBD: Should we require the return value?  Can most targets
+// TODO: Should we require the return value?  Can most targets
 // implement it?  If not, consider having two separate variants of
 // add_entry, one with no return value (i.e. type void).  Such a
 // variant of add_entry seems difficult to use correctly, if it is
