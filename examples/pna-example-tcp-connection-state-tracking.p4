@@ -183,12 +183,10 @@ control MainControlImpl(
                         n2h_seqNo=hdr.tcp.seqNo; // NEW: support for write back entry
                         n2h_ackNo=hdr.tcp.ackNo; // NEW: support for write back entry
                         h2n_ackNo=hdr.tcp.seqNo; // NEW: support for write back entry
-// Mario to check that in 3-way handshake ackNo of forward direction is expected to be the last sequence number
                     } else {
                         h2n_seqNo=hdr.tcp.seqNo; // NEW: support for write back entry
                         h2n_ackNo=hdr.tcp.ackNo; // NEW: support for write back entry
                         n2h_ackNo=hdr.tcp.seqNo; // NEW: support for write back entry
-// Mario to check that in 3-way handshake ackNo of forward direction is expected to be the last sequence number
                     }
                     restart_expire_timer();
                 } else {
