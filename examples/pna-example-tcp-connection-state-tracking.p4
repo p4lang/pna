@@ -1,5 +1,5 @@
-Copyright 2022 AMD
 /*
+Copyright 2022 AMD
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -159,54 +159,72 @@ control MainControlImpl(
 
 
     action ct_tcp_table_hit (
-        rmw bit<32> n2h_seqNo; // NEW: support for write back entry
-        rmw bit<32> h2n_seqNo; // NEW: support for write back entry
-        rmw bit<32> n2h_ackNo; // NEW: support for write back entry
-        rmw bit<32> h2n_ackNo; // NEW: support for write back entry
+        bit<32> n2h_seqNo, // NEW: support for write back entry
+        bit<32> h2n_seqNo, // NEW: support for write back entry
+        bit<32> n2h_ackNo, // NEW: support for write back entry
+        bit<32> h2n_ackNo  // NEW: support for write back entry
         // More action data that is not written back can be here as well
         ) {
         // some table types, e.g., T-CAM-based ones, may not support re-writable
         // entries.
         if ((hdr.tcp.flags & TCP_SYN_MASK) != 0) {
             if ((hdr.tcp.flags & TCP_ACK_MASK) == 0 ) {
-                if (SelectByDirection(istd.direction,n2h_seqNo,h2n_seqNo)!=hdr.tcp.seqNo) {
-                        set_entry_expire_time(EXPIRE_TIME_PROFILE_TCP_NOW);
-                        drop_packet();
-                        // This is protecting from certain misbehavior, but a
-                        // complete robust and secure solution against denial
-                        // of service attacks should include additional checks
+                if (SelectByDirection(is_net_port(istd.input_port),n2h_seqNo,h2n_seqNo) != hdr.tcp.seqNo) {
+                    set_entry_expire_time(EXPIRE_TIME_PROFILE_TCP_NOW);
+                    drop_packet();
+                    // This is protecting from certain misbehavior, but a
+                    // complete robust and secure solution against denial
+                    // of service attacks should include additional checks
                 }
             } else {
-                if(hdr.tcp.ackNo==
-                      (SelectByDirection(istd.direction,h2n_seqNo,n2h_seqNo)+1)) {
-                    if (istd.direction==PNA_Direction_t.NET_TO_HOST) {
-                        n2h_seqNo=hdr.tcp.seqNo; // NEW: support for write back entry
-                        n2h_ackNo=hdr.tcp.ackNo; // NEW: support for write back entry
-                        h2n_ackNo=hdr.tcp.seqNo; // NEW: support for write back entry
+                if (hdr.tcp.ackNo ==
+                    (SelectByDirection(is_net_port(istd.input_port),h2n_seqNo,n2h_seqNo)+1)) {
+                    if (is_net_port(istd.input_port)) {
+                        // As of 2013-Mar-20, open source p4c gives a
+                        // compile-time error if you attempt to assign
+                        // a value to an action parameter.  As long as
+                        // you do not #define
+                        // ALLOW_ASSIGNMENTS_TO_ACTION_PARAMS, the
+                        // rest of this program compiles without
+                        // error.
+#ifdef ALLOW_ASSIGNMENTS_TO_ACTION_PARAMS
+                        n2h_seqNo = hdr.tcp.seqNo; // NEW: support for write back entry
+                        n2h_ackNo = hdr.tcp.ackNo; // NEW: support for write back entry
+                        h2n_ackNo = hdr.tcp.seqNo; // NEW: support for write back entry
+#endif  // ALLOW_ASSIGNMENTS_TO_ACTION_PARAMS
+// Mario to check that in 3-way handshake ackNo of forward direction is expected to be the last sequence number
                     } else {
-                        h2n_seqNo=hdr.tcp.seqNo; // NEW: support for write back entry
-                        h2n_ackNo=hdr.tcp.ackNo; // NEW: support for write back entry
-                        n2h_ackNo=hdr.tcp.seqNo; // NEW: support for write back entry
+#ifdef ALLOW_ASSIGNMENTS_TO_ACTION_PARAMS
+                        h2n_seqNo = hdr.tcp.seqNo; // NEW: support for write back entry
+                        h2n_ackNo = hdr.tcp.ackNo; // NEW: support for write back entry
+                        n2h_ackNo = hdr.tcp.seqNo; // NEW: support for write back entry
+#endif  // ALLOW_ASSIGNMENTS_TO_ACTION_PARAMS
+// Mario to check that in 3-way handshake ackNo of forward direction is expected to be the last sequence number
                     }
                     restart_expire_timer();
                 } else {
-                set_entry_expire_time(EXPIRE_TIME_PROFILE_TCP_NOW);
-                drop_packet();
+                    set_entry_expire_time(EXPIRE_TIME_PROFILE_TCP_NOW);
+                    drop_packet();
                 }
             }
         } else {
-            if (hdr.tcp.ackNo<=SelectByDirection(istd.direction,h2n_seqNo,n2h_seqNo) &
-                hdr.tcp.ackNo>=SelectByDirection(istd.direction,n2h_ackNo,h2n_ackNo)) {
-                if (istd.direction==PNA_Direction_t.NET_TO_HOST) {
-                    n2h_seqNo=hdr.tcp.seqNo; // NEW: support for write back entry
-                    n2h_ackNo=hdr.tcp.ackNo; // NEW: support for write back entry
+            if (hdr.tcp.ackNo <= SelectByDirection(is_net_port(istd.input_port),h2n_seqNo,n2h_seqNo) &&
+                hdr.tcp.ackNo >= SelectByDirection(is_net_port(istd.input_port),n2h_ackNo,h2n_ackNo)) {
+                if (is_net_port(istd.input_port)) {
+#ifdef ALLOW_ASSIGNMENTS_TO_ACTION_PARAMS
+                    n2h_seqNo = hdr.tcp.seqNo; // NEW: support for write back entry
+                    n2h_ackNo = hdr.tcp.ackNo; // NEW: support for write back entry
+#endif  // ALLOW_ASSIGNMENTS_TO_ACTION_PARAMS
                 } else {
-                    h2n_seqNo=hdr.tcp.seqNo; // NEW: support for write back entry
-                    h2n_ackNo=hdr.tcp.ackNo; // NEW: support for write back entry
+#ifdef ALLOW_ASSIGNMENTS_TO_ACTION_PARAMS
+                    h2n_seqNo = hdr.tcp.seqNo; // NEW: support for write back entry
+                    h2n_ackNo = hdr.tcp.ackNo; // NEW: support for write back entry
+#endif  // ALLOW_ASSIGNMENTS_TO_ACTION_PARAMS
                 }
-                set_entry_expire_time(EXPIRE_TIME_PROFILE_TCP_ESTABLISHED;
-              } else
+                set_entry_expire_time(EXPIRE_TIME_PROFILE_TCP_ESTABLISHED);
+            } else {
                   drop_packet();
+            }
         }
     }
 
@@ -214,11 +232,11 @@ control MainControlImpl(
         ct_tcp_table_hit_params_t tcp_params;
 
         if ((hdr.tcp.flags & TCP_SYN_MASK) != 0) {
-            if ((hdr.tcp.flags & TCP_ACK_MASK) == 0 ) {
-                if (istd.direction==PNA_Direction_t.NET_TO_HOST)
-                    tcp_params.n2h_seqNo=hdr.tcp.seqNo
+            if ((hdr.tcp.flags & TCP_ACK_MASK) == 0) {
+                if (is_net_port(istd.input_port))
+                    tcp_params.n2h_seqNo = hdr.tcp.seqNo;
                 else
-                    tcp_params.h2n_seqNo=hdr.tcp.seqNo;
+                    tcp_params.h2n_seqNo = hdr.tcp.seqNo;
                 add_status =
                     add_entry(action_name = "ct_tcp_table_hit",  // name of action
                           action_params = tcp_params,
@@ -235,14 +253,14 @@ control MainControlImpl(
         /* add_on_miss table is restricted to have all exact match fields */
         key = {
             // other key fields also possible, e.g. VRF
-            SelectByDirection(istd.direction, hdr.ipv4.srcAddr, hdr.ipv4.dstAddr):
+            SelectByDirection(is_net_port(istd.input_port), hdr.ipv4.srcAddr, hdr.ipv4.dstAddr):
                 exact @name("ipv4_addr_0");
-            SelectByDirection(istd.direction, hdr.ipv4.dstAddr, hdr.ipv4.srcAddr):
+            SelectByDirection(is_net_port(istd.input_port), hdr.ipv4.dstAddr, hdr.ipv4.srcAddr):
                 exact @name("ipv4_addr_1");
             hdr.ipv4.protocol : exact;
-            SelectByDirection(istd.direction, hdr.tcp.srcPort, hdr.tcp.dstPort):
+            SelectByDirection(is_net_port(istd.input_port), hdr.tcp.srcPort, hdr.tcp.dstPort):
                 exact @name("tcp_port_0");
-            SelectByDirection(istd.direction, hdr.tcp.dstPort, hdr.tcp.srcPort):
+            SelectByDirection(is_net_port(istd.input_port), hdr.tcp.dstPort, hdr.tcp.srcPort):
                 exact @name("tcp_port_1");
         }
         actions = {
