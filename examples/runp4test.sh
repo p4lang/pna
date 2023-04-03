@@ -3,19 +3,28 @@
 # The scirpt will exit if the return code of a command is not 0.
 set -e
 
-# With these extra command line options to p4test, it skips the Predication
-# pass, which as of most p4c versions up to at least 2022-Oct-04, and
-# probably for a while longer, causes p4test to give an error when an
-# 'if' statement appears in a P4 action, and the compiler is not able to
-# transform it into a ternary expression instead, i.e. expr ? val1 : val2.
-# There are some PNA programs that we want to write, and check their syntax
-# using p4test, that have such 'if' statements.
+# Before 2023-Mar-23, by default open source p4test would run a pass
+# named "Predication" that would cause compile-time errors for _some_
+# P4 programs with 'if' statements in action bodies, including several
+# of the PNA example programs.
 
-# This proposed PR for p4c would enable such programs to be compiled
-# without error in a different way, but does not work yet as of 2022-Oct-04:
-# https://github.com/p4lang/p4c/pull/3549
+# With those versions of p4c, the following command line options
+# disable that pass, enabling PNA example programs to compile using
+# p4test without errors.
 
-P4TEST_OPTS="--excludeMidendPasses Predication"
+#P4TEST_OPTS="--excludeMidendPasses Predication"
+
+# On 2023-Mar-23 this commit to p4c:
+# https://github.com/p4lang/p4c/commit/ae32631178a3eaeca9fbd6f05b32f0728cc36ff2
+# this pass was removed from p4test.  With those versions of p4test,
+# it is an error to use the command line options above, because there
+# is NO pass named Predication in p4test that can be disabled.
+
+# With those versions of p4c, no extra command line options are
+# needed:
+
+P4TEST_OPTS=""
+
 
 for j in *.p4
 do
