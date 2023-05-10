@@ -48,6 +48,16 @@ repository](https://github.com/p4lang/pna/issues) and suggested
 changes are made by creating [Github pull
 requests](https://github.com/p4lang/pna/pulls).
 
+Some public files related to the P4.org architecture work group are
+stored in this Google Drive folder: [P4 Architecture Working Group
+Google Drive
+folder](https://drive.google.com/drive/folders/13Wgcg0IUfMJTWOeIPzv95yqXkUHEGi4P)
+
+In particular, the `meeting-recordings` sub-folder there contains
+recordings of some recent meetings.  Here is a direct link to that
+sub-folder: [meeting-recordings Google Drive
+folder](https://drive.google.com/drive/folders/1I9gp7Wj4Fh-8ctpchldwXidRRwRbJLfp)
+
 
 ## Spec release process
 
