@@ -52,7 +52,8 @@ parser MainParserImpl(
     packet_in pkt,
     out   headers_t  hdr,
     inout metadata_t meta,
-    in    pna_main_parser_input_metadata_t istd)
+    in    pna_main_parser_input_metadata_t istd,
+    inout vendor_metadata_t vmeta)
 {
     state start {
         pkt.extract(hdr.eth);
@@ -64,7 +65,8 @@ control MainControlImpl(
     inout headers_t  hdr,
     inout metadata_t meta,
     in    pna_main_input_metadata_t  istd,
-    inout pna_main_output_metadata_t ostd)
+    inout pna_main_output_metadata_t ostd,
+    inout vendor_metadata_t vmeta)
 {
     action my_drop () {
         drop_packet();
@@ -139,7 +141,8 @@ control MainDeparserImpl(
     packet_out pkt,
     in    headers_t hdr,
     in    metadata_t meta,
-    in    pna_main_output_metadata_t ostd)
+    in    pna_main_output_metadata_t ostd,
+    inout vendor_metadata_t vmeta)
 {
     apply {
         pkt.emit(hdr.eth);

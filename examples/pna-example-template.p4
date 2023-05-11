@@ -79,7 +79,8 @@ parser MainParserImpl(
     packet_in pkt,
     out   headers_t       hdr,
     inout main_metadata_t main_meta,
-    in    pna_main_parser_input_metadata_t istd)
+    in    pna_main_parser_input_metadata_t istd,
+    inout vendor_metadata_t vmeta)
 {
     state start {
         pkt.extract(hdr.ethernet);
@@ -99,7 +100,8 @@ control MainControlImpl(
     inout headers_t       hdr,           // from main parser
     inout main_metadata_t user_meta,     // from main parser, to "next block"
     in    pna_main_input_metadata_t  istd,
-    inout pna_main_output_metadata_t ostd)
+    inout pna_main_output_metadata_t ostd,
+    inout vendor_metadata_t vmeta)
 {
     Counter<ByteCounter_t, PortId_t>(NUM_PORTS, PNA_CounterType_t.BYTES)
         port_bytes_in;
@@ -139,7 +141,8 @@ control MainDeparserImpl(
     packet_out pkt,
     in    headers_t hdr,                // from main control
     in    main_metadata_t user_meta,    // from main control
-    in    pna_main_output_metadata_t ostd)
+    in    pna_main_output_metadata_t ostd,
+    inout vendor_metadata_t vmeta)
 {
     apply {
         pkt.emit(hdr.ethernet);

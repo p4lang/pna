@@ -125,7 +125,8 @@ parser MainParserImpl(
     packet_in pkt,
     out   headers_t       hdr,
     inout main_metadata_t main_meta,
-    in    pna_main_parser_input_metadata_t istd)
+    in    pna_main_parser_input_metadata_t istd,
+    inout vendor_metadata_t vmeta)
 {
     bit<1> is_recirc = 0;
     bit<2>  ipsec_op = 0;
@@ -436,7 +437,8 @@ control MainControlImpl(
     inout headers_t       hdr,
     inout main_metadata_t main_meta,
     in    pna_main_input_metadata_t  istd,
-    inout pna_main_output_metadata_t ostd)
+    inout pna_main_output_metadata_t ostd,
+    inout vendor_metadata_t vmeta)
 {
     apply {
         if (main_meta.ipsec_decrypt_done == 1) {
@@ -451,7 +453,8 @@ control MainDeparserImpl(
     packet_out pkt,
     in    headers_t hdr,                // from main control
     in    main_metadata_t user_meta,    // from main control
-    in    pna_main_output_metadata_t ostd)
+    in    pna_main_output_metadata_t ostd,
+    inout vendor_metadata_t vmeta)
 {
     apply {
         pkt.emit(hdr.recirc_header);

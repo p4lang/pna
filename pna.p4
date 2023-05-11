@@ -847,6 +847,17 @@ extern T SelectByDirection<T>(
     in T from_host_value);
 
 
+// BEGIN:vendor_metadata_struct
+// The contents of this struct are _not_ defined by the PNA
+// specification.  By design, it is intended to be unique from one
+// target device to another.  The intent is to be a standard place to
+// put intrinsic metadata that vendors wish to make accessible in
+// their devices, for which there is not yet general agreement that
+// the field should be considered part of the PNA intrinsic metadata.
+
+struct vendor_metadata_t {
+}
+// END:vendor_metadata_struct
 
 
 // BEGIN:Programmable_blocks
@@ -854,19 +865,22 @@ parser MainParserT<MH, MM>(
     packet_in pkt,
     out   MH main_hdr,
     inout MM main_user_meta,
-    in    pna_main_parser_input_metadata_t istd);
+    in    pna_main_parser_input_metadata_t istd,
+    inout vendor_metadata_t vmeta);
 
 control MainControlT<MH, MM>(
     inout MH main_hdr,
     inout MM main_user_meta,
     in    pna_main_input_metadata_t  istd,
-    inout pna_main_output_metadata_t ostd);
+    inout pna_main_output_metadata_t ostd,
+    inout vendor_metadata_t vmeta);
 
 control MainDeparserT<MH, MM>(
     packet_out pkt,
     in    MH main_hdr,
     in    MM main_user_meta,
-    in    pna_main_output_metadata_t ostd);
+    in    pna_main_output_metadata_t ostd,
+    inout vendor_metadata_t vmeta);
 
 package PNA_NIC<MH, MM>(
     MainParserT<MH, MM> main_parser,
