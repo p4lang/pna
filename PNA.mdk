@@ -594,6 +594,34 @@ Calling `send_to_port(x)` modifies hidden state for this packet, so
 that the packet will be sent to the vport with id `x` in the host,
 without being looped back.
 
+
+### Extern function `recirculate`
+
+The extern function `recirculate` is used to cause a packet, after it
+is deparsed, to recirculate, &ie; to go back and become an input to
+the main parser again.
+
+~ Begin P4Example
+[INCLUDE=pna.p4:recirculate]
+~ End P4Example
+
+See Section [#sec-extern-restrctions] for what is meant by
+`recirculate` being restricted to being called only from the main
+control.
+
+TODO: We should decide and document the PNA behavior when arbitrary
+combinations of the functions `drop_packet`, `send_to_port`,
+`recirculate`, and `mirror_packet` are called in one execution of the
+main control, and also if the _order_ of such calls affects the
+behavior, e.g. if the result of calling `drop_packet` then
+`recirculate` is the same as calling `recirculate` then `drop_packet`,
+or different.  Alternately, we can explicitly say "every PNA target
+should define and document their behavior on arbitrary combinations of
+these operations, if they wish".  P4 developers would not find that as
+useful, of course, since this would decrease the portability of P4
+programs across target devices.
+
+
 ## Packet Mirroring
 
 ~ Begin P4Example
@@ -721,11 +749,19 @@ function call returning true if the packet was created by a
 `mirror_packet` operation.
 ~End TBD
 
-## Packet recirculation
 
 # PNA Extern Objects
 
 ## Restrictions on where externs may be used {#sec-extern-restrictions}
+
+The basic idea of this section is simply a more detailed way of
+representing the idea that when we say that an extern instantiation or
+an extern function call is restricted to be within the main control
+(for example), it is allowed to be directly in the body of the main
+control, or in any sub-control invoked from the main control, or any
+sub-sub-control, etc.  Similarly if the restriction is that it must be
+in the main parser, it can be in any sub-parser invoked from the main
+parser, any sub-sub-parser, etc.
 
 All instantiations in a P4~16~ program occur at compile time, and can
 be arranged in a tree structure we will call the instantiation tree.
