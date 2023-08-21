@@ -609,7 +609,14 @@ See Section [#sec-extern-restrctions] for what is meant by
 `recirculate` being restricted to being called only from the main
 control.
 
-TODO: We should decide and document the PNA behavior when arbitrary
+Note that it is still possible to preserve more than 32 bits of
+metadata with a packet after it has been recirculated.  For example,
+one way is to explicitly use the `setValid` operation on one or more
+headers, `emit` them in the deparser, and parser them in your main
+parser.
+
+~Begin TBD
+We should decide and document the PNA behavior when arbitrary
 combinations of the functions `drop_packet`, `send_to_port`,
 `recirculate`, and `mirror_packet` are called in one execution of the
 main control, and also if the _order_ of such calls affects the
@@ -620,6 +627,7 @@ should define and document their behavior on arbitrary combinations of
 these operations, if they wish".  P4 developers would not find that as
 useful, of course, since this would decrease the portability of P4
 programs across target devices.
+~End TBD
 
 
 ## Packet Mirroring
