@@ -548,10 +548,21 @@ enum PNA_Source_t {
 
 // BEGIN:Metadata_types
 
+// struct `pna_main_parser_input_metadata_t` contains fields
+// initialized for all packets that are input to main parser.
 struct pna_main_parser_input_metadata_t {
-    // common fields initialized for all packets that are input to main
-    // parser, regardless of direction.
+    // `recirculated` is true if and only if the reason this packet
+    // was the result of a recirculate() operation.
     bool                     recirculated;
+
+    // If `recirculated` is true and this packet resulted from a
+    // recirculate(expr) operation, then `recirc_data` will be equal
+    // to the value that resulted from evaluating expr (evaluated at
+    // the time that the recirculate(expr) call was made).  In all
+    // other cases, the value of `recirc_data` is not mandated by the
+    // PNA specification.
+    bit<32>                  recirc_data;
+
     // If this packet has FROM_NET source, input_port contains
     // the id of the network port on which the packet arrived.
     // If this packet has FROM_HOST source, input_port contains
@@ -566,15 +577,26 @@ extern bool is_host_port (in PortId_t p);
 // false.
 extern bool is_net_port (in PortId_t p);
 
+// struct `pna_main_input_metadata_t` contains fields initialized for
+// all packets that are input to main control.
 struct pna_main_input_metadata_t {
-    // common fields initialized for all packets that are input to main
-    // parser, regardless of direction.
+    // `recirculated` has the same value as the field with the same
+    // name in struct `pna_main_parser_input_metadata_t` did when this
+    // packet was parsed.
     bool                     recirculated;
+
+    // `recirc_data` has the same value as the field with the same
+    // name in struct `pna_main_parser_input_metadata_t` did when this
+    // packet was parsed.
+    bit<32>                  recirc_data;
+
     Timestamp_t              timestamp;
     ParserError_t            parser_error;
     ClassOfService_t         class_of_service;
-    // See comments for field input_port in struct
-    // pna_main_parser_input_metadata_t
+
+    // `input_port` has the same value as the field with the same name
+    // in struct `pna_main_parser_input_metadata_t` did when this
+    // packet was parsed.
     PortId_t                 input_port;
 }
 
@@ -613,6 +635,15 @@ struct pna_main_output_metadata_t {
 // different.
 
 extern void recirculate();
+
+// recirculate(recirc_data) has the same restrictions and effect as
+// recirculate(), with one difference: if the packet is actually
+// recirculated, the value of the `recirc_data` intrinsic metadata
+// field that is input to the main parser and main control for that
+// recirculated packet will be equal to the value of the `recirc_data`
+// parameter.
+
+extern void recirculate(in bit<32> recirc_data);
 
 // drop_packet() - Cause the packet to be dropped when it finishes
 // completing the main control.
