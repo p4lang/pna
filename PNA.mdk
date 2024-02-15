@@ -763,7 +763,7 @@ the places mentioned in Table [#table-extern-usage].
 |-------------------|----------------------------------------------|
 | `ActionSelector`  | MainControl |
 |-------------------|----------------------------------------------|
-| `Checksum`        | MainParser, MainDeparser |
+| `Checksum`        | MainParser, MainControl, MainDeparser |
 |-------------------|----------------------------------------------|
 | `Counter`         | MainControl |
 |-------------------|----------------------------------------------|
@@ -775,7 +775,7 @@ the places mentioned in Table [#table-extern-usage].
 |-------------------|----------------------------------------------|
 | `Hash`            | MainControl |
 |-------------------|----------------------------------------------|
-| `InternetChecksum` | MainParser, MainDeparser |
+| `InternetChecksum` | MainParser, MainControl, MainDeparser |
 |-------------------|----------------------------------------------|
 | `Meter`           | MainControl |
 |-------------------|----------------------------------------------|
