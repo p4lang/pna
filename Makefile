@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020 The P4 Language Consortium
+#
+# SPDX-License-Identifier: Apache-2.0
+
 SPEC=PNA
 
 all: build/${SPEC}.pdf

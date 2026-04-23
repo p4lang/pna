@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2020 The P4 Language Consortium
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # Portable NIC Architecture
 
 The contents of this repository are a work in progress, intended to

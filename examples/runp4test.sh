@@ -1,5 +1,9 @@
 #! /bin/bash
 
+# SPDX-FileCopyrightText: 2021 Andy Fingerhut
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # The scirpt will exit if the return code of a command is not 0.
 set -e
 
