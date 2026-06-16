@@ -70,7 +70,7 @@ enum crypto_results_e {
 ///     Results: Success, Auth Failure, Hardware Error
 ///
 
-// BEGIN:Crypto_accelerator_extern_object
+// tag::Crypto_accelerator_extern_object[]
 
 extern crypto_accelerator {
     /// constructor
@@ -121,4 +121,4 @@ extern crypto_accelerator {
     // get results of the previous operation
     crypto_results_e get_results();
 }
-// END:Crypto_accelerator_extern_object
+//end::Crypto_accelerator_extern_object[]

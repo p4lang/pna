@@ -90,7 +90,7 @@ const MirrorSessionId_t PNA_MIRROR_SESSION_TO_CPU = (MirrorSessionId_t) 0;
 
 #ifndef PNA_PLACEHOLDER_CORE_TYPES
 #error "Please define the following types for PNA and undef the PNA_PLACEHOLDER_CORE_TYPES macro"
-// BEGIN:Type_defns
+// tag::Type_defns[]
 /* These are defined using `typedef`, not `type`, so they are truly
  * just different names for the type bit<W> for the particular width W
  * shown.  Unlike the `type` definitions below, values declared with
@@ -150,10 +150,10 @@ typedef error   ParserError_t;
 const InterfaceId_t PNA_PORT_CPU = (PortId_t) unspecified;
 
 const MirrorSessionId_t PNA_MIRROR_SESSION_TO_CPU = (MirrorSessiontId_t) unspecified;
-// END:Type_defns
+//end::Type_defns[]
 #endif  // #ifndef PNA_EXAMPLE_CORE_TYPES
 
-// BEGIN:Type_defns2
+// tag::Type_defns2[]
 
 /* Note: All of the types with `InHeader` in their name are intended
  * only to carry values of the corresponding types in packet headers
@@ -219,7 +219,7 @@ type  ExpireTimeProfileIdInHeaderUint_t      ExpireTimeProfileIdInHeader_t;
 
 @p4runtime_translation("p4.org/pna/v1/SecurityAssocIdInHeader_t", 64)
 type  SecurityAssocIdInHeaderUint_t      SecurityAssocIdInHeader_t;
-// END:Type_defns2
+// end::Type_defns2[]
 
 /* The _int_to_header functions were written to convert a value of
  * type <name>_t (a value INTernal to the data path) to a value of
@@ -303,24 +303,24 @@ ExpireTimeProfileIdInHeader_t pna_ExpireTimeProfileId_int_to_header (in ExpireTi
     return (ExpireTimeProfileIdInHeader_t) (ExpireTimeProfileIdInHeaderUint_t) (ExpireTimeProfileIdUint_t) x;
 }
 
-// BEGIN:enum_PNA_IdleTimeout_t
+// tag::enum_PNA_IdleTimeout_t[]
 /// Supported values for the pna_idle_timeout table property
 enum PNA_IdleTimeout_t {
     NO_TIMEOUT,
     NOTIFY_CONTROL,
     AUTO_DELETE
 };
-// END:enum_PNA_IdleTimeout_t
+//end::enum_PNA_IdleTimeout_t[]
 
-// BEGIN:Match_kinds
+// tag::Match_kinds[]
 match_kind {
     range,   /// Used to represent min..max intervals
     selector, /// Used for dynamic action selection via the ActionSelector extern
     optional /// Either an exact match, or a wildcard matching any value for the entire field
 }
-// END:Match_kinds
+// end::Match_kinds[]
 
-// BEGIN:Hash_algorithms
+// tag::Hash_algorithms[]
 enum PNA_HashAlgorithm_t {
   IDENTITY,
   CRC32,
@@ -331,9 +331,9 @@ enum PNA_HashAlgorithm_t {
                       /// TCP, and UDP.
   TARGET_DEFAULT      /// target implementation defined
 }
-// END:Hash_algorithms
+// end::Hash_algorithms[]
 
-// BEGIN:Hash_extern
+// tag::Hash_extern[]
 extern Hash<O> {
   /// Constructor
   Hash(PNA_HashAlgorithm_t algo);
@@ -355,9 +355,9 @@ extern Hash<O> {
   /// @return (base + (h % max)) where h is the hash value.
   O get_hash<T, D>(in T base, in D data, in T max);
 }
-// END:Hash_extern
+// end:;Hash_extern[]
 
-// BEGIN:Checksum_extern
+// tag::Checksum_extern[]
 extern Checksum<W> {
   /// Constructor
   Checksum(PNA_HashAlgorithm_t hash);
@@ -376,9 +376,9 @@ extern Checksum<W> {
   /// Get checksum for data added (and not removed) since last clear
   W    get();
 }
-// END:Checksum_extern
+// end::Checksum_extern[]
 
-// BEGIN:InternetChecksum_extern
+// tag::InternetChecksum_extern[]
 // Checksum based on `ONES_COMPLEMENT16` algorithm used in IPv4, TCP, and UDP.
 // Supports incremental updating via `subtract` method.
 // See IETF RFC 1624.
@@ -414,17 +414,17 @@ extern InternetChecksum {
   /// InternetChecksum extern, or a different one.
   void set_state(in bit<16> checksum_state);
 }
-// END:InternetChecksum_extern
+// end::InternetChecksum_extern[]
 
-// BEGIN:CounterType_defn
+// tag::CounterType_defn[]
 enum PNA_CounterType_t {
     PACKETS,
     BYTES,
     PACKETS_AND_BYTES
 }
-// END:CounterType_defn
+// end::CounterType_defn[]
 
-// BEGIN:Counter_extern
+// tag::Counter_extern[]
 /// Indirect counter with n_counters independent counter values, where
 /// every counter value has a data plane size specified by type W.
 
@@ -433,28 +433,28 @@ extern Counter<W, S> {
   Counter(bit<32> n_counters, PNA_CounterType_t type);
   void count(in S index);
 }
-// END:Counter_extern
+// end:Counter_extern[]
 
-// BEGIN:DirectCounter_extern
+// tag::DirectCounter_extern[]
 @noWarn("unused")
 extern DirectCounter<W> {
   DirectCounter(PNA_CounterType_t type);
   void count();
 }
-// END:DirectCounter_extern
+// end:DirectCounter_extern[]
 
-// BEGIN:MeterType_defn
+// tag::MeterType_defn[]
 enum PNA_MeterType_t {
     PACKETS,
     BYTES
 }
-// END:MeterType_defn
+//end::MeterType_defn[]
 
-// BEGIN:MeterColor_defn
+// tag::MeterColor_defn[]
 enum PNA_MeterColor_t { RED, GREEN, YELLOW }
-// END:MeterColor_defn
+//end::MeterColor_defn[]
 
-// BEGIN:Meter_extern
+// tag::Meter_extern[]
 // Indexed meter with n_meters independent meter states.
 
 extern Meter<S> {
@@ -470,18 +470,18 @@ extern Meter<S> {
   // MeterColor_t.GREEN), which has the same behavior.
   PNA_MeterColor_t execute(in S index);
 }
-// END:Meter_extern
+// end::Meter_extern[]
 
-// BEGIN:DirectMeter_extern
+// tag::DirectMeter_extern[]
 extern DirectMeter {
   DirectMeter(PNA_MeterType_t type);
   // See the corresponding methods for extern Meter.
   PNA_MeterColor_t execute(in PNA_MeterColor_t color);
   PNA_MeterColor_t execute();
 }
-// END:DirectMeter_extern
+//end::DirectMeter_extern[]
 
-// BEGIN:Register_extern
+// tag::Register_extern[]
 extern Register<T, S> {
   /// Instantiate an array of <size> registers. The initial value is
   /// undefined.
@@ -493,9 +493,9 @@ extern Register<T, S> {
   T    read  (in S index);
   void write (in S index, in T value);
 }
-// END:Register_extern
+// end::Register_extern[]
 
-// BEGIN:Random_extern
+// tag::Random_extern
 extern Random<T> {
 
   /// Return a random value in the range [min, max], inclusive.
@@ -506,16 +506,16 @@ extern Random<T> {
   Random(T min, T max);
   T read();
 }
-// END:Random_extern
+// end::Random_extern[]
 
-// BEGIN:ActionProfile_extern
+// tag::ActionProfile_extern[]
 extern ActionProfile {
   /// Construct an action profile of 'size' entries
   ActionProfile(bit<32> size);
 }
-// END:ActionProfile_extern
+// end::ActionProfile_extern[]
 
-// BEGIN:ActionSelector_extern
+// tag::ActionSelector_extern[]
 extern ActionSelector {
   /// Construct an action selector of 'size' entries
   /// @param algo hash algorithm to select a member in a group
@@ -523,21 +523,21 @@ extern ActionSelector {
   /// @param outputWidth size of the key
   ActionSelector(PNA_HashAlgorithm_t algo, bit<32> size, bit<32> outputWidth);
 }
-// END:ActionSelector_extern
+// end::ActionSelector_extern[]
 
-// BEGIN:Digest_extern
+// tag::Digest_extern[]
 extern Digest<T> {
   Digest();                       /// define a digest stream to the control plane
   void pack(in T data);           /// emit data into the stream
 }
-// END:Digest_extern
+// end::Digest_extern[]
 
 enum PNA_Source_t {
     FROM_HOST,
     FROM_NET
 }
 
-// BEGIN:Metadata_types
+// tag::Metadata_types[]
 
 struct pna_main_parser_input_metadata_t {
     // common fields initialized for all packets that are input to main
@@ -569,15 +569,15 @@ struct pna_main_input_metadata_t {
     PortId_t                 input_port;
 }
 
-// BEGIN:Metadata_main_output
+// tag::Metadata_main_output[]
 struct pna_main_output_metadata_t {
   // common fields used by the architecture to decide what to do with
   // the packet next, after the main parser, control, and deparser
   // have finished executing one pass, regardless of the direction.
   ClassOfService_t         class_of_service; // 0
 }
-// END:Metadata_main_output
-// END:Metadata_types
+// end::Metadata_main_output[]
+// end::Metadata_types[]
 
 
 // The following extern functions are "forwarding" functions -- they
@@ -597,14 +597,14 @@ struct pna_main_output_metadata_t {
 
 extern void drop_packet();
 
-// BEGIN:send_to_port
+// tag::send_to_port[]
 extern void send_to_port(in PortId_t dest_port);
-// END:send_to_port
+// end::send_to_port[]
 
-// BEGIN:mirror_packet
+// tag::mirror_packet[]
 extern void mirror_packet(in MirrorSlotId_t mirror_slot_id,
                           in MirrorSessionId_t mirror_session_id);
-// END:mirror_packet
+// end::mirror_packet[]
 
 // TBD: Does it make sense to have a data plane add of a hit action
 // that has in, out, or inout parameters?
@@ -615,7 +615,7 @@ extern void mirror_packet(in MirrorSlotId_t mirror_slot_id,
 // variant of add_entry seems difficult to use correctly, if it is
 // possible for entries to fail to be added.
 
-// BEGIN:add_entry_extern_function
+// tag::add_entry_extern_function[]
 // The bit width of this type is allowed to be different for different
 // target devices.  It must be at least a 1-bit wide type.
 
@@ -679,7 +679,7 @@ extern AddEntryErrorStatus_t add_entry<T>(
     string action_name,
     in T action_params,
     in ExpireTimeProfileId_t expire_time_profile_id);
-// END:add_entry_extern_function
+// end::add_entry_extern_function[]
 
 // The following call to add_entry_if():
 //
@@ -840,7 +840,7 @@ extern T SelectByDirection<T>(
 
 
 
-// BEGIN:Programmable_blocks
+// tag::Programmable_blocks[]
 parser MainParserT<MH, MM>(
     packet_in pkt,
     out   MH main_hdr,
@@ -863,6 +863,6 @@ package PNA_NIC<MH, MM>(
     MainParserT<MH, MM> main_parser,
     MainControlT<MH, MM> main_control,
     MainDeparserT<MH, MM> main_deparser);
-// END:Programmable_blocks
+// end::Programmable_blocks[]
 
 #endif   // __PNA_P4__

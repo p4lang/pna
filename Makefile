@@ -3,17 +3,28 @@
 # SPDX-License-Identifier: Apache-2.0
 
 SPEC=PNA
+ROUGE_STYLE=github
+ROUGE_CSS=style
 
-all: build/${SPEC}.pdf
+all: ${SPEC}.pdf ${SPEC}.html
 
-build/${SPEC}.pdf: ${SPEC}.mdk
-	madoko --pdf -vv --png --odir=build $<
+build:
+${SPEC}.pdf: ${SPEC}.adoc pna.p4
+	    time asciidoctor-pdf -v \
+		-r asciidoctor-mathematical \
+		-r asciidoctor-bibtex \
+		-a pdf-fontsdir=resources/fonts \
+		-a rouge-style=$(ROUGE_STYLE) $<
 
-build/${SPEC}.pdf: p4.json
-build/${SPEC}.pdf: pna.p4
+${SPEC}.html: ${SPEC}.adoc pna.p4
+	time asciidoctor -v \
+	-r asciidoctor-mathematical \
+	-r asciidoctor-bibtex \
+	-a rouge-css=$(ROUGE_CSS) $<
 
+ 
 clean:
-	${RM} -rf build
+	/bin/rm -f ${SPEC}.pdf ${SPEC}.html
 
 P4C=p4test
 #P4C=p4test --Wdisable=uninitialized_out_param

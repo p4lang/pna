@@ -1,150 +1,32 @@
-Title : P4 Portable NIC Architecture (PNA)
-Title Note: (working draft after version 0.7 release)
-Title Footer: &date;
-Author : The P4.org Architecture Working Group
-Heading depth: 4
-Pdf Latex: xelatex
-Document Class: [11pt]article
-Package: [top=1in, bottom=1.25in, left=1in, right=1in]geometry
-Package: fancyhdr
-
-Tex Header:
-  \setlength{\headheight}{30pt}
-  \renewcommand{\footrulewidth}{0.5pt}
-
-@if html {
-body.madoko {
-  font-family: utopia-std, serif;
-}
-title,titlenote,titlefooter,authors,h1,h2,h3,h4,h5 {
-  font-family: helvetica, sans-serif;
-  font-weight: bold;
-}
-pre, code {
-  language: p4;
-  font-family: monospace;
-  font-size: 10pt;
-}
-}
-
-@if tex {
-body.madoko {
-  font-family: UtopiaStd-Regular;
-}
-title,titlenote,titlefooter,authors {
-  font-family: sans-serif;
-  font-weight: bold;
-}
-pre, code {
-  language: p4;
-  font-family: LuxiMono;
-  font-size: 75%;
-}
-}
-
-Colorizer: p4
-.token.keyword    {
-    font-weight: bold;
-}
-
-@if html {
-p4example {
-  replace: "~ Begin P4ExampleBlock&nl;\
-                 ````&nl;&source;&nl;````&nl;\
-                 ~ End P4ExampleBlock";
-  padding:6pt;
-  margin-top: 6pt;
-  margin-bottom: 6pt;
-  border: solid;
-  background-color: #ffffdd;
-  border-width: 0.5pt;
-}
-}
-
-@if tex {
-p4example {
-  replace: "~ Begin P4ExampleBlock&nl;\
-                 ````&nl;&source;&nl;````&nl;\
-                 ~ End P4ExampleBlock";
-  breakable: true;
-  padding: 6pt;
-  margin-top: 6pt;
-  margin-bottom: 6pt;
-  border: solid;
-  background-color: #ffffdd;
-  border-width: 0.5pt;
-}
-}
+= P4 Portable NIC Architecture (PNA)
+:doctype: book
+:revdate: {docdate}
+:revnumber: v0.7
+:imagesdir: resources/figs
+:data-uri:
+:font-size: 10
+:sectnums: 5
+:sectnumlevels: 5
+:toc: macro
+:toc-title: Contents
+:toclevels: 5
+:toc: left
+:!chapter-signifier:
+:xrefstyle: short
+:stem: latexmath
+:pdf-themesdir: resources/theme/
+:pdf-theme: p4-theme.yml
+:stylesdir: resources/theme/
+:stylesheet: p4-stylesheet.css
+:source-highlighter: rouge
+:bibtex-file: resources/theme/references.bib
+:bibtex-order: appearance
+:bibtex-style: ieee
+:listing-caption: Listing
 
 
-@if html {
-p4pseudo {
-  replace: "~ Begin P4PseudoBlock&nl;\
-                 ````&nl;&source;&nl;````&nl;\
-                 ~ End P4PseudoBlock";
-  padding: 6pt;
-  margin-top: 6pt;
-  margin-bottom: 6pt;
-  border: solid;
-  background-color: #e9fce9;
-  border-width: 0.5pt;
-}
-}
-
-@if tex {
-p4pseudo {
-  replace: "~ Begin P4PseudoBlock&nl;\
-                 ````&nl;&source;&nl;````&nl;\
-                 ~ End P4PseudoBlock";
-  breakable : true;
-  padding: 6pt;
-  margin-top: 6pt;
-  margin-bottom: 6pt;
-  background-color: #e9fce9;
-  border: solid;
-  border-width: 0.5pt;
-}
-}
-
-@if html {
-p4grammar {
-  replace: "~ Begin P4GrammarBlock&nl;\
-                 ````&nl;&source;&nl;````&nl;\
-                 ~ End P4GrammarBlock";
-  border: solid;
-  margin-top: 6pt;
-  margin-bottom: 6pt;
-  padding: 6pt;
-  background-color: #e6ffff;
-  border-width: 0.5pt;
-}
-}
-
-@if tex {
-p4grammar {
-  replace: "~ Begin P4GrammarBlock&nl;\
-                 ````&nl;&source;&nl;````&nl;\
-                 ~ End P4GrammarBlock";
-  breakable: true;
-  margin-top: 6pt;
-  margin-bottom: 6pt;
-  padding: 6pt;
-  background-color: #e6ffff;
-  border: solid;
-  border-width: 0.5pt;
-}
-}
-
-tbd {
-    replace: "~ Begin TbdBlock&nl;\
-                   TBD: &source;&nl;\
-              ~ End TbdBlock&nl;";
-    color: red;
-}
-
-[TITLE]
-
-~ Begin Abstract
+[abstract]
+.Abstract
 P4 is a domain-specific language for describing how packets are
 processed by a network data plane. A P4 program comprises an
 architecture, which describes the structure and capabilities of the
@@ -154,11 +36,12 @@ Architecture (PNA) is an architecture that describes the structure and
 common capabilities of network interface controller (NIC) devices that
 process packets going between one or more interfaces and a host
 system.
-~ End Abstract
 
-[TOC]
 
-# Introduction
+toc::[]
+
+[#sec-introduction]
+== Introduction
 
 Note that this document is still a working draft.  Significant changes
 are expected to be made before version 1.0 of this specification is
@@ -168,19 +51,19 @@ The Portable NIC Architecture (PNA) is the P4 architecture that defines
 the structure and common capabilities for network interface controller
 (NIC) devices. PNA comprises two main components:
 
-1. A programmable pipeline that can be used to realize a variety of
+* A programmable pipeline that can be used to realize a variety of
 different "packet paths" going between the various ports on the device
 (e.g., network interfaces or the host system it is attached to), and
 
-2. A library of types (e.g., intrinsic and standard metadata) and
+* A library of types (e.g., intrinsic and standard metadata) and
 P4~16~ externs (e.g., counters, meters, and registers).
 
 PNA is designed to model the common features of a broad class of NIC
 devices. By providing standard APIs and coding guidelines, the hope is
 to enable developers to write programs that are portable across
-multiple NIC devices that are conformant to the PNA[^PNAPortability].
+multiple NIC devices that are conformant to the PNA [Footnote 1].
 
-[^PNAPortability]: Of course, given the tight hardware resource
+[Footnote 1] Of course, given the tight hardware resource
     constraints on NIC devices, there is no promise that a given P4
     program that compiles on one device will also compile on another
     device. However, it should at least be the case that those P4
@@ -188,18 +71,19 @@ multiple NIC devices that are conformant to the PNA[^PNAPortability].
     process packets as described in this document.
 
 The Portable NIC Architecture (PNA) Model has three programmable P4
-blocks and several fixed-function blocks, as shown in Figure
-[#fig-nic]. The behavior of the programmable blocks is specified using
+blocks and several fixed-function blocks, as shown in <<#fig-nic>>. 
+The behavior of the programmable blocks is specified using
 P4. The network ports, packet queues, and (optional) inline accelerators
 are fixed-function blocks that can be configured by the control
 plane, but are not intended to be programmed using P4.
 
-~ Figure {#fig-nic; caption: "Programmable NIC Architecture Block Diagram"; page-align: here;}
-![nic]
-~
-[nic]: figs/flex-routing-arch.png { width: 100%;}
 
-## Packet processing
+.Programmable NIC Architecture Block Diagram.
+[#fig-nic]
+image::flex-routing-arch.png[width=400,align="center"]
+
+[#sec-packet-processing]
+=== Packet processing
 
 Packets arriving from a network port or from the hosts first go through a
 `MainParser`, which is responsible for extracting all relevant packet headers.
@@ -256,7 +140,7 @@ designed this way for two reasons:
     in this specification) to access the same table in memory when
     processing packets in either direction.
 
-Figure [#fig-nic] shows multiple hosts. Some NICs support PCI Express
+<<#fig-nic>> shows multiple hosts. Some NICs support PCI Express
 connections to multiple host CPU complexes. It is also common for NICs
 to have an array of one or more CPU cores inside of the NIC device
 itself, and these can be the target for packets received from the
@@ -264,7 +148,8 @@ network, and/or the source of packets sent to the network, just as the
 other hosts can be. For the purposes of the PNA, such CPU cores are
 considered as another host.
 
-## Message processing
+[#sec-message-processing]
+=== Message processing
 
 The focus in the current version of this specification is on the three
 P4-programmable blocks mentioned above. The details of how one can
@@ -304,12 +189,12 @@ tightly coupled with the host operating system, whereas the
 
 
 
-
-## PNA P4~16~ architecture
+[#sec-pna-architecture]
+=== PNA P4~16~ architecture
 
 A programmer targeting the PNA is required to provide P4 definitions
-for each of the programmable blocks in the pipeline (see section
-[#sec-programmable-blocks]). The programmable block inputs and outputs
+for each of the programmable blocks in the pipeline (see 
+<<#sec-programmable-blocks>>). The programmable block inputs and outputs
 are parameterized on the types of user defined headers and metadata.
 The top-level PNA program instantiates a package named `main` with the
 programmable blocks passed as arguments (see Section TBD for an
@@ -319,14 +204,11 @@ example). Note that the `main` package is not to be confused with the
 This document contains excerpts of several P4~16~ programs that use
 the `pna.p4` include file and demonstrate features of PNA. Source code
 for the complete programs can be found in the official repository
-containing the PNA specification[^PNAExamplePrograms].
-
-[^PNAExamplePrograms]: <https://github.com/p4lang/pna>
-    in directory `examples`.  Direct link:
-    <https://github.com/p4lang/pna/tree/main/examples>
+containing the PNA specification cite:[PNAExamplePrograms].
 
 
-## Guidelines for Portability
+[#sec-guidelines-for-portability]
+=== Guidelines for Portability
 
 A P4 programmer wishing to maximize the portability of their program should
 follow several general guidelines:
@@ -338,8 +220,8 @@ follow several general guidelines:
 - Use as few resources as possible, e.g. table search key
   bits, array sizes, quantity of metadata associated with packets, etc.
 
-
-# Naming conventions
+[#sec-naming-conventions]
+== Naming conventions
 
 In this document we use the following naming conventions:
 
@@ -356,75 +238,68 @@ In this document we use the following naming conventions:
 
 Architecture specific metadata (e.g. structs) are prefixed by `pna_`.
 
-# Packet paths {#packet-paths}
+[#sec-packet-paths]
+== Packet paths 
 
-Figure [#fig-packet-paths] shows all possible paths for packets that
+<<#fig-packet-paths>> shows all possible paths for packets that
 must be supported by a PNA implementation. An implementation is
 allowed to support paths for packets that are not described here.
 
-~Begin TBD
+
+[NOTE]
 Create another figure with the updated architecture diagram and names for the paths.
-~End TBD
 
-~ Figure {#fig-packet-paths; caption: "Packet Paths in PNA"; page-align: here;}
-~
 
-Table [#results-of-one-pkt-thru-main] shows what can happen to a
+
+.Packet Paths in PNA.
+[#fig-packet-paths]
+image::reference-architecture.png[width=400,align="center"]
+
+
+<<#results-of-one-pkt-thru-main>> shows what can happen to a
 packet as a result of a single time being processed through the four
 programmable blocks of the packet processing part of PNA, referred to
 here as "main".
 
-~ TableFigure {#results-of-one-pkt-thru-main; \
-  caption: Result of packet processed one time by main.}
-|-------------|---------------|--------------------|
-|             | Processed     | Resulting          |
-| Description | next by       | packet(s)          |
-+:------------+:--------------+:-------------------+
-| packet from   | main, with    | Zero or more mirrored  |
-| network port  | direction     | packets, plus at most  |
-|---------------|               | |
-| packet from   | `NET_TO_HOST` | one of: a net-to-host  |
-| net-to-host   |               | recirculated packet,   |
-| recirculate   |               | or one to-host packet. |
-|---------------|               |                        |
-| packet from   |               |                        |
-| port loopback |               |                        |
-|---------------|---------------|------------------------|
-| packet from   | main, with    | Zero or more mirrored  |
-| message processing | direction | packets, plus at most |
-|---------------|               | |
-| packet from   | `HOST_TO_NET` | one of: a host-to-net  |
-| host-to-net   |               | recirculated packet,   |
-| recirculate   |               | or one to-net packet.  |
-|---------------|               |                        |
-| packet from   |               |                        |
-| host loopback |               |                        |
-|---------------|---------------|------------------------|
-~
+
+.Result of packet processed one time by main
+[.center,%autowidth]
+[#results-of-one-pkt-thru-main]
+|===
+| *Description* |  *Processed next by*| *Resulting packet(s)*
+| packet from network port             1.3+^| main, with direction `NET_TO_HOST` 1.3+^|Zero or more mirrored packets, plus at most one of: a net-to-host recirculated packet, or one to-host packet.
+| packet from net-to-host recirculate 
+| packet from  port loopback
+| packet from  message processing      1.3+^| main, with  direction `HOST_TO_NET` 1.3+^|Zero or more mirrored packets, plus at most one of: a host-to-net recirculated packet, or one to-net packet.
+| packet from  host-to-net recirculate 
+| packet from  host loopback
+|===
 
 Note that each mirrored packet that results from `mirror_packet`
 operations will have its own next place that it will go to be
 processed, independent of the original packet, and independent of any
 other mirror copies made of the same original packet.
 
-# PNA Data types
+[#sec-pna-data-types]
+== PNA Data types
 
-## PNA type definitions {#sec-pna-type-definitions}
+[#sec-pna-type-definitions]
+=== PNA type definitions 
 
 Each PNA implementation will have specific bit widths in the data
 plane for the types shown in the code excerpt of Section
-[#sec-pna-type-definitions-code].  These widths are defined in the
+<<#sec-pna-type-definitions-code>>.  These widths are defined in the
 target specific `pna.p4` include file.  They are expected to differ
-from one PNA implementation to another[^PNAP4TargetSpecific].
+from one PNA implementation to another [Footnote 2].
 
-[^PNAP4TargetSpecific]: It is expected that `pna.p4` include files for
+[Footnote 2]: It is expected that `pna.p4` include files for
     different targets will be nearly identical to each
     other.  Besides the possibility of differing bit widths for these
     PNA types, the only expected differences between `pna.p4` files
     for different targets would be annotations on externs, etc. that
     the P4 compiler for that target needs to do its job.
 
-For each of these types, the P4 Runtime API[^P4RuntimeAPI] may use bit
+For each of these types, the P4 Runtime API cite:[P4RuntimeRepo] may use bit
 widths independent of the targets. These widths are defined by the P4
 Runtime API specification, and they are expected to be at least as
 large as the corresponding `InHeader_t` type below, such that they
@@ -432,16 +307,19 @@ hold a value for any target. All PNA implementations must use data
 plane sizes for these types no wider than the corresponding
 `InHeader_t`-defined types.
 
-[^P4RuntimeAPI]: The P4Runtime Specification can be found here:
-    <https://p4.org/specs>
 
-### PNA type definition code excerpt {#sec-pna-type-definitions-code}
+[#sec-pna-type-definitions-code]
+==== PNA type definition code excerpt 
 
-~ Begin P4Example
-[INCLUDE=pna.p4:Type_defns]
-~ End P4Example
 
-### PNA port types and values
+[source,p4]
+----
+include::pna.p4[tag=Type_defns]
+----
+
+
+[#sec-pna-port-types-and-values]
+==== PNA port types and values
 
 There are two types defined by PNA for holding different kinds of
 ports: `PortId_t` and `InterfaceId_t`.
@@ -449,8 +327,8 @@ ports: `PortId_t` and `InterfaceId_t`.
 The type `PortId_t` must be large enough in the data plane to hold one
 of these values:
 
-+ a data plane id for one network port
-+ a data plane id for one vport
+* a data plane id for one network port
+* a data plane id for one vport
 
 As one example, a PNA target with four Ethernet network ports could
 choose to use the values 0 through 3 to identify the network ports,
@@ -461,23 +339,29 @@ ports must be consecutive, nor for vports.  PNA only requires that for
 every possible numeric value `x` with type `PortId_t`, exactly one of
 these statements is true:
 
-+ `x` is the data plane id of one network port, but not any vport
-+ `x` is the data plane id of one vport, but not any network port
-+ `x` is the data plane id of no port, neither a network port nor a vport
+* `x` is the data plane id of one network port, but not any vport
+* `x` is the data plane id of one vport, but not any network port
+* `x` is the data plane id of no port, neither a network port nor a vport
 
-## PNA supported metadata types
+[#sec-pna-supported-metadata-types]
+=== PNA supported metadata types
 
-~ Begin P4Example
-[INCLUDE=pna.p4:Metadata_types]
-~ End P4Example
 
-## Match kinds
+[source,p4]
+----
+include::pna.p4[tag=Metadata_types]
+----
+
+[#sec-match-kinds]
+=== Match kinds
 PNA supports the `match_kinds` specified in section 4.3 of the
 PSA specification.
 
-## Data plane vs. control plane data representations {#sec-data-plane-vs-control-plane-values}
+[#sec-data-plane-vs-control-plane-values]
+=== Data plane vs. control plane data representations 
 
-# Programmable blocks {#sec-programmable-blocks}
+[#sec-programmable-blocks]
+== Programmable blocks 
 
 The following declarations provide a template for the programmable
 blocks in the PNA. The P4 programmer is responsible for implementing
@@ -489,29 +373,32 @@ for all ingress parsers and control blocks.  The egress parser and
 control blocks can use the same types for those things, or different
 types, as the P4 program author wishes.
 
-~ Begin P4Example
-[INCLUDE=pna.p4:Programmable_blocks]
-~ End P4Example
 
-# Packet Path Details {#packet-path-details}
+[source,p4]
+----
+include::pna.p4[tag=Programmable_blocks]
+----
 
-Refer to section [#packet-paths] for the packet paths provided by PNA.
+[#sec-packet-path-details]
+== Packet Path Details 
 
-~Begin TBD
+Refer to <<#sec-packet-paths>> for the packet paths provided by PNA.
+
+[NOTE]
 Need to decide where multicast replication can occur, and in what
 conditions.
-~End TBD
 
-~Begin TBD
+
+[NOTE]
 Need to decide where packet mirroring occurs, and in what
 conditions, and how the mirrored packets differ from the originals.
-~End TBD
 
-~Begin TBD
+
+[NOTE]
 Rewrite this section once the overall architecture is approved
-~End TBD
 
-## Initial values of packets processed by main parser
+[#sec-initial-values-of-packets]
+=== Initial values of packets processed by main parser
 
 ~ Begin Comment
 jnfoster: is this a case where pseudocode would be helpful for
@@ -519,86 +406,102 @@ defining the initial values of headers/metadata? Or would that be too
 precise and therefore constraining?
 ~ End Comment
 
-### Initial packet contents for packets from ports
+[#sec-initial-contents-of-packets]
+==== Initial packet contents for packets from ports
 
 Packet is as received from Ethernet port.
 
 User-defined metadata is empty?
 
-### Initial packet contents for packets looped back from host-to-network path
+[#sec-initial-contents-for-packets-looped]
+==== Initial packet contents for packets looped back from host-to-network path
 
 Packet is as came out of host-to-net received from Ethernet port.
 
 There can be user-defined metadata included with these packets.
 
-## Initial values of packets processed in network-to-host direction by main block
+[#sec-initial-values-of-packets-processed]
+=== Initial values of packets processed in network-to-host direction by main block
 
-### Initial packet contents for normal packets
+[#sec-initial-contents-for-normal-packets]
+==== Initial packet contents for normal packets
 
 The packet should be ...
 
 The user-defined metadata should be ...
 
 The standard metadata contents should be specified in detail here.
-
-### Initial packet contents for recirculated packets
+[#sec-initial-contents-for-recirculated-packets]
+==== Initial packet contents for recirculated packets
 
 Give any differences between this case and previous section.
-
-## Behavior of packets after main block is complete in network-to-host direction
+[#sec-behavior-of-packets]
+=== Behavior of packets after main block is complete in network-to-host direction
 
 Cases: drop, recirculate, loopback to host-to-net direction, to
 message processing.  Describe the conditions in which each occurs.
+[#sec-initial-values-of-packets-processed-in-host]
+=== Initial values of packets processed in host-to-network direction by main block
 
-## Initial values of packets processed in host-to-network direction by main block
-
-### Initial packet contents for normal packets
+[#sec-initial-packets-contents-for-normal]
+==== Initial packet contents for normal packets
 
 This is for packets from the message processing block.
 
-### Initial packet contents for recirculated packets
+[#sec-initial-packets-contents-for-recirculated]
+==== Initial packet contents for recirculated packets
 
 Give any differences between this case and previous section.
 
-### Initial packet contents for packets looped back after network-to-host main processing
+[#sec-initial-packet-contents-for-packets-looped]
+==== Initial packet contents for packets looped back after network-to-host main processing
 
-## Behavior of packets after main block is complete in host-to-network direction
+[#sec-behavior-of-packets-after-main-block]
+=== Behavior of packets after main block is complete in host-to-network direction
 
 Cases: drop, recirculate, to queues.  Describe the conditions in which
 each occurs.
 
-## Contents of packets sent out to ports
+[#sec-contests-of-packets-sent-out]
+=== Contents of packets sent out to ports
 
-## Functions for directing packets
+[#sec-functions-for-directions-packets]
+=== Functions for directing packets
 
-### Extern function `send_to_port`
+[#sec-extern-function]
+==== Extern function `send_to_port`
 
-~ Begin P4Example
-[INCLUDE=pna.p4:send_to_port]
-~ End P4Example
+
+[source,p4]
+----
+include::pna.p4[tag=send_to_port]
+----
 
 The extern function `send_to_port` is used to direct a packet to a
 specified network port, or to a vport.  Invoking `send_to_port(x)` is
 supported only within the main control.  There are two cases to
 consider, detailed below.
 
-+ `x` is a network port id.
+* `x` is a network port id.
 
 Calling `send_to_port(x)` modifies hidden state for this packet, so
 that the packet will be transmitted out of the network port with id
 `x`.
 
-+ `x` is a vport id.
+* `x` is a vport id.
 
 Calling `send_to_port(x)` modifies hidden state for this packet, so
 that the packet will be sent to the vport with id `x` in the host,
 without being looped back.
 
-## Packet Mirroring
+[#sec-packet-mirroring]
+=== Packet Mirroring
 
-~ Begin P4Example
-[INCLUDE=pna.p4:mirror_packet]
-~ End P4Example
+
+[source,p4]
+----
+include::pna.p4[tag=mirror_packet]
+----
 
 The extern function `mirror_packet` is used to cause a mirror copy of
 the packet currently being processed to be created.  Invoking
@@ -643,7 +546,7 @@ mirror slot can be created.
 The control plane code can configure the following properties of each
 mirror session, independently of other mirror sessions:
 
-+ `packet_contents`
+* `packet_contents`
 
 If `PRE_MODIFY`, then the mirrored packet's contents will be the same
 as the original packet as it was when the packet began the execution
@@ -654,19 +557,19 @@ as the original packet that is being mirrored, after any modifications
 made during the execution of the main control that invoked the
 `mirror_packet()` function.
 
-+ `truncate`
+* `truncate`
 
 `true` to limit the length of the mirrored packet to the
 `truncate_length`.  `false` to cause the mirrored packet not to be
 truncated, in which case the `truncate_length` property is ignored for
 this mirror session.
 
-+ `truncate_length`
+* `truncate_length`
 
 In units of bytes.  Targets may limit the choices here, e.g. to a
 multiple of 32 bytes, or perhaps even a subset of those choices.
 
-+ `sampling_method`
+* `sampling_method`
 
 One of the values: `RANDOM_SAMPLING`, `HASH_SAMPLING`.
 
@@ -679,7 +582,7 @@ calculated over the packet's header fields resulting in a hash output
 value `H`.  A mirror copy will be created if `(H & sample_hash_mask)
 == sample_hash_value`.
 
-+ `meter_parameters`
+* `meter_parameters`
 
 If the conditions specified by the `sampling_method` and other
 sampling properties are passed, then a P4 meter dedicated for use by
@@ -691,7 +594,7 @@ to create mirror copies).
 If the meter update returns any result other than `GREEN`, then no
 mirror copy will be created.
 
-+ `destination_port`
+* `destination_port`
 
 A network port id, or a vport id.
 
@@ -713,33 +616,37 @@ in the main block in the `NET_TO_HOST` direction, already destined for
 the vport `destination_port`.  That vport can be overwritten by calls
 to forwarding functions.
 
-~Begin TBD
+[NOTE]
 When a mirror copied packet comes back to the main control, it will
 have some metadata indicating it is mirror copy.  We should define a
 way in PNA to recognize such mirror copies, e.g. some new extern
 function call returning true if the packet was created by a
 `mirror_packet` operation.
-~End TBD
 
-## Packet recirculation
+[#sec-packet-recirculation]
+=== Packet recirculation
 
-# PNA Extern Objects
+[#sec-pna-extern-restrictions]
+== PNA Extern Objects
 
-## Restrictions on where externs may be used {#sec-extern-restrictions}
+[#sec-extern-restrictions]
+=== Restrictions on where externs may be used 
 
 All instantiations in a P4~16~ program occur at compile time, and can
 be arranged in a tree structure we will call the instantiation tree.
 The root of the tree `T` represents the top level of the program. Its
-child is the node for the package `PNA_NIC` described in Section
-[#sec-programmable-blocks], and any externs instantiated at the top
+child is the node for the package `PNA_NIC` described in 
+<<#sec-programmable-blocks>>, and any externs instantiated at the top
 level of the program. The children of the `PNA_NIC` node are the
 packages and externs passed as parameters to the `PNA_NIC`
-instantiation. See Figure [#fig-instantiation-tree] for a drawing of
+instantiation. See Figure <<#fig-instantiation-tree>> for a drawing of
 the smallest instantiation tree possible for a P4 program written for
 PNA.
 
-~ Figure {#fig-instantiation-tree; caption: "Minimal PNA instantiation tree"; page-align: here;}
-~
+
+.Minimal PNA instantiation tree.
+[#fig-instantiation-tree]
+image::reference-architecture.png[width=400,align="center"]
 
 If any of those parsers or controls instantiate other parsers,
 controls, and/or externs, the instantiation tree contains child nodes
@@ -752,38 +659,27 @@ level instances.
 
 A PNA implementation is allowed to reject programs that instantiate
 externs, or attempt to call their methods, from anywhere other than
-the places mentioned in Table [#table-extern-usage].
+the places mentioned in <<#table-extern-usage>>.
 
-~ TableFigure {#table-extern-usage; \
-  caption: Summary of controls that can instantiate and invoke externs.}
-|-------------------|----------------------------------------------|
-| Extern type       | Where it may be instantiated and called from |
-+:------------------+:---------------------------------------------+
-| `ActionProfile`   | MainControl |
-|-------------------|----------------------------------------------|
-| `ActionSelector`  | MainControl |
-|-------------------|----------------------------------------------|
-| `Checksum`        | MainParser, MainControl, MainDeparser |
-|-------------------|----------------------------------------------|
-| `Counter`         | MainControl |
-|-------------------|----------------------------------------------|
-| `Digest`          | MainDeparser |
-|-------------------|----------------------------------------------|
-| `DirectCounter`   | MainControl |
-|-------------------|----------------------------------------------|
-| `DirectMeter`     | MainControl |
-|-------------------|----------------------------------------------|
-| `Hash`            | MainControl |
-|-------------------|----------------------------------------------|
-| `InternetChecksum` | MainParser, MainControl, MainDeparser |
-|-------------------|----------------------------------------------|
-| `Meter`           | MainControl |
-|-------------------|----------------------------------------------|
-| `Random`          | MainControl |
-|-------------------|----------------------------------------------|
-| `Register`        | MainControl |
-|-------------------|----------------------------------------------|
-~
+
+.Summary of controls that can instantiate and invoke externs
+[.center,%autowidth]
+[#table-extern-usage]
+|===
+| *Extern type*       | *Where it may be instantiated and called from* 
+| `ActionProfile`   | MainControl
+| `ActionSelector`  | MainControl
+| `Checksum`        | MainParser, MainControl, MainDeparser 
+| `Counter`         | MainControl
+| `Digest`          | MainDeparser
+| `DirectCounter`   | MainControl
+| `DirectMeter`     | MainControl
+| `Hash`            | MainControl
+| `InternetChecksum` | MainParser, MainControl, MainDeparser
+| `Meter`           | MainControl
+| `Random`          | MainControl
+| `Register`        | MainControl
+|===
 
 For example, `Counter` being restricted to "MainControl" means that
 every `Counter` instance must be instantiated within the `MainControl`
@@ -813,7 +709,8 @@ extern definitions being moved from the PSA specification into a
 separate standard library of P4 extern definitions, and if this is
 done, both the PSA and PNA specifications will reference that.
 
-## Extern Objects for Inline Accelerators {#sec-inline-accelerators}
+[#sec-inline-accelerators]
+=== Extern Objects for Inline Accelerators 
 
 A variety of inline accelerators can be present on a PNA target. These
 accelerators perform specific functions on a packet. These functions are
@@ -833,35 +730,31 @@ This section provides one example definition of a crypto acceleration engine.
 Other extern objects can be defined in future based on the functionality
 provided by the hardware accelerators.
 
-~Begin P4Example
-[INCLUDE=examples/include/crypto-accelerator.p4:Crypto_accelerator_extern_object]
-~End P4Example
 
-# PNA Table Properties
+[source,p4]
+----
+include::examples/include/crypto-accelerator.p4[tag=Crypto_accelerator_extern_object]
+----
 
-Table [#table-table-properties] lists all P4 table properties defined
+[#sec-pna-table-properties]
+== PNA Table Properties
+
+<<#table-table-properties>> lists all P4 table properties defined
 by PNA that are not included in the base P4~16~ language
 specification.
 
-~ TableFigure {#table-table-properties; \
-  caption: Summary of PNA table properties.}
-|-----------------------|------|---------------------------------------|
-| Property name         | Type | See also |
-+:----------------------+:-----+:--------------------------------------+
-| `add_on_miss`         | `boolean` | Section [#sec-add-on-miss] |
-|-----------------------|------|---------------------------------------|
-| `pna_direct_counter` | one `DirectCounter` instance name |  |
-|-----------------------|------|---------------------------------------|
-| `pna_direct_meter` | one `DirectMeter` instance name |  |
-|-----------------------|------|---------------------------------------|
-| `pna_implementation`  | instance name of one `ActionProfile` |  |
-|                       | or `ActionSelector` |  |
-|-----------------------|------|---------------------------------------|
-| `pna_empty_group_action` | action |  |
-|-----------------------|------|---------------------------------------|
-| `pna_idle_timeout` | `PNA_IdleTimeout_t` | Section [#sec-idle-timeout] |
-|-----------------------|------|---------------------------------------|
-~
+.Summary of PNA table properties
+[.center,%autowidth]
+[#table-table-properties]
+|===
+| *Property name*       | *Type*    | *See also*
+| `add_on_miss`         | `boolean` | <<#sec-add-on-miss>>
+| `pna_direct_counter` | one `DirectCounter` instance name |  
+| `pna_direct_meter` | one `DirectMeter` instance name |  
+| `pna_implementation`  | instance name of one `ActionProfile` or `ActionSelector` |  
+| `pna_empty_group_action` | action |  
+| `pna_idle_timeout` | `PNA_IdleTimeout_t` | <<#sec-idle-timeout>>
+|===
 
 A PNA implementation need not support both of a `pna_implementation`
 and `pna_direct_counter` property on the same table.
@@ -876,7 +769,8 @@ A PNA implementation must implement tables that have both a
 A PNA implementation need not support both `pna_implementation` and
 `pna_idle_timeout` properties on the same table.
 
-## Tables with add-on-miss capability {#sec-add-on-miss}
+[#sec-add-on-miss]
+=== Tables with add-on-miss capability 
 
 PNA defines the `add_on_miss` table property.  If the value of this
 property is `true` for a table `t`, the P4 developer is allowed to
@@ -910,9 +804,11 @@ It is expected that PNA implementations will be able to sustain
 not be at the same packet rate supported for processing packets that
 do not call `add_entry`.
 
-~Begin P4Example
-[INCLUDE=pna.p4:add_entry_extern_function]
-~End P4Example
+
+[source,p4]
+----
+include::pna.p4[tag=add_entry_extern_function]
+----
 
 It is expected that many PNA implementations will restrict
 `add_entry()` to be called with the following restrictions:
@@ -939,8 +835,8 @@ implementations are free to define additional failure reasons other
 than `ADD_ENTRY_NOT_DONE`, but it is perfectly acceptable for a PNA
 implementation to only support those two possible return values.
 
-
-## Table entry idle timeout {#sec-idle-timeout}
+[#sec-idle-timeout]
+=== Table entry idle timeout 
 
 PNA defines the table property `pna_idle_timeout` to enable specifying
 whether a table should maintain an idle time for each of its entries,
@@ -950,9 +846,12 @@ been matched for a length of time at least its configured idle time.
 The value assigned to `pna_idle_timeout` must be a value of type
 `PNA_IdleTimeout_t`:
 
-~Begin P4Example
-[INCLUDE=pna.p4:enum_PNA_IdleTimeout_t]
-~End P4Example
+
+
+[source,p4]
+----
+include::pna.p4[tag=enum_PNA_IdleTimeout_t]
+----
 
 If the property `pna_idle_timeout` is not specified for a table, its
 default value is `NO_TIMEOUT`.  Such tables need not maintain an idle
@@ -963,10 +862,9 @@ If the property `pna_idle_timeout` is assigned a value of
 `NOTIFY_CONTROL`, the behavior is the same as defined in the Portable
 Switch Architecture if a table has its property `psa_idle_timeout`
 assigned a value of `NOTIFY_CONTROL`.  See the section titled "Table
-entry timeout notification" in the PSA specification[^PSA].
+entry timeout notification" in the PSA specification cite:[PSA].
 
-[^PSA]: The Portable Switch Architecture specification can be found here:
-    <https://p4.org/specs>
+
 
 If the property `pna_idle_timeout` is assigned a value of
 `AUTO_DELETE`, the behavior is similar to the behavior of the value
@@ -989,22 +887,26 @@ entries, and thus will often use `add_on_miss = true` and
 `pna_idle_timeout = PNA_IdleTimeout_t.AUTO_DELETE` together.
 
 
-# Timestamps
+== Timestamps
 
+[#sec-atomicity-of-control-plane-api-operations]
+== Atomicity of control plane API operations 
 
-# Atomicity of control plane API operations {#sec-atomicity-of-control-plane-api-operations}
+[appendix]
+[#sec-appendix-revision-history]
+== Revision History 
 
-# Appendix: Revision History {#appendix-revision-history; @h1:"A"}
+.Revision History 
+[.center,%autowidth]
+[#tab-history]
+|===
+| *Release* | *Release Date* | *Summary of Changes*
+| 0.1 | November 5, 2020 | Skeleton specification.
+| 0.5 | May 15, 2021 | Initial draft.
+| 0.7 | December 22, 2022 | Version 0.7 
+|===
 
-|-----|-----|-----|
-| Release | Release Date | Summary of Changes |
-+:---:+-----+-----+
-| 0.1 | November 5, 2020 | Skeleton specification. |
-| 0.5 | May 15, 2021 | Initial draft. |
-| 0.7 | December 22, 2022 | Version 0.7 |
-+-----+-----+-----+
-
-## Changes made in version 0.7
+=== Changes made in version 0.7
 
 * Added extern functions `add_entry_if`, `set_entry_expire_time_if`,
   and `update_expire_info`, intended to be more friendly to targets
@@ -1043,18 +945,19 @@ entries, and thus will often use `add_on_miss = true` and
 * Many minor changes in example P4 programs to keep up with changes to
   the specification and pna.p4 include file.
 
-# Appendix: Open Issues
+[appendix]
+== Open Issues
 
-# Appendix: Rationale for design {#appendix-rationale}
+[appendix]
+== Rationale for design
 
-## Why a common pipeline, instead of separate pipelines for each direction?
+=== Why a common pipeline, instead of separate pipelines for each direction?
 
-~Begin TBD
+[NOTE]
 Andy can write this one.  Basic reasons are summarized in
 existing slides.
-~End TBD
 
-## Is it inefficient to have the `MainParser` redo work? {#appendix-reparsing}
+=== Is it inefficient to have the `MainParser` redo work?
 
 If the only changes made by the decryption fixed function block in the network-to-host
 direction were to decrypt parts of the packet that were previously
@@ -1103,19 +1006,24 @@ implementation might use some of the techniques mentioned in the
 previous paragraph, but hidden from the P4 developer. The proposed PNA
 design should not prevent this, if an implementer is willing to go to
 that effort.
+[appendix]
+== Packet path figures 
 
-# Appendix: Packet path figures {#appendix-packet-path-figures}
+=== From network, sent to host
 
-## From network, sent to host
+=== From network, sent to host, with mirror copy to different host
 
-## From network, sent to host, with mirror copy to different host
+=== From host, to network
 
-## From host, to network
+=== From host, to network, with mirror copy to a different host
 
-## From host, to network, with mirror copy to a different host
+=== From host, to host
 
-## From host, to host
+=== From port, to port
 
-## From port, to port
+[appendix]
+== Packet ordering
 
-# Appendix: Packet ordering {#appendix-packet-ordering}
+[bibliography]
+== References
+bibliography::references.bib[ieee]
