@@ -376,36 +376,30 @@ here as "main".
 
 ~ TableFigure {#results-of-one-pkt-thru-main; \
   caption: Result of packet processed one time by main.}
-|-------------|---------------|--------------------|
-|             | Processed     | Resulting          |
-| Description | next by       | packet(s)          |
-+:------------+:--------------+:-------------------+
-| packet from   | main, with    | Zero or more mirrored  |
-| network port  | direction     | packets, plus at most  |
-|---------------|               | |
-| packet from   | `NET_TO_HOST` | one of: a net-to-host  |
-| net-to-host   |               | recirculated packet,   |
-| recirculate   |               | or one to-host packet. |
-|---------------|               |                        |
-| packet from   |               |                        |
-| port loopback |               |                        |
 |---------------|---------------|------------------------|
-| packet from   | main, with    | Zero or more mirrored  |
-| message processing | direction | packets, plus at most |
-|---------------|               | |
-| packet from   | `HOST_TO_NET` | one of: a host-to-net  |
-| host-to-net   |               | recirculated packet,   |
-| recirculate   |               | or one to-net packet.  |
-|---------------|               |                        |
-| packet from   |               |                        |
-| host loopback |               |                        |
+|               | Processed     | Resulting              |
+| Description   | next by       | packet(s)              |
++:--------------+:--------------+:-----------------------+
+| packet from   | main          | Zero or more mirrored  |
+| network port  |               | packets, plus at most  |
+|---------------|               | one copy of the        |
+| packet from   |               | original packet.       |
+| host          |               |                        |
+|               |               |                        |
+|---------------|---------------|                        |
+| packet from   | main, with    |                        |
+| recirc path   | recirculated=1|                        |
 |---------------|---------------|------------------------|
 ~
+
+The from-network and from-host cases can be differentiated by calling
+`is_from_net(istd.input_port)` and/or `is_from_host(istd.input_port)`.
 
 Note that each mirrored packet that results from `mirror_packet`
 operations will have its own next place that it will go to be
 processed, independent of the original packet, and independent of any
-other mirror copies made of the same original packet.
+other mirror copies made of the same original packet. (See section
+[#sec-packet-mirroring] below.)
 
 # PNA Data types
 
@@ -594,7 +588,7 @@ Calling `send_to_port(x)` modifies hidden state for this packet, so
 that the packet will be sent to the vport with id `x` in the host,
 without being looped back.
 
-## Packet Mirroring
+## Packet Mirroring {#sec-packet-mirroring}
 
 ~ Begin P4Example
 [INCLUDE=pna.p4:mirror_packet]
@@ -696,22 +690,12 @@ mirror copy will be created.
 A network port id, or a vport id.
 
 If `destination_port` is a network port id, that network port is the
-destination of mirrored copy packets created by this session.  If the
-`mirror_packet()` call for this session was invoked in the
-`NET_TO_HOST` direction, mirror copy packets created will loop back in
-the host side of the target, and later come back for processing in the
-main block in the `HOST_TO_NET` direction, already destined for the
-network port `destination_port`.  That port can be overwritten by
-calls to forwarding functions.
+destination of mirrored copy packets created by this session. That port
+can be overwritten by subsequent calls to forwarding functions.
 
 If `destination_port` is a vport id, that vport is the destination of
-mirrored copy packets created by this session.  If the
-`mirror_packet()` call for this session was invoked in the
-`HOST_TO_NET` direction, mirror copy packets created will loop back in
-the network port side of the NIC, and later come back for processing
-in the main block in the `NET_TO_HOST` direction, already destined for
-the vport `destination_port`.  That vport can be overwritten by calls
-to forwarding functions.
+mirrored copy packets created by this session. That vport can be
+overwritten by calls to subsequent forwarding functions.
 
 ~Begin TBD
 When a mirror copied packet comes back to the main control, it will
