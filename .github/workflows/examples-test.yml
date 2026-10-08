@@ -12,7 +12,7 @@ on:
 
 jobs:
   verify-licenses:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     name: Validate that all files have copyright and license info
     steps:
       - uses: actions/checkout@v6
@@ -24,7 +24,7 @@ jobs:
         run: |
           uv run reuse lint
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
     - uses: actions/checkout@v3
     - name: Add .github/scripts to PATH
